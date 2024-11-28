@@ -1,0 +1,24 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+	// Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
+
+	// List of extensions which should be recommended for users of this workspace.
+	"recommendations": [
+		// ASM language syntax highlighting
+		"maziac.asm-code-lens",
+		// GNU linker script syntax highlighting
+		"zixuanwang.linkerscript",
+		// Rust
+		"rust-lang.rust-analyzer",
+		"tamasfe.even-better-toml",
+		// for gdb
+		"ms-vscode.cpptools", 
+		// 夹带私货 🤓☝🏻
+		"gerrnperl.outline-map",
+		
+	],
+	// List of extensions recommended by VS Code that should not be recommended for users of this workspace.
+	"unwantedRecommendations": [
+		
+	]
+}
