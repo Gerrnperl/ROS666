@@ -1,0 +1,67 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "调试内核",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/${workspaceFolderBasename}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set architecture to riscv:rv64",
+                    "text": "set arch riscv:rv64",
+                    "ignoreFailures": false
+                },
+            ],
+            // RISC-V toolchain: gdb
+            "miDebuggerPath": "riscv64-unknown-elf-gdb", 
+            // "miDebuggerArgs": "-ex 'file ${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${workspaceFolderBasename}' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'",
+            // gdb server
+            "miDebuggerServerAddress": "localhost:25666",
+            "preLaunchTask": "QEMU: launch riscv64 (debug)",
+        },
+        {
+            "name": "运行内核",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${workspaceFolderBasename}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set architecture to riscv:rv64",
+                    "text": "set arch riscv:rv64",
+                    "ignoreFailures": false
+                },
+            ],
+            // RISC-V toolchain: gdb
+            "miDebuggerPath": "riscv64-unknown-elf-gdb", 
+            // gdb server
+            "miDebuggerServerAddress": "localhost:25666",
+            "preLaunchTask": "QEMU: launch riscv64 (release)",
+        },
+    ]
+}

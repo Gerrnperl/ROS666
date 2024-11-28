@@ -1,0 +1,172 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        // #region CargoBuild 编译项目
+        {
+            "type": "cargo",
+            "command": "build",
+            "detail": "编译项目 (debug)",
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiMagenta"
+            },
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "Rust: cargo build (debug)"
+        },
+        {
+            "type": "cargo",
+            "command": "build",
+            "detail": "编译项目 (release)",
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiMagenta"
+            },
+            "args": [
+                "--release"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": "build",
+            "label": "Rust: cargo build (release)"
+        },
+        // #endregion CargoBuild
+        // #region Objcopy 生成内核镜像
+        {
+            "type": "shell",
+            "label": "Rust: objcopy (debug)",
+            "detail": "生成内核镜像 (debug)",
+            "icon": {
+                "id": "combine",
+                "color": "terminal.ansiBlue"
+            },
+            "command": "${workspaceFolder}/scripts/build-kernel-img.sh",
+            "args": [
+                "${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/${workspaceFolderBasename}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "type": "shell",
+            "label": "Rust: objcopy (release)",
+            "detail": "生成内核镜像 (release)",
+            "icon": {
+                "id": "combine",
+                "color": "terminal.ansiBlue"
+            },
+            "command": "${workspaceFolder}/scripts/build-kernel-img.sh",
+            "args": [
+                "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${workspaceFolderBasename}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        // #endregion Objcopy
+        // #region LaunchQEMU 启动 QEMU
+        {
+            "type": "shell",
+            "label": "QEMU: launch riscv64 (debug)",
+            "detail": "运行 QEMU RISC-V (debug)",
+            "icon": {
+                "id": "vm-connect",
+                "color": "terminal.ansiGreen"
+            },
+            "command": "${workspaceFolder}/scripts/launch-qemu.sh",
+            "args": [
+                "${workspaceFolder}/bootloader/rustsbi-qemu-release",
+                "${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/${workspaceFolderBasename}.bin",
+                "-dbg"
+            ],
+            "group": {
+                "kind": "none",
+                "isDefault": true
+            },
+            "isBackground": true,
+            "problemMatcher": [
+                {
+                    "pattern": [
+                        {
+                            "regexp": ".*?",
+                            "file": 1,
+                            "location": 2,
+                            "message": 3
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": {
+                            "regexp": "."
+                        },
+                        "endsPattern": {
+                            "regexp": "."
+                        }
+                    }
+                }
+            ],
+            "dependsOn": [
+                "Rust: cargo build (debug)",
+                "Rust: objcopy (debug)"
+            ],
+            "dependsOrder": "sequence"
+        },
+        {
+            "type": "shell",
+            "label": "QEMU: launch riscv64 (release)",
+            "detail": "运行 QEMU RISC-V (release)",
+            "icon": {
+                "id": "vm-running",
+                "color": "terminal.ansiGreen"
+            },
+            "command": "${workspaceFolder}/scripts/launch-qemu.sh",
+            "args": [
+                "${workspaceFolder}/bootloader/rustsbi-qemu-release",
+                "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${workspaceFolderBasename}.bin",
+                // "-dbg"
+            ],
+            "group": {
+                "kind": "none",
+                "isDefault": true
+            },
+            "isBackground": true,
+            "problemMatcher": [
+                {
+                    "pattern": [
+                        {
+                            "regexp": ".*?",
+                            "file": 1,
+                            "location": 2,
+                            "message": 3
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": {
+                            "regexp": "."
+                        },
+                        "endsPattern": {
+                            "regexp": "."
+                        }
+                    }
+                }
+            ],
+            "dependsOn": [
+                "Rust: cargo build (release)",
+                "Rust: objcopy (release)"
+            ],
+            "dependsOrder": "sequence"
+        }
+        // #endregion LaunchQEMU
+    ]
+}
