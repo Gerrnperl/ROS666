@@ -16,6 +16,7 @@ pub extern "C" fn _kernel_entry() -> ! {
     for &c in hello {
         sbi::sbi_console_putchar(c as usize);
     }
+    // sbi::sbi_shutdown(false);
     loop {}
 }
 
