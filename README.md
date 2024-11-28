@@ -11,11 +11,25 @@ A attempt to create a simple os.
 
 ## Requirements
 
+项目构建运行配置针对 Linux (Ubuntu) 系统配置，未在其他系统上测试。建议使用 WSL2 或 VMWare / VirtualBox 等虚拟机运行 Ubuntu 系统。
+
+Ubuntu 版本建议在 **24.04 noble** 及以上版本，避免从源码编译 QEMU。
+
 运行 `scripts/check-dev-requirements.sh` 检查开发环境是否满足要求。
+
+### WSL 
+
+参阅:
+
+[Install Ubuntu on WSL2](https://documentation.ubuntu.com/wsl/en/latest/guides/install-ubuntu-wsl2/)
+
+[Ubuntu 24.04.1 LTS | Microsoft Store](https://apps.microsoft.com/detail/9nz3klhxdjp5)
+
+[Developing in WSL with Visual Studio Code](https://code.visualstudio.com/docs/remote/wsl)
 
 ### Rust 安装
 
-<img src="data:image/webp;base64,UklGRk4DAABXRUJQVlA4IEIDAACwHACdASrIAFEAP/3+/3+/ubayJ3HMA/A/iWkAFfC2kMa0cKhT7nkA+U1t7MM2/tZahAHbi8aulSznNFUBVdXujKGo6oaFJM/qHx8vVqZG1PRTcFW9dXHRC4N+XxdM9W/eqvb550Tm6r9lR2Yh4vOMPj/Io2ha8a6efNmeAuffAjcfTuumOQmVvWzJcFy+oGJZr9hmFH+LvLx+wEq208WKCwggOgjrmdx6LlxP9x9XrPuqbO9fpUPyjKyk50WramWhl7j1puYIFndQ2HIEQQ9fZKQBUOmwJkwnbmQGlSjCjTB6CVjENMvzndFWnRvwAP7lahaYvf7Fdkc7a6zd0LPL1mIvGsx089NjshDm6yipyiB1n18ic4ikwdiWCe1x5tciFaGkJoAAVcPUqWVEooT9EKBdhvMptvaSvfoarlUDuG1YhRq7kt3q3hyUrqzKE6K5ENk/tx28xxo+0+YkQ/QpWSozoLHi8gFCzmHSYuy+1gm7uh+iWm7+zXbrJdMou0yAtEyUGNVcqBhqdEjnoCgDx1gb0VsFnny6hXt8Sw6XM/27i0M5hKzAGw7VvzaP9MBa2nkI15ffW7FgwmOvEsU6UM1telJ7Xy0NLvgY0uUe/pW/9ATV3+8jclbqoHcQwfXDFADDoZ8ZxqeW3n/l2nyFFGnKkJQSSkqI2ZikNfu1PyENz4daUxMTIo7KEIj+U0rWamLtLdXyAHg5U4EIdzo+D7PBofRM6wn9QuPVgSC1GbFSCb7PiKjJliTZtBecNa7A8M48I4L62QbnrnG3h2U3z3qv1jfNqFZTYP/KhNbVcPffyceCPPyIWjUGC7Rn9ffYcANoIM3KR7mu2XfFJU/v5YXC75oqvfqo3qO/BeVqB5L+ds1Msp0CKCeV8C6FGBCIQUr+ODVxbbsMU7/EgNg9MlzhTjDxU65FWtHo96wHypGE+pmEwRtdPjSGgyo1rS8mrLmCOyUI+WXHpN3q5MmQ6+QuyUNXBKUmVMC3eYyiwjF9I2G3B5vRo9m2LJ6vnu+0By0xJyo0xLjot2jmI0tACyFJsXrfOYnz7Lz9ssfqcpPEU/bgrA9fERXyZW/PjGD+ZA2oVoUAkWbdOZdxIAAAAAA=" width="100px" 
+<img src="https://pic4.zhimg.com/v2-4f3c8ea0b71e54ea4aeb98c1747ae81b_xld.png" width="100px" alt="rust"
 title="&#x4F60;&#x8BF4;&#x5F97;&#x5BF9;&#xFF0C;&#x4F46;&#x662F; Rust &#x662F;&#x7531; Mozilla &#x81EA;&#x4E3B;&#x7814;&#x53D1;&#x7684;&#x4E00;&#x6B3E;&#x5168;&#x65B0;&#x7684;&#x7F16;&#x8BD1;&#x671F;&#x683C;&#x6597;&#x6E38;&#x620F;&#x3002;&#x7F16;&#x8BD1;&#x5C06;&#x53D1;&#x751F;&#x5728;&#x4E00;&#x4E2A;&#x88AB;&#x79F0;&#x4F5C;&#x300C;Cargo&#x300D;&#x7684;&#x6784;&#x5EFA;&#x7CFB;&#x7EDF;&#x4E2D;&#x3002;&#x5728;&#x8FD9;&#x91CC;&#xFF0C;&#x88AB;&#x5F15;&#x7528;&#x7684;&#x6307;&#x9488;&#x5C06;&#x88AB;&#x6388;&#x4E88;&#x300C;&#x751F;&#x547D;&#x5468;&#x671F;&#x300D;&#x4E4B;&#x529B;&#xFF0C;&#x5BFC;&#x5F15;&#x5BF9;&#x8C61;&#x5B89;&#x5168;&#x3002;&#x4F60;&#x5C06;&#x626E;&#x6F14;&#x4E00;&#x4F4D;&#x540D;&#x4E3A;&#x300C;Rustacean&#x300D;&#x7684;&#x795E;&#x79D8;&#x89D2;&#x8272;, &#x5728;&#x4E0E;&#x300C;Rustc&#x300D;&#x7684;&#x640F;&#x6597;&#x4E2D;&#x9082;&#x9005;&#x5404;&#x79CD;&#x9AA8;&#x9ABC;&#x60CA;&#x5947;&#x7684;&#x50B2;&#x5A07;&#x62A5;&#x9519;&#x3002;&#x5F81;&#x670D;&#x5B83;&#x4EEC;&#x3001;&#x901A;&#x8FC7;&#x7F16;&#x8BD1;&#x540C;&#x65F6;&#xFF0C;&#x9010;&#x6B65;&#x53D1;&#x6398;&#x300C;C++&#x300D;&#x7A0B;&#x5E8F;&#x5D29;&#x6E83;&#x7684;&#x771F;&#x76F8;.">
 
 #### 检查 Rust 是否安装
