@@ -10,5 +10,7 @@
   "rust-analyzer.inlayHints.closureStyle": "rust_analyzer",
   "rust-analyzer.inlayHints.chainingHints.enable": false,
   "rust-analyzer.workspace.symbol.search.kind": "all_symbols",
-  "debug.allowBreakpointsEverywhere": true
+  "debug.allowBreakpointsEverywhere": true,
+  "rust-analyzer.cargo.target": "riscv64gc-unknown-none-elf",
+  "rust-analyzer.check.allTargets": false,
 }
