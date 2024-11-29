@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sbi-rt = { version = "0.0.3", features = ["legacy"] }
+rustsbi = { version = "0.4.0", features = ["forward"] }
 
 [profile.dev]
 panic = "abort"
