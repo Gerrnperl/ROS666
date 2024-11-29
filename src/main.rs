@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 
+mod io;
 mod language_item;
 mod sbi;
 
@@ -8,19 +9,25 @@ use core::arch::global_asm;
 
 global_asm!(include_str!("entry.asm"));
 
+/// 内核入口函数
 #[unsafe(no_mangle)]
 pub extern "C" fn _kernel_entry() -> ! {
     clear_bss();
-    // Say hello :)
-    let hello = b"Hello, World!";
-    for &c in hello {
-        sbi::sbi_console_putchar(c as usize);
-    }
+    printkln!("Hello, {}!", "World");
+    printkln!("Hello"); // => "Hello"
+    printkln!("Hello, {}!", "world"); // => "Hello, world!"
+    printkln!("The number is {}", 1); // => "The number is 1"
+    printkln!("{:?}", (3, 4)); // => "(3, 4)"
+    printkln!("{value}", value = 4); // => "4"
+    printkln!("{} {}", 1, 2); // => "1 2"
+    printkln!("{:04}", 42); // => "0042" with leading zeros
+    printkln!("{:#?}", (100, 200));
+
     // sbi::sbi_shutdown(false);
     loop {}
 }
 
-/// Clear the .bss section
+/// 清空 BSS 段
 fn clear_bss() {
     unsafe extern "C" {
         static mut __bss_start: u64;
