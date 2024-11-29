@@ -12,7 +12,9 @@ impl Write for Stdout {
 }
 
 pub fn printk(args: core::fmt::Arguments) {
-    Stdout {}.write_fmt(args).unwrap();
+    if let Err(e) = (Stdout {}.write_fmt(args)) {
+        panic!("Printing to stdout failed: {:?}", e);
+    }
 }
 
 #[macro_export]
