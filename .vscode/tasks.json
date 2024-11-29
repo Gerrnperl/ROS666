@@ -3,6 +3,22 @@
     // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
+        // #region EnvCheck 检查环境
+        {
+            "type": "shell",
+            "label": "Check: dev environment",
+            "detail": "检查环境",
+            "icon": {
+                "id": "checklist",
+                "color": "terminal.ansiRed"
+            },
+            "command": "${workspaceFolder}/scripts/check-dev-requirements.sh",
+            "group": {
+                "kind": "none",
+            },
+            "problemMatcher": []
+        },
+        // #endregion EnvCheck
         // #region CargoBuild 编译项目
         {
             "type": "cargo",
@@ -15,7 +31,10 @@
             "problemMatcher": [
                 "$rustc"
             ],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true,
+            },
             "label": "Rust: cargo build (debug)"
         },
         {
@@ -32,7 +51,10 @@
             "problemMatcher": [
                 "$rustc"
             ],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": false,
+            },
             "label": "Rust: cargo build (release)"
         },
         // #endregion CargoBuild
@@ -51,7 +73,7 @@
             ],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
             "problemMatcher": []
         },
@@ -69,7 +91,7 @@
             ],
             "group": {
                 "kind": "build",
-                "isDefault": true
+                "isDefault": false
             },
             "problemMatcher": []
         },
@@ -116,6 +138,7 @@
                 }
             ],
             "dependsOn": [
+                "Check: dev environment",
                 "Rust: cargo build (debug)",
                 "Rust: objcopy (debug)"
             ],
@@ -162,6 +185,7 @@
                 }
             ],
             "dependsOn": [
+                "Check: dev environment",
                 "Rust: cargo build (release)",
                 "Rust: objcopy (release)"
             ],

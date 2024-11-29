@@ -32,19 +32,13 @@ Ubuntu 版本建议在 **24.04 noble** 及以上版本，避免从源码编译 Q
 <img src="https://pic4.zhimg.com/v2-4f3c8ea0b71e54ea4aeb98c1747ae81b_xld.png" width="100px" alt="rust"
 title="&#x4F60;&#x8BF4;&#x5F97;&#x5BF9;&#xFF0C;&#x4F46;&#x662F; Rust &#x662F;&#x7531; Mozilla &#x81EA;&#x4E3B;&#x7814;&#x53D1;&#x7684;&#x4E00;&#x6B3E;&#x5168;&#x65B0;&#x7684;&#x7F16;&#x8BD1;&#x671F;&#x683C;&#x6597;&#x6E38;&#x620F;&#x3002;&#x7F16;&#x8BD1;&#x5C06;&#x53D1;&#x751F;&#x5728;&#x4E00;&#x4E2A;&#x88AB;&#x79F0;&#x4F5C;&#x300C;Cargo&#x300D;&#x7684;&#x6784;&#x5EFA;&#x7CFB;&#x7EDF;&#x4E2D;&#x3002;&#x5728;&#x8FD9;&#x91CC;&#xFF0C;&#x88AB;&#x5F15;&#x7528;&#x7684;&#x6307;&#x9488;&#x5C06;&#x88AB;&#x6388;&#x4E88;&#x300C;&#x751F;&#x547D;&#x5468;&#x671F;&#x300D;&#x4E4B;&#x529B;&#xFF0C;&#x5BFC;&#x5F15;&#x5BF9;&#x8C61;&#x5B89;&#x5168;&#x3002;&#x4F60;&#x5C06;&#x626E;&#x6F14;&#x4E00;&#x4F4D;&#x540D;&#x4E3A;&#x300C;Rustacean&#x300D;&#x7684;&#x795E;&#x79D8;&#x89D2;&#x8272;, &#x5728;&#x4E0E;&#x300C;Rustc&#x300D;&#x7684;&#x640F;&#x6597;&#x4E2D;&#x9082;&#x9005;&#x5404;&#x79CD;&#x9AA8;&#x9ABC;&#x60CA;&#x5947;&#x7684;&#x50B2;&#x5A07;&#x62A5;&#x9519;&#x3002;&#x5F81;&#x670D;&#x5B83;&#x4EEC;&#x3001;&#x901A;&#x8FC7;&#x7F16;&#x8BD1;&#x540C;&#x65F6;&#xFF0C;&#x9010;&#x6B65;&#x53D1;&#x6398;&#x300C;C++&#x300D;&#x7A0B;&#x5E8F;&#x5D29;&#x6E83;&#x7684;&#x771F;&#x76F8;.">
 
-#### 检查 Rust 是否安装
+确保系统中已安装 Rust，并且 `rustc` 命令在 `$PATH` 中可用。
 
-确保系统中已安装 Rust，并且 `rustc` 命令在 `$PATH` 中可用。运行以下命令进行检查：
-
-```shell
-rustc --version
-```
-
-如果未安装 Rust 或 `rustc` 不在 `$PATH` 中，请按照以下步骤安装 Rust。
+如果未安装 Rust，请按照以下步骤安装 Rust。
 
 #### 安装 Rust
 
-您可以通过以下命令安装 Rust：
+可以通过以下命令安装 Rust：
 
 ```shell
 curl https://sh.rustup.rs -sSf | sh
@@ -75,17 +69,26 @@ rustup install nightly
 rustup default nightly
 ```
 
-### QEMU 安装
+#### 配置 Cargo 镜像源
 
-#### 检查 QEMU 是否安装
+Rust 的包管理工具 `cargo` 默认从官方源下载依赖，由于网络原因可能会导致下载速度较慢。可以配置 Rust 镜像源加速下载。
 
-确保您的系统中已安装 `qemu-system-riscv64`，并且该命令在 `$PATH` 中可用。运行以下命令进行检查：
+```toml
+# ~/.cargo/config.toml
+[source.crates-io]
+replace-with = 'mirror'
 
-```shell
-qemu-system-riscv64 --version
+[source.mirror]
+registry = "https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
 ```
 
-如果未安装 QEMU 或 `qemu-system-riscv64` 不在 `$PATH` 中，请按照以下步骤安装 QEMU。
+### QEMU 安装
+
+QEMU 是一个开源的模拟器。
+
+确保系统中已安装 `qemu-system-riscv64`，并且该命令在 `$PATH` 中可用。
+
+如果未安装 QEMU，请按照以下步骤安装 QEMU。
 
 #### 安装 QEMU
 
@@ -95,7 +98,7 @@ qemu-system-riscv64 --version
 sudo apt install qemu-system
 ```
 
-对于旧版本的 Ubuntu，您需要从源码编译 QEMU。请参考以下链接：
+对于旧版本的 Ubuntu，需要从源码编译 QEMU。请参考以下链接：
 
 - [rCore-Tutorial-Book-v3](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter0/5setup-devel-env.html#qemu)
 - [QEMU 官方下载页面](https://www.qemu.org/download/#source)
@@ -110,15 +113,11 @@ qemu-system-riscv64 --version
 
 ### riscv64-unknown-elf-gdb 安装
 
-#### 检查 riscv64-unknown-elf-gdb 是否安装
+riscv64-unknown-elf-gdb 是 GDB 的 RISC-V 版本。
 
-确保您的系统中已安装 `riscv64-unknown-elf-gdb`，并且该命令在 `$PATH` 中可用。运行以下命令进行检查：
+确保系统中已安装 `riscv64-unknown-elf-gdb`，并且该命令在 `$PATH` 中可用。
 
-```shell
-riscv64-unknown-elf-gdb --version
-```
-
-如果未安装 `riscv64-unknown-elf-gdb` 或该命令不在 `$PATH` 中，请按照以下步骤安装。
+如果未安装 `riscv64-unknown-elf-gdb`，请按照以下步骤安装。
 
 #### 安装 riscv64-unknown-elf-gdb
 
@@ -126,3 +125,50 @@ riscv64-unknown-elf-gdb --version
 2. 解压 tar 包，并将 `bin` 目录添加到您的 `$PATH` 中。
 
 更多详细信息请参考 [rCore-Tutorial-Book-v3](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter0/5setup-devel-env.html#gdb)。
+
+## Launch
+
+建议使用 Visual Studio Code 进行开发和调试运行，已经为 VS Code 配置了需要的任务和调试配置。
+
+### Visual Studio Code
+
+#### 扩展
+
+使用 VS Code 打开项目根目录，将会提示安装推荐的扩展，点击安装即可。
+
+| 扩展 | 描述 |
+| --- | --- |
+| [ASM Code Lens](https://marketplace.visualstudio.com/items?itemName=maziac.asm-code-lens) | 汇编语言语法高亮 |
+| [LinkerScript](https://marketplace.visualstudio.com/items?itemName=zixuanwang.linkerscript) | GNU 链接脚本语法高亮 |
+| [Rust Analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) | Rust 语言支持 |
+| [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) | TOML 语法高亮 |
+| [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) | GDB 调试支持 |
+
+#### 任务
+
+通过 `Ctrl + Shift + P` 打开命令面板，输入 `Tasks: Run Task`，选择需要的任务运行。
+
+| 任务 | 描述 |
+| --- | --- |
+| Check: dev environment | 检查开发环境是否满足要求 |
+| Rust: cargo build (debug) | 编译项目 (调试模式) |
+| Rust: cargo build (release) | 编译项目 (发布模式) |
+| Rust: objcopy (debug) | 生成内核镜像 (调试模式) |
+| Rust: objcopy (release) | 生成内核镜像 (发布模式) |
+| QEMU: launch riscv64 (debug) | 运行 QEMU RISC-V (调试模式) |
+| QEMU: launch riscv64 (release) | 运行 QEMU RISC-V (发布模式) |
+
+#### 运行和调试
+
+目前提供了 `调试内核` 和 `运行内核` 两个调试配置，在`运行和调试`面板中，可以选择调试配置。通过 `F5` 运行调试。
+
+调试通过`riscv64-unknown-elf-gdb`进行，需要在系统中安装该工具链。
+
+也可以在运行 QEMU 后，手动连接 GDB 调试器。通过任务运行的 QEMU 会监听 `localhost:25666` GDB 调试端口。
+
+```sh
+riscv64-unknown-elf-gdb \     
+  -ex 'file target/riscv64gc-unknown-none-elf/release/startup-test' \
+  -ex 'set arch riscv:rv64' \
+  -ex 'target remote localhost:25666'
+```
