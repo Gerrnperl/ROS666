@@ -1,0 +1,29 @@
+name: Deploy Cargo Docs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Rust
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: nightly
+        targets: riscv64gc-unknown-none-elf
+
+    - name: Build documentation
+      run: cargo doc --all --document-private-items
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./target/riscv64gc-unknown-none-elf/doc
