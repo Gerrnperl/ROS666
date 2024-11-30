@@ -30,14 +30,10 @@ fn main() -> i32 {
 /// 清空 BSS 段
 fn clear_bss() {
     unsafe extern "C" {
-        static mut __bss_start: u64;
-        static mut __bss_end: u64;
+        fn __bss_start();
+        fn __bss_end();
     }
-
-    let bss_start = unsafe { __bss_start as usize };
-    let bss_end = unsafe { __bss_end as usize };
-
-    for i in bss_start..bss_end {
+    for i in __bss_start as usize..__bss_end as usize {
         unsafe {
             core::ptr::write_volatile(i as *mut u8, 0);
         }

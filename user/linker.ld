@@ -37,12 +37,12 @@ SECTIONS
     __data_end = .;
 
     .bss : {
-        start_bss = .;
+        __bss_start = .;
         *(.bss .bss.*)
         *(.sbss .sbss.*)
     }
 
-    end_bss = .;
+    __bss_end = .;
     __app_end = .;
 
     /DISCARD/ : {
