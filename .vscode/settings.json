@@ -16,4 +16,8 @@
   "cSpell.words": [
     "printkln"
   ],
+  "evenBetterToml.schema.associations": {
+    // cargo
+    ".*?Cargo.toml": "https://json.schemastore.org/cargo",
+  },
 }
