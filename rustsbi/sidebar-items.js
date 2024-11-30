@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["LOGO","VERSION"],"derive":["RustSBI"],"externcrate":["spec"],"struct":["Forward","HartMask","Physical","SbiRet","SharedPtr"],"trait":["Console","Cppc","EnvInfo","Fence","Hsm","Ipi","Nacl","Pmu","Reset","RustSBI","Sta","Susp","Timer"]};

@@ -1,0 +1,218 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Performance Monitoring Unit extension."><title>Pmu in rustsbi - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-dbdb5eec.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="rustsbi" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (d10a6823f 2024-11-29)" data-channel="nightly" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rustsbi/index.html">rustsbi</a><span class="version">0.4.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Pmu</a></h2><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.counter_config_matching" title="counter_config_matching">counter_config_matching</a></li><li><a href="#tymethod.counter_fw_read" title="counter_fw_read">counter_fw_read</a></li><li><a href="#tymethod.counter_get_info" title="counter_get_info">counter_get_info</a></li><li><a href="#tymethod.counter_start" title="counter_start">counter_start</a></li><li><a href="#tymethod.counter_stop" title="counter_stop">counter_stop</a></li><li><a href="#tymethod.num_counters" title="num_counters">num_counters</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.counter_fw_read_hi" title="counter_fw_read_hi">counter_fw_read_hi</a></li></ul><h3><a href="#foreign-impls">Implementations on Foreign Types</a></h3><ul class="block"><li><a href="#impl-Pmu-for-%26T" title="&#38;T">&#38;T</a></li><li><a href="#impl-Pmu-for-Option%3CT%3E" title="Option&#60;T&#62;">Option&#60;T&#62;</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate rustsbi</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="index.html">rustsbi</a></span><h1>Trait <span class="trait">Pmu</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/rustsbi/pmu.rs.html#38-233">Source</a> </span></div><pre class="rust item-decl"><code>pub trait Pmu {
+    // Required methods
+    fn <a href="#tymethod.num_counters" class="fn">num_counters</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.counter_get_info" class="fn">counter_get_info</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.counter_config_matching" class="fn">counter_config_matching</a>(
+        &amp;self,
+        counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        config_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        event_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        event_data: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    ) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.counter_start" class="fn">counter_start</a>(
+        &amp;self,
+        counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        start_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        initial_value: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+    ) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.counter_stop" class="fn">counter_stop</a>(
+        &amp;self,
+        counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        stop_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    ) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.counter_fw_read" class="fn">counter_fw_read</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a>;
+
+    // Provided method
+    fn <a href="#method.counter_fw_read_hi" class="fn">counter_fw_read_hi</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a> { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Performance Monitoring Unit extension.</p>
+<p>The RISC-V hardware performance counters such as <code>mcycle</code>, <code>minstret</code>, and <code>mhpmcounterX</code> CSRs
+are accessible as read-only from supervisor-mode using <code>cycle</code>, <code>instret</code>, and <code>hpmcounterX</code> CSRs.
+The SBI performance monitoring unit (PMU) extension is an interface for supervisor-mode to configure
+and use the RISC-V hardware performance counters with assistance from the machine-mode (or hypervisor-mode).
+These hardware performance counters can only be started, stopped, or configured from machine-mode
+using <code>mcountinhibit</code> and <code>mhpmeventX</code> CSRs.
+Due to this, a machine-mode SBI implementation may choose to disallow its SBI PMU extension
+if <code>mcountinhibit</code> CSR is not implemented by the RISC-V platform.</p>
+<p>A RISC-V platform generally supports monitoring of various hardware events using a limited number
+of hardware performance counters which are up to 64 bits wide.
+In addition, an SBI implementation can also provide firmware performance counters which can monitor firmware events
+such as number of misaligned load/store instructions, number of RFENCEs, number of IPIs, etc.
+The firmware counters are always 64 bits wide.</p>
+<p>The SBI PMU extension provides:</p>
+<ol>
+<li>An interface for supervisor-mode software to discover and configure per-HART hardware/firmware counters</li>
+<li>A typical perf compatible interface for hardware/firmware performance counters and events</li>
+<li>Full access to micro-architecture’s raw event encodings</li>
+</ol>
+<p>To define SBI PMU extension calls, we first define important entities <code>counter_idx</code>, <code>event_idx</code>, and <code>event_data</code>.
+The <code>counter_idx</code> is a logical number assigned to each hardware/firmware counter.
+The <code>event_idx </code>represents a hardware (or firmware) event, whereas
+the <code>event_data</code> is 64 bits wide and represents additional configuration (or parameters) for
+a hardware (or firmware) event.</p>
+<p>The event_idx is a 20 bits wide number encoded as follows:</p>
+<div class="example-wrap"><pre class="language-text"><code>event_idx[19:16] = type;
+event_idx[15:0] = code;</code></pre></div></div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.num_counters" class="method"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#42">Source</a><h4 class="code-header">fn <a href="#tymethod.num_counters" class="fn">num_counters</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a></h4></section></summary><div class="docblock"><p>Returns the number of counters (both hardware and firmware).</p>
+<p>The value is returned in <code>SbiRet.value</code>; this call always returns <code>SbiRet::success()</code>.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.counter_get_info" class="method"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#66">Source</a><h4 class="code-header">fn <a href="#tymethod.counter_get_info" class="fn">counter_get_info</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Get details about the specified counter such as underlying CSR number, width of the counter,
+type of counter (hardware/firmware, etc.).</p>
+<p>The <code>counter_info</code> returned by this SBI call is encoded as follows:</p>
+<div class="example-wrap"><pre class="language-text"><code>counter_info[11:0] = CSR; // (12bit CSR number)
+counter_info[17:12] = Width; // (One less than number of bits in CSR)
+counter_info[XLEN-2:18] = Reserved; // Reserved for future use
+counter_info[XLEN-1] = Type; // (0 = hardware and 1 = firmware)</code></pre></div>
+<p>If <code>counter_info.type</code> == <code>1</code> then <code>counter_info.csr</code> and <code>counter_info.width</code> should be ignored.</p>
+<h5 id="return-value"><a class="doc-anchor" href="#return-value">§</a>Return value</h5>
+<p>Returns the <code>counter_info</code> described above in <code>SbiRet.value</code>.</p>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left"><code>counter_info</code> read successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_param()</code></td><td style="text-align: left"><code>counter_idx</code> points to an invalid counter.</td></tr>
+</tbody></table>
+</div></div></details><details class="toggle method-toggle" open><summary><section id="tymethod.counter_config_matching" class="method"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#113-120">Source</a><h4 class="code-header">fn <a href="#tymethod.counter_config_matching" class="fn">counter_config_matching</a>(
+    &amp;self,
+    counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    config_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    event_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    event_data: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Find and configure a counter from a set of counters which is not started (or enabled)
+and can monitor the specified event.</p>
+<h5 id="parameters"><a class="doc-anchor" href="#parameters">§</a>Parameters</h5>
+<p>The <code>counter_idx_base</code> and <code>counter_idx_mask</code> parameters represent the set of counters,
+whereas the <code>event_idx</code> represents the event to be monitored
+and <code>event_data</code> represents any additional event configuration.</p>
+<p>The <code>config_flags</code> parameter represents additional configuration and filter flags on counters.
+The bit definitions of the <code>config_flags</code> parameter are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Flag Name</th><th style="text-align: left">Bits</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SBI_PMU_CFG_FLAG_SKIP_MATCH</code></td><td style="text-align: left"><code>0:0</code></td><td style="text-align: left">Skip the counter matching</td></tr>
+<tr><td style="text-align: left"><code>SBI_PMU_CFG_FLAG_CLEAR_VALUE</code></td><td style="text-align: left"><code>1:1</code></td><td style="text-align: left">Clear (or zero) the counter value in counter configuration</td></tr>
+<tr><td style="text-align: left"><code>SBI_PMU_CFG_FLAG_AUTO_START</code></td><td style="text-align: left"><code>2:2</code></td><td style="text-align: left">Start the counter after configuring a matching counter</td></tr>
+<tr><td style="text-align: left"><code>SBI_PMU_CFG_FLAG_SET_VUINH</code></td><td style="text-align: left"><code>3:3</code></td><td style="text-align: left">Event counting inhibited in VU-mode</td></tr>
+<tr><td style="text-align: left"><code>SBI_PMU_CFG_FLAG_SET_VSINH</code></td><td style="text-align: left"><code>4:4</code></td><td style="text-align: left">Event counting inhibited in VS-mode</td></tr>
+<tr><td style="text-align: left"><code>SBI_PMU_CFG_FLAG_SET_UINH</code></td><td style="text-align: left"><code>5:5</code></td><td style="text-align: left">Event counting inhibited in U-mode</td></tr>
+<tr><td style="text-align: left"><code>SBI_PMU_CFG_FLAG_SET_SINH</code></td><td style="text-align: left"><code>6:6</code></td><td style="text-align: left">Event counting inhibited in S-mode</td></tr>
+<tr><td style="text-align: left"><code>SBI_PMU_CFG_FLAG_SET_MINH</code></td><td style="text-align: left"><code>7:7</code></td><td style="text-align: left">Event counting inhibited in M-mode</td></tr>
+<tr><td style="text-align: left"><em>RESERVED</em></td><td style="text-align: left"><code>8:(XLEN-1)</code></td><td style="text-align: left"><em>All non-zero values are reserved for future use.</em></td></tr>
+</tbody></table>
+</div>
+<p><em>NOTE:</em> When <em>SBI_PMU_CFG_FLAG_SKIP_MATCH</em> is set in <code>config_flags</code>, the
+SBI implementation will unconditionally select the first counter from the
+set of counters specified by the <code>counter_idx_base</code> and <code>counter_idx_mask</code>.</p>
+<p><em>NOTE:</em> The <em>SBI_PMU_CFG_FLAG_AUTO_START</em> flag in <code>config_flags</code> has no
+impact on the value of counter.</p>
+<p><em>NOTE:</em> The <code>config_flags[3:7]</code> bits are event filtering hints so these
+can be ignored or overridden by the SBI implementation for security concerns
+or due to lack of event filtering support in the underlying RISC-V platform.</p>
+<h5 id="return-value-1"><a class="doc-anchor" href="#return-value-1">§</a>Return value</h5>
+<p>Returns the <code>counter_idx</code> in <code>sbiret.value</code> upon success.</p>
+<p>In case of failure, the possible error codes returned in <code>sbiret.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">counter found and configured successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_param()</code></td><td style="text-align: left">the set of counters has at least one invalid counter.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::not_supported()</code></td><td style="text-align: left">none of the counters can monitor the specified event.</td></tr>
+</tbody></table>
+</div></div></details><details class="toggle method-toggle" open><summary><section id="tymethod.counter_start" class="method"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#147-153">Source</a><h4 class="code-header">fn <a href="#tymethod.counter_start" class="fn">counter_start</a>(
+    &amp;self,
+    counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    start_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    initial_value: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Start or enable a set of counters on the calling HART with the specified initial value.</p>
+<h5 id="parameters-1"><a class="doc-anchor" href="#parameters-1">§</a>Parameters</h5>
+<p>The <code>counter_idx_base</code> and <code>counter_idx_mask</code> parameters represent the set of counters.
+whereas the <code>initial_value</code> parameter specifies the initial value of the counter.</p>
+<p>The bit definitions of the <code>start_flags</code> parameter are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Flag Name</th><th style="text-align: left">Bits</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SBI_PMU_START_SET_INIT_VALUE</code></td><td style="text-align: left"><code>0:0</code></td><td style="text-align: left">Set the value of counters based on the <code>initial_value</code> parameter.</td></tr>
+<tr><td style="text-align: left"><em>RESERVED</em></td><td style="text-align: left"><code>1:(XLEN-1)</code></td><td style="text-align: left"><em>All non-zero values are reserved for future use.</em></td></tr>
+</tbody></table>
+</div>
+<p><em>NOTE</em>: When <code>SBI_PMU_START_SET_INIT_VALUE</code> is not set in <code>start_flags</code>, the value of counter will
+not be modified, and event counting will start from the current value of counter.</p>
+<h5 id="return-value-2"><a class="doc-anchor" href="#return-value-2">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">counter started successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_param()</code></td><td style="text-align: left">the set of counters has at least one invalid counter.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::already_started()</code></td><td style="text-align: left">the set of counters includes at least one counter which is already started.</td></tr>
+</tbody></table>
+</div></div></details><details class="toggle method-toggle" open><summary><section id="tymethod.counter_stop" class="method"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#175-180">Source</a><h4 class="code-header">fn <a href="#tymethod.counter_stop" class="fn">counter_stop</a>(
+    &amp;self,
+    counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    stop_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Stop or disable a set of counters on the calling HART.</p>
+<h5 id="parameters-2"><a class="doc-anchor" href="#parameters-2">§</a>Parameters</h5>
+<p>The <code>counter_idx_base</code> and <code>counter_idx_mask</code> parameters represent the set of counters.
+The bit definitions of the <code>stop_flags</code> parameter are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Flag Name</th><th style="text-align: left">Bits</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SBI_PMU_STOP_FLAG_RESET</code></td><td style="text-align: left"><code>0:0</code></td><td style="text-align: left">Reset the counter to event mapping.</td></tr>
+<tr><td style="text-align: left"><em>RESERVED</em></td><td style="text-align: left"><code>1:(XLEN-1)</code></td><td style="text-align: left"><em>All non-zero values are reserved for future use.</em></td></tr>
+</tbody></table>
+</div><h5 id="return-value-3"><a class="doc-anchor" href="#return-value-3">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">counter stopped successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_param()</code></td><td style="text-align: left">the set of counters has at least one invalid counter.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::already_stopped()</code></td><td style="text-align: left">the set of counters includes at least one counter which is already stopped.</td></tr>
+</tbody></table>
+</div></div></details><details class="toggle method-toggle" open><summary><section id="tymethod.counter_fw_read" class="method"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#199">Source</a><h4 class="code-header">fn <a href="#tymethod.counter_fw_read" class="fn">counter_fw_read</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Provide the current value of a firmware counter in <code>SbiRet.value</code>.</p>
+<p>On RV32 systems, the <code>SbiRet.value</code> will only contain the lower 32 bits from the value of
+the firmware counter.</p>
+<h5 id="parameters-3"><a class="doc-anchor" href="#parameters-3">§</a>Parameters</h5>
+<p>This function should be only used to read a firmware counter. It will return an error
+when the user provides a hardware counter in <code>counter_idx</code> parameter.</p>
+<h5 id="return-value-4"><a class="doc-anchor" href="#return-value-4">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">firmware counter read successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_param()</code></td><td style="text-align: left"><code>counter_idx</code> points to a hardware counter or an invalid counter.</td></tr>
+</tbody></table>
+</div></div></details></div><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.counter_fw_read_hi" class="method"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#213-226">Source</a><h4 class="code-header">fn <a href="#method.counter_fw_read_hi" class="fn">counter_fw_read_hi</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Provide the upper 32 bits from the current value of firmware counter in <code>SbiRet.value</code>.</p>
+<p>This function always returns zero in <code>SbiRet.value</code> for RV64 (or higher) systems.</p>
+<h5 id="return-value-5"><a class="doc-anchor" href="#return-value-5">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">firmware counter read successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_param()</code></td><td style="text-align: left"><code>counter_idx</code> points to a hardware counter or an invalid counter.</td></tr>
+</tbody></table>
+</div></div></details></div><h2 id="foreign-impls" class="section-header">Implementations on Foreign Types<a href="#foreign-impls" class="anchor">§</a></h2><details class="toggle implementors-toggle"><summary><section id="impl-Pmu-for-Option%3CT%3E" class="impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#297-380">Source</a><a href="#impl-Pmu-for-Option%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="trait.Pmu.html" title="trait rustsbi::Pmu">Pmu</a>&gt; <a class="trait" href="trait.Pmu.html" title="trait rustsbi::Pmu">Pmu</a> for <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><section id="method.num_counters" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#299-303">Source</a><a href="#method.num_counters" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.num_counters" class="fn">num_counters</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a></h4></section><section id="method.counter_get_info" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#305-309">Source</a><a href="#method.counter_get_info" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_get_info" class="fn">counter_get_info</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_config_matching" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#311-329">Source</a><a href="#method.counter_config_matching" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_config_matching" class="fn">counter_config_matching</a>(
+    &amp;self,
+    counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    config_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    event_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    event_data: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_start" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#331-349">Source</a><a href="#method.counter_start" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_start" class="fn">counter_start</a>(
+    &amp;self,
+    counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    start_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    initial_value: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_stop" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#351-360">Source</a><a href="#method.counter_stop" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_stop" class="fn">counter_stop</a>(
+    &amp;self,
+    counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    stop_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_fw_read" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#362-366">Source</a><a href="#method.counter_fw_read" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_fw_read" class="fn">counter_fw_read</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_fw_read_hi-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#368-372">Source</a><a href="#method.counter_fw_read_hi-1" class="anchor">§</a><h4 class="code-header">fn <a href="#method.counter_fw_read_hi" class="fn">counter_fw_read_hi</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Pmu-for-%26T" class="impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#235-295">Source</a><a href="#impl-Pmu-for-%26T" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="trait.Pmu.html" title="trait rustsbi::Pmu">Pmu</a>&gt; <a class="trait" href="trait.Pmu.html" title="trait rustsbi::Pmu">Pmu</a> for <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.reference.html">&amp;T</a></h3></section></summary><div class="impl-items"><section id="method.num_counters-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#237-239">Source</a><a href="#method.num_counters-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.num_counters" class="fn">num_counters</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a></h4></section><section id="method.counter_get_info-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#241-243">Source</a><a href="#method.counter_get_info-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_get_info" class="fn">counter_get_info</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_config_matching-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#245-261">Source</a><a href="#method.counter_config_matching-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_config_matching" class="fn">counter_config_matching</a>(
+    &amp;self,
+    counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    config_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    event_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    event_data: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_start-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#263-277">Source</a><a href="#method.counter_start-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_start" class="fn">counter_start</a>(
+    &amp;self,
+    counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    start_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    initial_value: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.u64.html">u64</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_stop-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#279-286">Source</a><a href="#method.counter_stop-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_stop" class="fn">counter_stop</a>(
+    &amp;self,
+    counter_idx_base: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    counter_idx_mask: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    stop_flags: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_fw_read-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#288-290">Source</a><a href="#method.counter_fw_read-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.counter_fw_read" class="fn">counter_fw_read</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.counter_fw_read_hi-2" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/pmu.rs.html#292-294">Source</a><a href="#method.counter_fw_read_hi-2" class="anchor">§</a><h4 class="code-header">fn <a href="#method.counter_fw_read_hi" class="fn">counter_fw_read_hi</a>(&amp;self, counter_idx: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></div></details><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-Pmu-for-Forward" class="impl"><a class="src rightside" href="../src/rustsbi/forward.rs.html#383-511">Source</a><a href="#impl-Pmu-for-Forward" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.Pmu.html" title="trait rustsbi::Pmu">Pmu</a> for <a class="struct" href="struct.Forward.html" title="struct rustsbi::Forward">Forward</a></h3></section></div><script src="../trait.impl/rustsbi/pmu/trait.Pmu.js" data-ignore-extern-crates="core" async></script></section></div></main></body></html>

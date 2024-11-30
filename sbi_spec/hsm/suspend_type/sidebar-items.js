@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["NON_RETENTIVE","RETENTIVE"]};

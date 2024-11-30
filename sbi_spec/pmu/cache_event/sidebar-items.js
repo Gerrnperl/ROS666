@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BPU","DTLB","ITLB","L1D","L1I","LL","NODE"]};

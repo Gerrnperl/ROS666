@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["COUNTER_CONFIG_MATCHING","COUNTER_FW_READ","COUNTER_FW_READ_HI","COUNTER_GET_INFO","COUNTER_START","COUNTER_STOP","EID_PMU","NUM_COUNTERS","SNAPSHOT_SET_SHMEM"],"mod":["cache_event","cache_operation","cache_result","event_type","firmware_event","hardware_event"]};

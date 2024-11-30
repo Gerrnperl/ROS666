@@ -1,0 +1,215 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Remote Fence support extension."><title>Fence in rustsbi - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-dbdb5eec.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="rustsbi" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (d10a6823f 2024-11-29)" data-channel="nightly" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../rustsbi/index.html">rustsbi</a><span class="version">0.4.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Fence</a></h2><h3><a href="#required-methods">Required Methods</a></h3><ul class="block"><li><a href="#tymethod.remote_fence_i" title="remote_fence_i">remote_fence_i</a></li><li><a href="#tymethod.remote_sfence_vma" title="remote_sfence_vma">remote_sfence_vma</a></li><li><a href="#tymethod.remote_sfence_vma_asid" title="remote_sfence_vma_asid">remote_sfence_vma_asid</a></li></ul><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.remote_hfence_gvma" title="remote_hfence_gvma">remote_hfence_gvma</a></li><li><a href="#method.remote_hfence_gvma_vmid" title="remote_hfence_gvma_vmid">remote_hfence_gvma_vmid</a></li><li><a href="#method.remote_hfence_vvma" title="remote_hfence_vvma">remote_hfence_vvma</a></li><li><a href="#method.remote_hfence_vvma_asid" title="remote_hfence_vvma_asid">remote_hfence_vvma_asid</a></li></ul><h3><a href="#foreign-impls">Implementations on Foreign Types</a></h3><ul class="block"><li><a href="#impl-Rfence-for-%26T" title="&#38;T">&#38;T</a></li><li><a href="#impl-Rfence-for-Option%3CT%3E" title="Option&#60;T&#62;">Option&#60;T&#62;</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate rustsbi</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="index.html">rustsbi</a></span><h1>Trait <span class="trait">Fence</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/rustsbi/rfence.rs.html#8-145">Source</a> </span></div><pre class="rust item-decl"><code>pub trait Fence {
+    // Required methods
+    fn <a href="#tymethod.remote_fence_i" class="fn">remote_fence_i</a>(&amp;self, hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.remote_sfence_vma" class="fn">remote_sfence_vma</a>(
+        &amp;self,
+        hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+        start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    ) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a>;
+<span class="item-spacer"></span>    fn <a href="#tymethod.remote_sfence_vma_asid" class="fn">remote_sfence_vma_asid</a>(
+        &amp;self,
+        hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+        start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        asid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    ) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a>;
+
+    // Provided methods
+    fn <a href="#method.remote_hfence_gvma_vmid" class="fn">remote_hfence_gvma_vmid</a>(
+        &amp;self,
+        hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+        start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        vmid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    ) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.remote_hfence_gvma" class="fn">remote_hfence_gvma</a>(
+        &amp;self,
+        hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+        start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    ) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.remote_hfence_vvma_asid" class="fn">remote_hfence_vvma_asid</a>(
+        &amp;self,
+        hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+        start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        asid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    ) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a> { ... }
+<span class="item-spacer"></span>    fn <a href="#method.remote_hfence_vvma" class="fn">remote_hfence_vvma</a>(
+        &amp;self,
+        hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+        start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+        size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    ) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a> { ... }
+}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Remote Fence support extension.</p>
+<p>The remote fence function acts as a full TLB flush if</p>
+<ul>
+<li><code>start_addr</code> and <code>size</code> are both 0, or</li>
+<li><code>size</code> is equal to <code>usize::MAX</code>.</li>
+</ul>
+</div></details><h2 id="required-methods" class="section-header">Required Methods<a href="#required-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="tymethod.remote_fence_i" class="method"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#14">Source</a><h4 class="code-header">fn <a href="#tymethod.remote_fence_i" class="fn">remote_fence_i</a>(&amp;self, hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Instructs remote harts to execute <code>FENCE.I</code> instruction.</p>
+<h5 id="return-value"><a class="doc-anchor" href="#return-value">§</a>Return value</h5>
+<p>Returns <code>SbiRet::success()</code> when a remote fence was sent to all the targeted harts successfully.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="tymethod.remote_sfence_vma" class="method"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#26">Source</a><h4 class="code-header">fn <a href="#tymethod.remote_sfence_vma" class="fn">remote_sfence_vma</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Instructs the remote harts to execute one or more <code>SFENCE.VMA</code> instructions,
+covering the range of virtual addresses between <code>start_addr</code> and <code>size</code>.</p>
+<h5 id="return-value-1"><a class="doc-anchor" href="#return-value-1">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">A remote fence was sent to all the targeted harts successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_address()</code></td><td style="text-align: left"><code>start_addr</code> or <code>size</code> is not valid.</td></tr>
+</tbody></table>
+</div></div></details><details class="toggle method-toggle" open><summary><section id="tymethod.remote_sfence_vma_asid" class="method"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#39-45">Source</a><h4 class="code-header">fn <a href="#tymethod.remote_sfence_vma_asid" class="fn">remote_sfence_vma_asid</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    asid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Instruct the remote harts to execute one or more <code>SFENCE.VMA</code> instructions,
+covering the range of virtual addresses between <code>start_addr</code> and <code>size</code>.
+This covers only the given address space by <code>asid</code>.</p>
+<h5 id="return-value-2"><a class="doc-anchor" href="#return-value-2">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">A remote fence was sent to all the targeted harts successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_address()</code></td><td style="text-align: left"><code>start_addr</code> or <code>size</code> is not valid.</td></tr>
+</tbody></table>
+</div></div></details></div><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.remote_hfence_gvma_vmid" class="method"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#62-71">Source</a><h4 class="code-header">fn <a href="#method.remote_hfence_gvma_vmid" class="fn">remote_hfence_gvma_vmid</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    vmid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Instruct the remote harts to execute one or more <code>HFENCE.GVMA</code> instructions,
+covering the range of guest physical addresses between <code>start_addr</code> and <code>size</code>
+only for the given virtual machine by <code>vmid</code>.</p>
+<p>This function call is only valid on harts implementing the RISC-V hypervisor extension.</p>
+<h5 id="return-value-3"><a class="doc-anchor" href="#return-value-3">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">A remote fence was sent to all the targeted harts successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::not_supported()</code></td><td style="text-align: left">This function is not supported as it is not implemented or one of the target harts do not support the RISC-V hypervisor extension.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_address()</code></td><td style="text-align: left"><code>start_addr</code> or <code>size</code> is not valid.</td></tr>
+</tbody></table>
+</div></div></details><details class="toggle method-toggle" open><summary><section id="method.remote_hfence_gvma" class="method"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#88-91">Source</a><h4 class="code-header">fn <a href="#method.remote_hfence_gvma" class="fn">remote_hfence_gvma</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Instruct the remote harts to execute one or more <code>HFENCE.GVMA</code> instructions,
+covering the range of guest physical addresses between <code>start_addr</code> and <code>size</code>
+for all the guests.</p>
+<p>This function call is only valid on harts implementing the RISC-V hypervisor extension.</p>
+<h5 id="return-value-4"><a class="doc-anchor" href="#return-value-4">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">A remote fence was sent to all the targeted harts successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::not_supported()</code></td><td style="text-align: left">This function is not supported as it is not implemented or one of the target harts do not support the RISC-V hypervisor extension.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_address()</code></td><td style="text-align: left"><code>start_addr</code> or <code>size</code> is not valid.</td></tr>
+</tbody></table>
+</div></div></details><details class="toggle method-toggle" open><summary><section id="method.remote_hfence_vvma_asid" class="method"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#109-118">Source</a><h4 class="code-header">fn <a href="#method.remote_hfence_vvma_asid" class="fn">remote_hfence_vvma_asid</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    asid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Instruct the remote harts to execute one or more <code>HFENCE.VVMA</code> instructions,
+covering the range of guest virtual addresses between <code>start_addr</code> and <code>size</code> for the given
+address space by <code>asid</code> and current virtual machine (by <code>vmid</code> in <code>hgatp</code> CSR)
+of calling hart.</p>
+<p>This function call is only valid on harts implementing the RISC-V hypervisor extension.</p>
+<h5 id="return-value-5"><a class="doc-anchor" href="#return-value-5">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">A remote fence was sent to all the targeted harts successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::not_supported()</code></td><td style="text-align: left">This function is not supported as it is not implemented or one of the target harts do not support the RISC-V hypervisor extension.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_address()</code></td><td style="text-align: left"><code>start_addr</code> or <code>size</code> is not valid.</td></tr>
+</tbody></table>
+</div></div></details><details class="toggle method-toggle" open><summary><section id="method.remote_hfence_vvma" class="method"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#135-138">Source</a><h4 class="code-header">fn <a href="#method.remote_hfence_vvma" class="fn">remote_hfence_vvma</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></summary><div class="docblock"><p>Instruct the remote harts to execute one or more <code>HFENCE.VVMA</code> instructions,
+covering the range of guest virtual addresses between <code>start_addr</code> and <code>size</code>
+for current virtual machine (by <code>vmid</code> in <code>hgatp</code> CSR) of calling hart.</p>
+<p>This function call is only valid on harts implementing the RISC-V hypervisor extension.</p>
+<h5 id="return-value-6"><a class="doc-anchor" href="#return-value-6">§</a>Return value</h5>
+<p>The possible return error codes returned in <code>SbiRet.error</code> are shown in the table below:</p>
+<div><table><thead><tr><th style="text-align: left">Return code</th><th style="text-align: left">Description</th></tr></thead><tbody>
+<tr><td style="text-align: left"><code>SbiRet::success()</code></td><td style="text-align: left">A remote fence was sent to all the targeted harts successfully.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::not_supported()</code></td><td style="text-align: left">This function is not supported as it is not implemented or one of the target harts do not support the RISC-V hypervisor extension.</td></tr>
+<tr><td style="text-align: left"><code>SbiRet::invalid_address()</code></td><td style="text-align: left"><code>start_addr</code> or <code>size</code> is not valid.</td></tr>
+</tbody></table>
+</div></div></details></div><h2 id="foreign-impls" class="section-header">Implementations on Foreign Types<a href="#foreign-impls" class="anchor">§</a></h2><details class="toggle implementors-toggle"><summary><section id="impl-Rfence-for-Option%3CT%3E" class="impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#196-264">Source</a><a href="#impl-Rfence-for-Option%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="trait.Fence.html" title="trait rustsbi::Fence">Rfence</a>&gt; <a class="trait" href="trait.Fence.html" title="trait rustsbi::Fence">Rfence</a> for <a class="enum" href="https://doc.rust-lang.org/nightly/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><section id="method.remote_fence_i" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#198-202">Source</a><a href="#method.remote_fence_i" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.remote_fence_i" class="fn">remote_fence_i</a>(&amp;self, hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_sfence_vma" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#204-208">Source</a><a href="#method.remote_sfence_vma" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.remote_sfence_vma" class="fn">remote_sfence_vma</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_sfence_vma_asid" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#210-220">Source</a><a href="#method.remote_sfence_vma_asid" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.remote_sfence_vma_asid" class="fn">remote_sfence_vma_asid</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    asid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_hfence_gvma_vmid-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#222-232">Source</a><a href="#method.remote_hfence_gvma_vmid-1" class="anchor">§</a><h4 class="code-header">fn <a href="#method.remote_hfence_gvma_vmid" class="fn">remote_hfence_gvma_vmid</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    vmid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_hfence_gvma-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#234-238">Source</a><a href="#method.remote_hfence_gvma-1" class="anchor">§</a><h4 class="code-header">fn <a href="#method.remote_hfence_gvma" class="fn">remote_hfence_gvma</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_hfence_vvma_asid-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#240-250">Source</a><a href="#method.remote_hfence_vvma_asid-1" class="anchor">§</a><h4 class="code-header">fn <a href="#method.remote_hfence_vvma_asid" class="fn">remote_hfence_vvma_asid</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    asid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_hfence_vvma-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#252-256">Source</a><a href="#method.remote_hfence_vvma-1" class="anchor">§</a><h4 class="code-header">fn <a href="#method.remote_hfence_vvma" class="fn">remote_hfence_vvma</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></div></details><details class="toggle implementors-toggle"><summary><section id="impl-Rfence-for-%26T" class="impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#147-194">Source</a><a href="#impl-Rfence-for-%26T" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="trait.Fence.html" title="trait rustsbi::Fence">Rfence</a>&gt; <a class="trait" href="trait.Fence.html" title="trait rustsbi::Fence">Rfence</a> for <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.reference.html">&amp;T</a></h3></section></summary><div class="impl-items"><section id="method.remote_fence_i-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#149-151">Source</a><a href="#method.remote_fence_i-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.remote_fence_i" class="fn">remote_fence_i</a>(&amp;self, hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_sfence_vma-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#153-155">Source</a><a href="#method.remote_sfence_vma-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.remote_sfence_vma" class="fn">remote_sfence_vma</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_sfence_vma_asid-1" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#157-165">Source</a><a href="#method.remote_sfence_vma_asid-1" class="anchor">§</a><h4 class="code-header">fn <a href="#tymethod.remote_sfence_vma_asid" class="fn">remote_sfence_vma_asid</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    asid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_hfence_gvma_vmid-2" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#167-175">Source</a><a href="#method.remote_hfence_gvma_vmid-2" class="anchor">§</a><h4 class="code-header">fn <a href="#method.remote_hfence_gvma_vmid" class="fn">remote_hfence_gvma_vmid</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    vmid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_hfence_gvma-2" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#177-179">Source</a><a href="#method.remote_hfence_gvma-2" class="anchor">§</a><h4 class="code-header">fn <a href="#method.remote_hfence_gvma" class="fn">remote_hfence_gvma</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_hfence_vvma_asid-2" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#181-189">Source</a><a href="#method.remote_hfence_vvma_asid-2" class="anchor">§</a><h4 class="code-header">fn <a href="#method.remote_hfence_vvma_asid" class="fn">remote_hfence_vvma_asid</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    asid: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section><section id="method.remote_hfence_vvma-2" class="method trait-impl"><a class="src rightside" href="../src/rustsbi/rfence.rs.html#191-193">Source</a><a href="#method.remote_hfence_vvma-2" class="anchor">§</a><h4 class="code-header">fn <a href="#method.remote_hfence_vvma" class="fn">remote_hfence_vvma</a>(
+    &amp;self,
+    hart_mask: <a class="struct" href="struct.HartMask.html" title="struct rustsbi::HartMask">HartMask</a>,
+    start_addr: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+    size: <a class="primitive" href="https://doc.rust-lang.org/nightly/core/primitive.usize.html">usize</a>,
+) -&gt; <a class="struct" href="struct.SbiRet.html" title="struct rustsbi::SbiRet">SbiRet</a></h4></section></div></details><h2 id="implementors" class="section-header">Implementors<a href="#implementors" class="anchor">§</a></h2><div id="implementors-list"><section id="impl-Rfence-for-Forward" class="impl"><a class="src rightside" href="../src/rustsbi/forward.rs.html#140-249">Source</a><a href="#impl-Rfence-for-Forward" class="anchor">§</a><h3 class="code-header">impl <a class="trait" href="trait.Fence.html" title="trait rustsbi::Fence">Rfence</a> for <a class="struct" href="struct.Forward.html" title="struct rustsbi::Forward">Forward</a></h3></section></div><script src="../trait.impl/rustsbi/rfence/trait.Rfence.js" data-ignore-extern-crates="core" async></script></section></div></main></body></html>
