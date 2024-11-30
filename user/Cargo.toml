@@ -1,0 +1,8 @@
+[package]
+name = "user"
+version = "0.1.0"
+edition = "2024"
+build = "build.rs"
+
+[build-dependencies]
+build = { path = "../user-build" }

@@ -11,3 +11,11 @@ panic = "abort"
 
 [profile.release]
 panic = "abort"
+
+[workspace]
+
+members = [
+    "user",
+    "user-lib",
+    "user-build",
+]
