@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 构建内核镜像
+# 移除 ELF头 和 符号信息，构建二进制镜像
 
 if [ "$#" -ne 1 ]; then
     echo "Usage: $0 <ELF>"
