@@ -4,5 +4,16 @@ version = "0.1.0"
 edition = "2024"
 build = "build.rs"
 
+[[bin]]
+name = "hello"
+path = "src/hello/bin/main.rs"
+
+[[bin]]
+name = "bye"
+path = "src/bye/bin/main.rs"
+
+[dependencies]
+lib = { path = "../user-lib" }
+
 [build-dependencies]
 build = { path = "../user-build" }
