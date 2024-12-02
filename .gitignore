@@ -1,1 +1,4 @@
 /target
+/user/linker.debug.ld
+/user/linker.ld
+/src/app_loader.asm
