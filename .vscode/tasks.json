@@ -3,50 +3,38 @@
     // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
-        // #region EnvCheck 检查环境
+        // #region 杂项
         {
             "type": "shell",
             "label": "Check: dev environment",
-            "detail": "检查环境",
+            "detail": "检查开发环境",
             "icon": {
                 "id": "checklist",
                 "color": "terminal.ansiRed"
             },
-            "command": "${workspaceFolder}/scripts/check-dev-requirements.sh",
+            "command": "make",
+            "args": [
+                "check-dev-requirements"
+            ],
             "group": {
                 "kind": "none",
+                "isDefault": false
             },
             "problemMatcher": []
         },
-        // #endregion EnvCheck
-        // #region CargoBuild 编译项目
+        // #endregion 杂项
+        // #region 构建
         {
-            "type": "cargo",
-            "command": "build",
-            "detail": "编译项目 (debug)",
+            "type": "shell",
+            "label": "Rust: build kernel (dev)",
+            "detail": "构建内核 (开发模式)",
             "icon": {
                 "id": "rocket",
                 "color": "terminal.ansiMagenta"
             },
-            "problemMatcher": [
-                "$rustc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true,
-            },
-            "label": "Rust: cargo build (debug)"
-        },
-        {
-            "type": "cargo",
-            "command": "build",
-            "detail": "编译项目 (release)",
-            "icon": {
-                "id": "rocket",
-                "color": "terminal.ansiMagenta"
-            },
+            "command": "make",
             "args": [
-                "--release"
+                "build-kernel.dev"
             ],
             "problemMatcher": [
                 "$rustc"
@@ -54,62 +42,83 @@
             "group": {
                 "kind": "build",
                 "isDefault": false,
-            },
-            "label": "Rust: cargo build (release)"
+            }
         },
-        // #endregion CargoBuild
-        // #region Objcopy 生成内核镜像
         {
             "type": "shell",
-            "label": "Rust: objcopy (debug)",
-            "detail": "生成内核镜像 (debug)",
+            "label": "Rust: build kernel (release)",
+            "detail": "构建内核 (发布模式)",
             "icon": {
-                "id": "combine",
+                "id": "rocket",
                 "color": "terminal.ansiBlue"
             },
-            "command": "${workspaceFolder}/scripts/build-kernel-img.sh",
+            "command": "make",
             "args": [
-                "${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/${workspaceFolderBasename}"
+                "build-kernel-release"
+            ],
+            "problemMatcher": [
+                "$rustc"
             ],
             "group": {
                 "kind": "build",
-                "isDefault": false
-            },
-            "problemMatcher": []
+                "isDefault": false,
+            }
         },
         {
             "type": "shell",
-            "label": "Rust: objcopy (release)",
-            "detail": "生成内核镜像 (release)",
+            "label": "Rust: build user app (dev)",
+            "detail": "构建用户程序 (开发模式)",
             "icon": {
-                "id": "combine",
-                "color": "terminal.ansiBlue"
+                "id": "rocket",
+                "color": "terminal.ansiMagenta"
             },
-            "command": "${workspaceFolder}/scripts/build-kernel-img.sh",
+            "command": "make",
             "args": [
-                "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${workspaceFolderBasename}"
+                "build-active-user.dev",
+                "ACTIVE_USER_APP=${input:make.user-app}"
+            ],
+            "problemMatcher": [
+                "$rustc"
             ],
             "group": {
                 "kind": "build",
-                "isDefault": false
-            },
-            "problemMatcher": []
+                "isDefault": false,
+            }
         },
-        // #endregion Objcopy
-        // #region LaunchQEMU 启动 QEMU
         {
             "type": "shell",
-            "label": "QEMU: launch riscv64 (debug)",
-            "detail": "运行 QEMU RISC-V (debug)",
+            "label": "Rust: build user app (release)",
+            "detail": "构建用户程序 (发布模式)",
+            "icon": {
+                "id": "rocket",
+                "color": "terminal.ansiBlue"
+            },
+            "command": "make",
+            "args": [
+                "build-active-user.release",
+                "ACTIVE_USER_APP=${input:make.user-app}"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false,
+            }
+        },
+        // #endregion 构建
+        // #region 运行
+        {
+            "type": "shell",
+            "label": "QEMU: launch qemu system (dev)",
+            "detail": "启动 QEMU 调试内核 (开发模式)",
             "icon": {
                 "id": "vm-connect",
                 "color": "terminal.ansiGreen"
             },
-            "command": "${workspaceFolder}/scripts/launch-qemu.sh",
+            "command": "make",
             "args": [
-                "${workspaceFolder}/bootloader/rustsbi-qemu-release",
-                "${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/${workspaceFolderBasename}.bin",
-                "-dbg"
+                "launch-qemu-system.dev",
             ],
             "group": {
                 "kind": "none",
@@ -117,6 +126,7 @@
             },
             "isBackground": true,
             "problemMatcher": [
+                "$rustc",
                 {
                     "pattern": [
                         {
@@ -129,34 +139,26 @@
                     "background": {
                         "activeOnStart": true,
                         "beginsPattern": {
-                            "regexp": "."
+                            "regexp": "QEMU launcher"
                         },
                         "endsPattern": {
-                            "regexp": "."
+                            "regexp": "QEMU launcher"
                         }
                     }
                 }
-            ],
-            "dependsOn": [
-                "Check: dev environment",
-                "Rust: cargo build (debug)",
-                "Rust: objcopy (debug)"
-            ],
-            "dependsOrder": "sequence"
+            ]
         },
         {
             "type": "shell",
-            "label": "QEMU: launch riscv64 (release)",
-            "detail": "运行 QEMU RISC-V (release)",
+            "label": "QEMU: launch qemu system (release)",
+            "detail": "启动 QEMU 运行内核 (发布模式)",
             "icon": {
-                "id": "vm-running",
-                "color": "terminal.ansiGreen"
+                "id": "vm-connect",
+                "color": "terminal.ansiYellow"
             },
-            "command": "${workspaceFolder}/scripts/launch-qemu.sh",
+            "command": "make",
             "args": [
-                "${workspaceFolder}/bootloader/rustsbi-qemu-release",
-                "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${workspaceFolderBasename}.bin",
-                // "-dbg"
+                "launch-qemu-system.dev",
             ],
             "group": {
                 "kind": "none",
@@ -164,6 +166,48 @@
             },
             "isBackground": true,
             "problemMatcher": [
+                "$rustc",
+                {
+                    "pattern": [
+                        {
+                            "regexp": ".*?",
+                            "file": 1,
+                            "location": 2,
+                            "message": 3
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": {
+                            "regexp": "QEMU launcher"
+                        },
+                        "endsPattern": {
+                            "regexp": "QEMU launcher"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "QEMU: launch qemu user (dev)",
+            "detail": "启动 QEMU 调试用户程序 (开发模式)",
+            "icon": {
+                "id": "vm-connect",
+                "color": "terminal.ansiGreen"
+            },
+            "command": "make",
+            "args": [
+                "launch-qemu-user.dev",
+                "ACTIVE_USER_APP=${input:make.user-app}"
+            ],
+            "group": {
+                "kind": "none",
+                "isDefault": true
+            },
+            "isBackground": true,
+            "problemMatcher": [
+                "$rustc",
                 {
                     "pattern": [
                         {
@@ -183,14 +227,73 @@
                         }
                     }
                 }
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "QEMU: launch qemu user (release)",
+            "detail": "启动 QEMU 运行用户程序 (发布模式)",
+            "icon": {
+                "id": "vm-connect",
+                "color": "terminal.ansiYellow"
+            },
+            "command": "make",
+            "args": [
+                "launch-qemu-user.release",
+                "ACTIVE_USER_APP=${input:make.user-app}"
             ],
-            "dependsOn": [
-                "Check: dev environment",
-                "Rust: cargo build (release)",
-                "Rust: objcopy (release)"
-            ],
-            "dependsOrder": "sequence"
-        }
-        // #endregion LaunchQEMU
+            "group": {
+                "kind": "none",
+                "isDefault": true
+            },
+            "isBackground": true,
+            "problemMatcher": [
+                "$rustc",
+                {
+                    "pattern": [
+                        {
+                            "regexp": ".*?",
+                            "file": 1,
+                            "location": 2,
+                            "message": 3
+                        }
+                    ],
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": {
+                            "regexp": "."
+                        },
+                        "endsPattern": {
+                            "regexp": "."
+                        }
+                    }
+                }
+            ]
+        },
+        // #endregion 运行
+    ],
+    "inputs": [
+        {
+            "id": "make.kernel-elf",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "make echo-make-args GET_MAKE_ARG=KERNEL_BINARY_NAME",
+                "cwd": "${workspaceFolder}",
+                "description": "选择要构建的内核",
+                "useSingleResult": true
+            }
+        },
+        {
+            "id": "make.user-app",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "make echo-make-args GET_MAKE_ARG=USER_APP_OPTION ACTIVE_USER_APP_PATH=${fileDirName} | tr ' ' '\\n'",
+                "cwd": "${workspaceFolder}",
+                "description": "选择要构建的用户程序",
+                "useSingleResult": true
+            }
+        },
     ]
 }

@@ -8,7 +8,7 @@
             "name": "调试内核",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/${workspaceFolderBasename}",
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/${input:make.kernel-elf}",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -27,18 +27,15 @@
                     "ignoreFailures": false
                 },
             ],
-            // RISC-V toolchain: gdb
             "miDebuggerPath": "riscv64-unknown-elf-gdb", 
-            // "miDebuggerArgs": "-ex 'file ${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${workspaceFolderBasename}' -ex 'set arch riscv:rv64' -ex 'target remote localhost:1234'",
-            // gdb server
             "miDebuggerServerAddress": "localhost:25666",
-            "preLaunchTask": "QEMU: launch riscv64 (debug)",
+            "preLaunchTask": "QEMU: launch qemu system (dev)",
         },
         {
             "name": "运行内核",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${workspaceFolderBasename}",
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${input:make.kernel-elf}",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
@@ -57,11 +54,87 @@
                     "ignoreFailures": false
                 },
             ],
-            // RISC-V toolchain: gdb
             "miDebuggerPath": "riscv64-unknown-elf-gdb", 
-            // gdb server
             "miDebuggerServerAddress": "localhost:25666",
-            "preLaunchTask": "QEMU: launch riscv64 (release)",
+            "preLaunchTask": "QEMU: launch qemu system (release)",
         },
-    ]
+        {
+            "name": "调试用户程序",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/${input:make.user-app}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set architecture to riscv:rv64",
+                    "text": "set arch riscv:rv64",
+                    "ignoreFailures": false
+                },
+            ],
+            "miDebuggerPath": "riscv64-unknown-elf-gdb", 
+            "miDebuggerServerAddress": "localhost:26666",
+            "preLaunchTask": "QEMU: launch qemu user (dev)",
+        },
+        {
+            "name": "运行用户程序",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/release/${input:make.user-app}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set architecture to riscv:rv64",
+                    "text": "set arch riscv:rv64",
+                    "ignoreFailures": false
+                },
+            ],
+            "miDebuggerPath": "riscv64-unknown-elf-gdb", 
+            "miDebuggerServerAddress": "localhost:26666",
+            "preLaunchTask": "QEMU: launch qemu user (release)",
+        },
+    ],
+    "inputs": [
+        {
+            "id": "make.kernel-elf",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "make echo-make-args GET_MAKE_ARG=KERNEL_BINARY_NAME",
+                "cwd": "${workspaceFolder}",
+                "description": "选择要调试的内核",
+                "useSingleResult": true
+            }
+        },
+        {
+            "id": "make.user-app",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "make echo-make-args GET_MAKE_ARG=USER_APP_OPTION ACTIVE_USER_APP_PATH=${fileDirName} | tr ' ' '\\n'",
+                "cwd": "${workspaceFolder}",
+                "description": "选择要调试的用户程序",
+                "useSingleResult": true
+            }
+        },
+    ],
 }

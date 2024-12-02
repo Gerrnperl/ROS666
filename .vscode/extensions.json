@@ -13,6 +13,8 @@
 		"tamasfe.even-better-toml",
 		// for gdb
 		"ms-vscode.cpptools", 
+		// support shell input in vscode launch.json and tasks.json
+		"augustocdias.tasks-shell-input",
 		// 夹带私货 🤓☝🏻
 		"gerrnperl.outline-map",
 		
