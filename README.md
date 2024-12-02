@@ -1,6 +1,6 @@
-# startup-test
+# OSKernel2024-HFUT666/ROS666
 
-A attempt to create a simple os.
+基于 Rust 和 RISC-V 架构的简单操作系统内核实现。
 
 ## Reference
 
@@ -168,7 +168,7 @@ riscv64-unknown-elf-gdb 是 GDB 的 RISC-V 版本。
 
 ```sh
 riscv64-unknown-elf-gdb \     
-  -ex 'file target/riscv64gc-unknown-none-elf/release/startup-test' \
+  -ex 'file target/riscv64gc-unknown-none-elf/release/ros666' \
   -ex 'set arch riscv:rv64' \
   -ex 'target remote localhost:25666'
 ```

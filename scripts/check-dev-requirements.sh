@@ -29,21 +29,29 @@ BLUE='\033[0;34m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
+# build-essential is installed
+unsatisfied_message="${RED}Error: build-essential is not installed $NC
+    install build-essential with:$YELLOW
+        sudo apt update
+        sudo apt install build-essential $NC"
+dpkg -l build-essential &> /dev/null || {
+    echo -e "$unsatisfied_message"
+    failedCount=$((failedCount+1))
+}
 
 # rustc exists
 unsatisfied_message="${RED}Error: Rust is not installed or not in \$PATH $NC
     install Rust with:$YELLOW
         curl https://sh.rustup.rs -sSf | sh $NC
     or with mirror site:$YELLOW
-        export RUSTUP_DIST_SERVER=https://mirrors.tuna.edu.cn/rustup
-        export RUSTUP_UPDATE_ROOT=https://mirrors.tuna.edu.cn/rustup/rustup 
+        export RUSTUP_DIST_SERVER=https://mirrors.tuna.tsinghua.edu.cn/rustup
+        export RUSTUP_UPDATE_ROOT=https://mirrors.tuna.tsinghua.edu.cn/rustup/rustup 
         curl https://sh.rustup.rs -sSf | sh $NC"
 
 command_exists rustc || { 
     echo -e "$unsatisfied_message"; 
     failedCount=$((failedCount+1))
 }
-
 
 # rustc >= 1.85.0
 # Rust 1.85.0 version / Rust 2024 edition will enter the stable channel on 2025-02-20.
@@ -57,14 +65,28 @@ unsatisfied_message="${RED}Error: Rust version >= 1.85.0 is required $NC
 
 minimal_version "$rustc_version" 1 85 0 "$unsatisfied_message"
 
+# rustup target list | grep "riscv64gc-unknown-none-elf (installed)"
+unsatisfied_message="${RED}Error: Rust target riscv64gc-unknown-none-elf is not installed $NC
+    install riscv64gc-unknown-none-elf with:$YELLOW
+        rustup target add riscv64gc-unknown-none-elf
+        cargo install cargo-binutils
+        rustup component add llvm-tools-preview
+        rustup component add rust-src $NC"
+rustup target list | grep "riscv64gc-unknown-none-elf (installed)" &> /dev/null || {
+    echo -e "$unsatisfied_message"
+    failedCount=$((failedCount+1))
+}
+
 # qemu-system-riscv64 exists
 unsatisfied_message="For ubuntu >= 23.04, install QEMU (>= 7.0.0) with:$YELLOW
-        sudo apt install qemu-system $NC
+        sudo apt update
+        sudo apt install qemu-system 
+        sudo apt install qemu-user $NC
     Older versions of ubuntu do not have the required version of QEMU, you need to compile it from source. $YELLOW
         See https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter0/5setup-devel-env.html#qemu
         and https://www.qemu.org/download/#source $NC"
 
-command_exists qemu-system-riscv64 || { 
+command_exists qemu-system-riscv64 && command_exists qemu-riscv64 || { 
     echo -e "${RED}Error: QEMU is not installed or not in \$PATH $NC
     $unsatisfied_message"; 
     failedCount=$((failedCount+1))

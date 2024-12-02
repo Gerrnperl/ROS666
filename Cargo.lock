@@ -29,6 +29,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ros666"
+version = "0.1.0"
+dependencies = [
+ "rustsbi",
+ "toml",
+]
+
+[[package]]
 name = "rustsbi"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -64,13 +72,6 @@ name = "sbi-spec"
 version = "0.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6e36312fb5ddc10d08ecdc65187402baba4ac34585cb9d1b78522ae2358d890"
-
-[[package]]
-name = "startup-test"
-version = "0.1.0"
-dependencies = [
- "rustsbi",
-]
 
 [[package]]
 name = "syn"
