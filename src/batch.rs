@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use crate::{APP_MANAGER, info, printkln, trap::context::TrapCtx};
+use crate::{APP_MANAGER, info, printkln, sbi::sbi_shutdown, trap::context::TrapCtx};
 
 pub const MAX_APP_NUM: usize = 64;
 /// 与 user-build 中 linker.ld 中的 BASE_ADDRESS 保持一致
@@ -173,9 +173,13 @@ impl AppManager {
 pub fn run_next_app() {
     info!("Running next app...");
     let mut app_manager = APP_MANAGER.ref_cell.borrow_mut();
+    if app_manager.current >= app_manager.app_count {
+        info!("All apps have been run.");
+        sbi_shutdown(false);
+    }
     app_manager.load_app(app_manager.current);
     app_manager.print_app_info(app_manager.current);
-    app_manager.current = (app_manager.current + 1) % app_manager.app_count;
+    app_manager.current = app_manager.current + 1;
     drop(app_manager);
     unsafe extern "C" {
         fn __restore_trap(ctx_ptr: usize);
