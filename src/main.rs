@@ -20,9 +20,10 @@ lazy_static! {
         let app_count = extern_global!(__app_count) as *const usize;
         let app_count = unsafe { app_count.read_volatile() };
         let app_table = extern_global!(__app_table) as *const usize;
+        let app_name_table = extern_global!(__app_name_table) as *const usize;
 
         SyncRefCell {
-            ref_cell: RefCell::new(batch::AppManager::new(app_count, app_table)),
+            ref_cell: RefCell::new(batch::AppManager::new(app_count, app_table, app_name_table)),
         }
     };
 }
@@ -32,6 +33,7 @@ lazy_static! {
 pub extern "C" fn _kernel_entry() -> ! {
     clear_bss();
     startup_log();
+    APP_MANAGER.ref_cell.borrow().print_apps_info();
     APP_MANAGER.ref_cell.borrow_mut().load_app(0);
     printkln!("Hello, {}!", "World");
 

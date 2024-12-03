@@ -24,6 +24,13 @@ fn gen_app_loader() {
 
     let app_table_end = format!("    .quad __app_{last}_end", last = count - 1);
 
+    let app_name_table = apps
+        .iter()
+        .enumerate()
+        .map(|(id, _)| format!("    .quad __app_{id}_name", id = id))
+        .collect::<Vec<_>>()
+        .join("\n");
+
     let app_sections = apps
         .iter()
         .enumerate()
@@ -43,10 +50,15 @@ fn gen_app_loader() {
 .global __app_count
 __app_count:
     .quad {count}
+
 .global __app_table
 __app_table:
 {app_table}
 {app_table_end}
+
+.global __app_name_table
+__app_name_table:
+{app_name_table}
 
 {app_sections}
     "#

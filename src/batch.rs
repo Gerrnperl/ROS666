@@ -1,5 +1,7 @@
 use core::arch::asm;
 
+use crate::{info, printkln};
+
 pub const MAX_APP_NUM: usize = 64;
 /// 与 user-build 中 linker.ld 中的 BASE_ADDRESS 保持一致
 pub const APP_BASE_ADDRESS: usize = 0x80400000;
@@ -11,6 +13,7 @@ pub struct AppManager {
     pub current: usize,
     /// 应用程序入口地址表
     pub app_table: [usize; MAX_APP_NUM],
+    pub app_name_table: [&'static str; MAX_APP_NUM],
     /// 最后一个应用程序的结束地址
     pub apps_end: usize,
 }
@@ -34,7 +37,11 @@ impl AppManager {
     ///    .quad __app_{n-1}_end
     /// ```
     ///
-    pub fn new(app_count: usize, app_table_ptr: *const usize) -> Self {
+    pub fn new(
+        app_count: usize,
+        app_table_ptr: *const usize,
+        app_name_table_ptr: *const usize,
+    ) -> Self {
         let app_table_data: &[usize] =
             unsafe { core::slice::from_raw_parts(app_table_ptr, app_count) }
                 .try_into()
@@ -49,11 +56,21 @@ impl AppManager {
                 .unwrap()
         };
 
+        let app_name_table_data: &[usize] =
+            unsafe { core::slice::from_raw_parts(app_name_table_ptr, app_count) }
+                .try_into()
+                .unwrap();
+        let mut app_name_table = [""; MAX_APP_NUM];
+        for i in 0..app_count {
+            app_name_table[i] = Self::get_app_name(app_name_table_data[i] as *const i8);
+        }
+
         Self {
             app_count,
             current: 0,
             app_table,
             apps_end,
+            app_name_table,
         }
     }
 
@@ -75,5 +92,31 @@ impl AppManager {
         let app_entry = app_base;
         let app_entry: extern "C" fn() -> ! = unsafe { core::mem::transmute(app_entry) };
         app_entry();
+    }
+
+    pub fn get_app_name(app_name_ptr: *const i8) -> &'static str {
+        let app_name = unsafe { core::ffi::CStr::from_ptr(app_name_ptr) };
+        let app_name = app_name.to_str().unwrap();
+        app_name
+    }
+
+    pub fn print_apps_info(&self) {
+        for i in 0..self.app_count {
+            self.print_app_info(i);
+        }
+    }
+
+    pub fn print_app_info(&self, app_id: usize) {
+        info!(
+            "App {} - Name: {}, Start: {:#x}, End: {:#x}",
+            app_id,
+            self.app_name_table[app_id],
+            self.app_table[app_id],
+            if app_id + 1 < self.app_count {
+                self.app_table[app_id + 1]
+            } else {
+                self.apps_end
+            }
+        );
     }
 }
