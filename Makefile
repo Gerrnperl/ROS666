@@ -30,7 +30,7 @@ ACTIVE_USER_APP?=$(shell echo $(ACTIVE_USER_APP_PATH) | sed -E 's/.*?\/?user\/sr
 # 用户程序选项，用于 vscode task 传入当前活动文件路径（若当前活动文件不是用户程序则提供所有用户程序进行选择）
 USER_APP_OPTION := $(if $(filter $(ACTIVE_USER_APP),$(USER_BINARY_NAMES)),$(ACTIVE_USER_APP),$(USER_BINARY_NAMES))
 
-.PHONY: 
+.PHONY: all build-kernel.dev build-kernel.release build-users.dev build-users.release build-active-user.dev build-active-user.release launch-qemu-system.dev launch-qemu-system.release launch-qemu-user.dev launch-qemu-user.release launch-qemu-user.release.run gdb-kernel.dev gdb-kernel.release gdb-user.dev check-dev-requirements echo-make-args makefile-test
 
 #region 杂项
 makefile-test:

@@ -158,7 +158,7 @@
             },
             "command": "make",
             "args": [
-                "launch-qemu-system.dev",
+                "launch-qemu-system.release",
             ],
             "group": {
                 "kind": "none",
