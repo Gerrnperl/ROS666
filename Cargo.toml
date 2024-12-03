@@ -6,7 +6,9 @@ build = "build.rs"
 
 [dependencies]
 lazy_static = { version = "1.5.0", features = ["spin_no_std"] }
+riscv = "0.12.1"
 rustsbi = { version = "0.4.0", features = ["forward"] }
+common = { path = "./common" }
 
 [profile.dev]
 panic = "abort"
@@ -20,4 +22,5 @@ members = [
     "user",
     "user-lib",
     "user-build",
+    "common",
 ]
