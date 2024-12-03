@@ -6,6 +6,6 @@ extern crate lib;
 
 #[unsafe(no_mangle)]
 pub fn main() -> i32 {
-    println!("Bye!");
+    panic!("Bye!");
     0
 }

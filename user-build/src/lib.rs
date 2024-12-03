@@ -26,10 +26,10 @@ pub fn setup() {
     let profile = std::env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
     setup_linker(&profile);
     if profile == "release" {
-        println!("cargo:rergun-if-changed=user/linker.ld");
+        println!("cargo:rergun-if-changed=linker.ld");
         println!("cargo:rustc-link-arg=-Tuser/linker.ld");
     } else {
-        println!("cargo:rerun-if-changed=user/linker.debug.ld");
+        println!("cargo:rerun-if-changed=linker.debug.ld");
         println!("cargo:rustc-link-arg=-Tuser/linker.debug.ld");
     }
     println!("cargo:rustc-force-frame-pointers=yes");

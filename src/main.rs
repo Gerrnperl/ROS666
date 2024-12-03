@@ -1,19 +1,44 @@
 #![no_std]
 #![no_main]
+#![feature(inline_const_pat)]
 
+mod batch;
 mod io;
 mod language_item;
 mod sbi;
+mod syscall;
+mod trap;
+mod utils;
 
-use core::arch::global_asm;
+use core::{arch::global_asm, cell::RefCell};
+
+use lazy_static::lazy_static;
+use utils::safety::SyncRefCell;
 
 global_asm!(include_str!("entry.asm"));
+global_asm!(include_str!("app_loader.asm"));
+
+lazy_static! {
+    static ref APP_MANAGER: SyncRefCell<batch::AppManager> = {
+        let app_count = extern_global!(__app_count) as *const usize;
+        let app_count = unsafe { app_count.read_volatile() };
+        let app_table = extern_global!(__app_table) as *const usize;
+        let app_name_table = extern_global!(__app_name_table) as *const usize;
+
+        SyncRefCell {
+            ref_cell: RefCell::new(batch::AppManager::new(app_count, app_table, app_name_table)),
+        }
+    };
+}
 
 /// 内核入口函数
 #[unsafe(no_mangle)]
 pub extern "C" fn _kernel_entry() -> ! {
     clear_bss();
     startup_log();
+    trap::init();
+    APP_MANAGER.ref_cell.borrow().print_apps_info();
+    batch::run_next_app();
     printkln!("Hello, {}!", "World");
 
     // sbi::sbi_shutdown(false);
@@ -21,33 +46,26 @@ pub extern "C" fn _kernel_entry() -> ! {
 }
 
 fn startup_log() {
-    unsafe extern "C" {
-        fn __text_start();
-        fn __text_end();
-        fn __rodata_start();
-        fn __rodata_end();
-        fn __data_start();
-        fn __data_end();
-        fn __bss_start();
-        fn __bss_end();
-    }
-
     info!("[Kernel] Secion:");
     info!(
         "[Kernel]  text   : [{:#x}, {:#x})",
-        __text_start as usize, __text_end as usize
+        extern_global!(__text_start) as usize,
+        extern_global!(__text_end) as usize
     );
     info!(
         "[Kernel]  rodata : [{:#x}, {:#x})",
-        __rodata_start as usize, __rodata_end as usize
+        extern_global!(__rodata_start) as usize,
+        extern_global!(__rodata_end) as usize
     );
     info!(
         "[Kernel]  data   : [{:#x}, {:#x})",
-        __data_start as usize, __data_end as usize
+        extern_global!(__data_start) as usize,
+        extern_global!(__data_end) as usize
     );
     info!(
         "[Kernel]  bss    : [{:#x}, {:#x})",
-        __bss_start as usize, __bss_end as usize
+        extern_global!(__bss_start) as usize,
+        extern_global!(__bss_end) as usize
     );
 }
 

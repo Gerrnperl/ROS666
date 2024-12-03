@@ -8,3 +8,4 @@ description = "Provides access to os"
 name = "lib"
 
 [dependencies]
+common = { path = "../common" }

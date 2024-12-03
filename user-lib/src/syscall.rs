@@ -1,27 +1,6 @@
 use core::arch::asm;
 
-/// 系统调用号
-///
-/// 为调试方便，应当与 Linux 系统为 RISC-V 架构定义的系统调用号保持一致
-///
-/// https://gpages.juszkiewicz.com.pl/syscalls-table/syscalls.html
-pub enum Syscall {
-    Read = 63,
-    Write = 64,
-    /// Terminate the calling process
-    ///
-    /// [_exit(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/exit.2.html)
-    Exit = 93,
-}
-
-impl From<Syscall> for usize {
-    fn from(syscall: Syscall) -> usize {
-        syscall as usize
-    }
-}
-
-pub type SyscallArgs = [usize; 3];
-pub type SyscallRet = isize;
+use common::syscall::{Syscall, SyscallArgs, SyscallRet};
 
 /// 调用系统调用
 ///

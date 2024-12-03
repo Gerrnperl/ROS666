@@ -1,0 +1,10 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2024"
+description = "common code like syscall enums for user and kernel"
+
+[lib]
+name = "common"
+
+[dependencies]

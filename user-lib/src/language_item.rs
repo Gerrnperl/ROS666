@@ -5,7 +5,7 @@ use crate::{exit, print, println};
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     let message = info.message();
-    print!("Panicked at '{:?}", message);
+    print!("Panicked at '{:?}'", message);
     if let Some(location) = info.location() {
         let file = location.file();
         let line = location.line();
