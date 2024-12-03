@@ -4,6 +4,7 @@
 mod io;
 mod language_item;
 mod sbi;
+mod utils;
 
 use core::arch::global_asm;
 
@@ -21,33 +22,26 @@ pub extern "C" fn _kernel_entry() -> ! {
 }
 
 fn startup_log() {
-    unsafe extern "C" {
-        fn __text_start();
-        fn __text_end();
-        fn __rodata_start();
-        fn __rodata_end();
-        fn __data_start();
-        fn __data_end();
-        fn __bss_start();
-        fn __bss_end();
-    }
-
     info!("[Kernel] Secion:");
     info!(
         "[Kernel]  text   : [{:#x}, {:#x})",
-        __text_start as usize, __text_end as usize
+        extern_global!(__text_start) as usize,
+        extern_global!(__text_end) as usize
     );
     info!(
         "[Kernel]  rodata : [{:#x}, {:#x})",
-        __rodata_start as usize, __rodata_end as usize
+        extern_global!(__rodata_start) as usize,
+        extern_global!(__rodata_end) as usize
     );
     info!(
         "[Kernel]  data   : [{:#x}, {:#x})",
-        __data_start as usize, __data_end as usize
+        extern_global!(__data_start) as usize,
+        extern_global!(__data_end) as usize
     );
     info!(
         "[Kernel]  bss    : [{:#x}, {:#x})",
-        __bss_start as usize, __bss_end as usize
+        extern_global!(__bss_start) as usize,
+        extern_global!(__bss_end) as usize
     );
 }
 
