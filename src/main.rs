@@ -1,10 +1,13 @@
 #![no_std]
 #![no_main]
+#![feature(inline_const_pat)]
 
 mod batch;
 mod io;
 mod language_item;
 mod sbi;
+mod syscall;
+mod trap;
 mod utils;
 
 use core::{arch::global_asm, cell::RefCell};
@@ -33,8 +36,9 @@ lazy_static! {
 pub extern "C" fn _kernel_entry() -> ! {
     clear_bss();
     startup_log();
+    trap::init();
     APP_MANAGER.ref_cell.borrow().print_apps_info();
-    APP_MANAGER.ref_cell.borrow_mut().load_app(0);
+    batch::run_next_app();
     printkln!("Hello, {}!", "World");
 
     // sbi::sbi_shutdown(false);
