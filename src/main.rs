@@ -1,20 +1,38 @@
 #![no_std]
 #![no_main]
 
+mod batch;
 mod io;
 mod language_item;
 mod sbi;
 mod utils;
 
-use core::arch::global_asm;
+use core::{arch::global_asm, cell::RefCell};
+
+use lazy_static::lazy_static;
+use utils::safety::SyncRefCell;
 
 global_asm!(include_str!("entry.asm"));
+global_asm!(include_str!("app_loader.asm"));
+
+lazy_static! {
+    static ref APP_MANAGER: SyncRefCell<batch::AppManager> = {
+        let app_count = extern_global!(__app_count) as *const usize;
+        let app_count = unsafe { app_count.read_volatile() };
+        let app_table = extern_global!(__app_table) as *const usize;
+
+        SyncRefCell {
+            ref_cell: RefCell::new(batch::AppManager::new(app_count, app_table)),
+        }
+    };
+}
 
 /// 内核入口函数
 #[unsafe(no_mangle)]
 pub extern "C" fn _kernel_entry() -> ! {
     clear_bss();
     startup_log();
+    APP_MANAGER.ref_cell.borrow_mut().load_app(0);
     printkln!("Hello, {}!", "World");
 
     // sbi::sbi_shutdown(false);
