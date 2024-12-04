@@ -72,51 +72,28 @@
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
+<a href="#74" id="74">74</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
 #![no_main]
 #![feature(inline_const_pat)]
 
 </span><span class="kw">mod </span>app_loader;
-<span class="kw">mod </span>batch;
 <span class="kw">mod </span>io;
 <span class="kw">mod </span>language_item;
 <span class="kw">mod </span>sbi;
 <span class="kw">mod </span>syscall;
+<span class="kw">mod </span>task;
 <span class="kw">mod </span>trap;
 <span class="kw">mod </span>utils;
 
 <span class="kw">use </span>core::{arch::global_asm, cell::RefCell};
 
+<span class="kw">use </span>app_loader::{APP_LOADER, AppLoader, MAX_APP_NUM, new_app_ctx};
 <span class="kw">use </span>lazy_static::lazy_static;
+<span class="kw">use </span>task::{context::TaskCtx, task::TaskControlBlock};
 <span class="kw">use </span>utils::safety::SyncRefCell;
 
 <span class="macro">global_asm!</span>(<span class="macro">include_str!</span>(<span class="string">"entry.asm"</span>));
 <span class="macro">global_asm!</span>(<span class="macro">include_str!</span>(<span class="string">"app_loader.asm"</span>));
-
-<span class="macro">lazy_static!</span> {
-    <span class="kw">static </span><span class="kw-2">ref </span>APP_MANAGER: SyncRefCell&lt;batch::AppManager&gt; = {
-        <span class="kw">let </span>app_count = <span class="macro">extern_global!</span>(__app_count) <span class="kw">as </span><span class="kw-2">*const </span>usize;
-        <span class="kw">let </span>app_count = <span class="kw">unsafe </span>{ app_count.read_volatile() };
-        <span class="kw">let </span>app_table = <span class="macro">extern_global!</span>(__app_table) <span class="kw">as </span><span class="kw-2">*const </span>usize;
-        <span class="kw">let </span>app_name_table = <span class="macro">extern_global!</span>(__app_name_table) <span class="kw">as </span><span class="kw-2">*const </span>usize;
-
-        SyncRefCell {
-            ref_cell: RefCell::new(batch::AppManager::new(app_count, app_table, app_name_table)),
-        }
-    };
-}
 
 <span class="doccomment">/// 内核入口函数
 </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
@@ -124,9 +101,8 @@
     clear_bss();
     startup_log();
     trap::init();
-    APP_MANAGER.ref_cell.borrow().print_apps_info();
-    app_loader::load_apps();
-    batch::run_next_app();
+    APP_LOADER.ref_cell.borrow().print_apps_info();
+    task::manager::TaskManager::start();
     <span class="macro">printkln!</span>(<span class="string">"Hello, {}!"</span>, <span class="string">"World"</span>);
 
     <span class="comment">// sbi::sbi_shutdown(false);
