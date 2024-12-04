@@ -1,4 +1,3 @@
 /target
-/user/linker.debug.ld
-/user/linker.ld
+/user/.linkers/*
 /src/app_loader.asm
