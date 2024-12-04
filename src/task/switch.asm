@@ -2,10 +2,10 @@
 
 .altmacro
 .macro STORE regi, offset, base
-    sd x\regi, \offset(\base)
+    sd s\regi, \offset(\base)
 .endm
 .macro LOAD regi, offset, base
-    ld x\regi, \offset(\base)
+    ld s\regi, \offset(\base)
 .endm
 
 .section .text
@@ -16,7 +16,8 @@ __switch: # a0: current_task_ctx_ptr, a1: next_task_ctx_ptr
     sd sp, 1*8(a0)
     .set rept_i, 0
     .rept 12 # s0~s11
-        STORE \rept_i, (2+\rept_i)*8, a0
+        .set plus2, 2 + rept_i
+        STORE %rept_i, %plus2*8, a0
         .set rept_i, rept_i+1
     .endr
 
@@ -25,7 +26,8 @@ __switch: # a0: current_task_ctx_ptr, a1: next_task_ctx_ptr
     ld sp, 1*8(a1)
     .set rept_i, 0
     .rept 12 # s0~s11
-        LOAD \rept_i, (2+\rept_i)*8, a1
+        .set plus2, 2 + rept_i
+        LOAD %rept_i, %plus2*8, a1
         .set rept_i, rept_i+1
     .endr
 
