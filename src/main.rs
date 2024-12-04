@@ -8,6 +8,7 @@ mod language_item;
 mod sbi;
 mod syscall;
 mod task;
+mod timer;
 mod trap;
 mod utils;
 
