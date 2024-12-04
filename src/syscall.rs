@@ -1,6 +1,6 @@
 use common::syscall::{Syscall, SyscallArgs, SyscallRet};
 
-use crate::{APP_MANAGER, batch, printk};
+use crate::{APP_MANAGER, printk, task};
 
 pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
     match call {
@@ -34,5 +34,5 @@ pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
 
 pub fn sys_exit(code: usize) {
     printk!("Process exited with code {}\n", code);
-    batch::run_next_app();
+    task::manager::run_next_app();
 }

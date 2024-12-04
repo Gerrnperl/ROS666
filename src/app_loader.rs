@@ -1,6 +1,6 @@
 use core::arch::asm;
 
-use crate::{APP_MANAGER, batch::AppManager};
+use crate::{APP_MANAGER, task::manager::AppManager};
 
 pub fn load_apps() {
     let app_manager = APP_MANAGER.ref_cell.borrow();
