@@ -82,11 +82,14 @@
 <a href="#81" id="81">81</a>
 <a href="#82" id="82">82</a>
 <a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
 #![no_main]
 #![feature(inline_const_pat)]
 
-</span><span class="kw">mod </span>batch;
+</span><span class="kw">mod </span>app_loader;
+<span class="kw">mod </span>batch;
 <span class="kw">mod </span>io;
 <span class="kw">mod </span>language_item;
 <span class="kw">mod </span>sbi;
@@ -122,6 +125,7 @@
     startup_log();
     trap::init();
     APP_MANAGER.ref_cell.borrow().print_apps_info();
+    app_loader::load_apps();
     batch::run_next_app();
     <span class="macro">printkln!</span>(<span class="string">"Hello, {}!"</span>, <span class="string">"World"</span>);
 

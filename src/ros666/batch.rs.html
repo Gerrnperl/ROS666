@@ -178,37 +178,14 @@
 <a href="#177" id="177">177</a>
 <a href="#178" id="178">178</a>
 <a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::arch::asm;
+<a href="#180" id="180">180</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::arch::asm;
 
 <span class="kw">use crate</span>::{APP_MANAGER, info, printkln, sbi::sbi_shutdown, trap::context::TrapCtx};
 
 <span class="kw">pub const </span>MAX_APP_NUM: usize = <span class="number">64</span>;
 <span class="doccomment">/// 与 user-build 中 linker.ld 中的 BASE_ADDRESS 保持一致
-</span><span class="kw">pub const </span>APP_BASE_ADDRESS: usize = <span class="number">0x80400000</span>;
+</span><span class="kw">pub const </span>USER_BASE_ADDRESS: usize = <span class="number">0x80400000</span>;
+<span class="kw">pub const </span>USER_SPACE_SIZE: usize = <span class="number">0x00200000</span>;
 <span class="kw">pub const </span>KERNEL_STACK_SIZE: usize = <span class="number">0x8000</span>;
 <span class="kw">pub const </span>USER_STACK_SIZE: usize = <span class="number">0x8000</span>;
 
@@ -326,26 +303,9 @@
         }
     }
 
-    <span class="kw">pub fn </span>load_app(<span class="kw-2">&amp;</span><span class="self">self</span>, app_id: usize) {
-        <span class="kw">let </span>app_start = <span class="self">self</span>.app_table[app_id];
-        <span class="kw">let </span>app_end = <span class="kw">if </span>app_id + <span class="number">1 </span>&lt; <span class="self">self</span>.app_count {
-            <span class="self">self</span>.app_table[app_id + <span class="number">1</span>]
-        } <span class="kw">else </span>{
-            <span class="self">self</span>.apps_end
-        };
-        <span class="kw">let </span>app_size = app_end - app_start;
-        <span class="kw">let </span>app_base = APP_BASE_ADDRESS;
-        <span class="kw">unsafe </span>{ core::slice::from_raw_parts_mut(APP_BASE_ADDRESS <span class="kw">as </span><span class="kw-2">*mut </span>u8, <span class="number">0x20000</span>).fill(<span class="number">0</span>) };
-        <span class="kw">let </span>app_src = <span class="kw">unsafe </span>{ core::slice::from_raw_parts(app_start <span class="kw">as </span><span class="kw-2">*const </span>u8, app_size) };
-        <span class="kw">let </span>app_dst = <span class="kw">unsafe </span>{ core::slice::from_raw_parts_mut(app_base <span class="kw">as </span><span class="kw-2">*mut </span>u8, app_size) };
-        app_dst.copy_from_slice(app_src);
-        <span class="kw">unsafe </span>{
-            <span class="macro">asm!</span>(<span class="string">"fence.i"</span>);
-        }
-        <span class="comment">// let app_entry = app_base;
-        // let app_entry: extern "C" fn() -&gt; ! = unsafe { core::mem::transmute(app_entry) };
-        // app_entry();
-    </span>}
+    <span class="kw">pub fn </span>get_app_base_addr(app_id: usize) -&gt; usize {
+        USER_BASE_ADDRESS + app_id * USER_SPACE_SIZE
+    }
 
     <span class="kw">pub fn </span>get_app_name(app_name_ptr: <span class="kw-2">*const </span>i8) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="kw">let </span>app_name = <span class="kw">unsafe </span>{ core::ffi::CStr::from_ptr(app_name_ptr) };
@@ -361,7 +321,7 @@
 
     <span class="kw">pub fn </span>print_app_info(<span class="kw-2">&amp;</span><span class="self">self</span>, app_id: usize) {
         <span class="macro">info!</span>(
-            <span class="string">"App {} - Name: {}, Start: {:#x}, End: {:#x}"</span>,
+            <span class="string">"App {} - Name: {}, Offset: [{:#x}, {:#x}), Base: {:#x}"</span>,
             app_id,
             <span class="self">self</span>.app_name_table[app_id],
             <span class="self">self</span>.app_table[app_id],
@@ -369,7 +329,8 @@
                 <span class="self">self</span>.app_table[app_id + <span class="number">1</span>]
             } <span class="kw">else </span>{
                 <span class="self">self</span>.apps_end
-            }
+            },
+            <span class="self">Self</span>::get_app_base_addr(app_id)
         );
     }
 }
@@ -381,28 +342,19 @@
         <span class="macro">info!</span>(<span class="string">"All apps have been run."</span>);
         sbi_shutdown(<span class="bool-val">false</span>);
     }
-    app_manager.load_app(app_manager.current);
-    app_manager.print_app_info(app_manager.current);
+    <span class="kw">let </span>app_id = app_manager.current;
+    app_manager.print_app_info(app_id);
     app_manager.current = app_manager.current + <span class="number">1</span>;
     drop(app_manager);
     <span class="kw">unsafe extern </span><span class="string">"C" </span>{
         <span class="kw">fn </span>__restore_trap(ctx_ptr: usize);
     }
-    <span class="comment">// panic!("{}", __restore_trap as usize);
-    </span><span class="macro">printkln!</span>(<span class="string">"{:#x}"</span>, __restore_trap <span class="kw">as </span>usize);
-    <span class="macro">printkln!</span>(<span class="string">"{:#x}"</span>, USER_STACK.top());
     <span class="kw">unsafe </span>{
-        <span class="kw">let </span>a = KERNEL_STACK.push_ctx(TrapCtx::init_app_context(
-            APP_BASE_ADDRESS,
+        <span class="kw">let </span>ctx = KERNEL_STACK.push_ctx(TrapCtx::init_app_context(
+            AppManager::get_app_base_addr(app_id),
             USER_STACK.top(),
         ));
-        <span class="comment">// print the context
-        </span><span class="kw">let </span>ctx = <span class="kw-2">&amp;*</span>(a <span class="kw">as </span><span class="kw-2">*const </span>TrapCtx);
-        <span class="macro">printkln!</span>(<span class="string">"{:#x}"</span>, ctx.sstatus);
-        <span class="macro">printkln!</span>(<span class="string">"{:#x}"</span>, ctx.sepc);
-        <span class="macro">printkln!</span>(<span class="string">"{:#x}"</span>, ctx.x[<span class="number">2</span>]);
-
-        __restore_trap(a);
+        __restore_trap(ctx);
     }
     <span class="macro">unreachable!</span>();
 }
