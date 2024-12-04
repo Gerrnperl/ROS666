@@ -4,7 +4,8 @@ use crate::{APP_MANAGER, info, printkln, sbi::sbi_shutdown, trap::context::TrapC
 
 pub const MAX_APP_NUM: usize = 64;
 /// 与 user-build 中 linker.ld 中的 BASE_ADDRESS 保持一致
-pub const APP_BASE_ADDRESS: usize = 0x80400000;
+pub const USER_BASE_ADDRESS: usize = 0x80400000;
+pub const USER_SPACE_SIZE: usize = 0x00200000;
 pub const KERNEL_STACK_SIZE: usize = 0x8000;
 pub const USER_STACK_SIZE: usize = 0x8000;
 
@@ -130,8 +131,8 @@ impl AppManager {
             self.apps_end
         };
         let app_size = app_end - app_start;
-        let app_base = APP_BASE_ADDRESS;
-        unsafe { core::slice::from_raw_parts_mut(APP_BASE_ADDRESS as *mut u8, 0x20000).fill(0) };
+        let app_base = Self::get_app_base_addr(app_id);
+        unsafe { core::slice::from_raw_parts_mut(app_base as *mut u8, 0x20000).fill(0) };
         let app_src = unsafe { core::slice::from_raw_parts(app_start as *const u8, app_size) };
         let app_dst = unsafe { core::slice::from_raw_parts_mut(app_base as *mut u8, app_size) };
         app_dst.copy_from_slice(app_src);
@@ -141,6 +142,10 @@ impl AppManager {
         // let app_entry = app_base;
         // let app_entry: extern "C" fn() -> ! = unsafe { core::mem::transmute(app_entry) };
         // app_entry();
+    }
+
+    pub fn get_app_base_addr(app_id: usize) -> usize {
+        USER_BASE_ADDRESS + app_id * USER_SPACE_SIZE
     }
 
     pub fn get_app_name(app_name_ptr: *const i8) -> &'static str {
@@ -157,7 +162,7 @@ impl AppManager {
 
     pub fn print_app_info(&self, app_id: usize) {
         info!(
-            "App {} - Name: {}, Start: {:#x}, End: {:#x}",
+            "App {} - Name: {}, Offset: [{:#x}, {:#x}), Base: {:#x}",
             app_id,
             self.app_name_table[app_id],
             self.app_table[app_id],
@@ -165,7 +170,8 @@ impl AppManager {
                 self.app_table[app_id + 1]
             } else {
                 self.apps_end
-            }
+            },
+            Self::get_app_base_addr(app_id)
         );
     }
 }
@@ -177,28 +183,20 @@ pub fn run_next_app() {
         info!("All apps have been run.");
         sbi_shutdown(false);
     }
-    app_manager.load_app(app_manager.current);
-    app_manager.print_app_info(app_manager.current);
+    let app_id = app_manager.current;
+    app_manager.load_app(app_id);
+    app_manager.print_app_info(app_id);
     app_manager.current = app_manager.current + 1;
     drop(app_manager);
     unsafe extern "C" {
         fn __restore_trap(ctx_ptr: usize);
     }
-    // panic!("{}", __restore_trap as usize);
-    printkln!("{:#x}", __restore_trap as usize);
-    printkln!("{:#x}", USER_STACK.top());
     unsafe {
-        let a = KERNEL_STACK.push_ctx(TrapCtx::init_app_context(
-            APP_BASE_ADDRESS,
+        let ctx = KERNEL_STACK.push_ctx(TrapCtx::init_app_context(
+            AppManager::get_app_base_addr(app_id),
             USER_STACK.top(),
         ));
-        // print the context
-        let ctx = &*(a as *const TrapCtx);
-        printkln!("{:#x}", ctx.sstatus);
-        printkln!("{:#x}", ctx.sepc);
-        printkln!("{:#x}", ctx.x[2]);
-
-        __restore_trap(a);
+        __restore_trap(ctx);
     }
     unreachable!();
 }
