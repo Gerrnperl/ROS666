@@ -10,11 +10,9 @@ KERNEL_BINARY_NAME := $(shell cargo metadata --no-deps --format-version 1 | jq -
 USER_BINARY_NAMES := $(shell cargo metadata --no-deps --format-version 1 | jq -r ' \
   . as $$root | \
   .packages[] | \
-  .targets[] | \
-  select( .kind | map(. == "bin") | any ) | \
-  .name \
-' | grep -v $(KERNEL_BINARY_NAME))
-
+  select(.name == "user") | \
+  .metadata.applications.order[] \
+')
 
 TARGET_DIR := target/riscv64gc-unknown-none-elf
 KERNEL_ELF := $(TARGET_DIR)/debug/$(KERNEL_BINARY_NAME)
