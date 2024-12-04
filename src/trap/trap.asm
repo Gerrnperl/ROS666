@@ -38,7 +38,7 @@ __save_trap:
 
 .global __restore_trap
 __restore_trap:
-    mv sp, a0
+    # mv sp, a0
     # restore registers
     ld t0, 32*8(sp)
     ld t1, 33*8(sp)

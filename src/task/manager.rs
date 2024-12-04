@@ -1,180 +1,115 @@
 use core::arch::asm;
+use core::cell::RefCell;
 
-use crate::{APP_MANAGER, info, printkln, sbi::sbi_shutdown, trap::context::TrapCtx};
+use lazy_static::lazy_static;
 
-pub const MAX_APP_NUM: usize = 64;
-/// 与 user-build 中 linker.ld 中的 BASE_ADDRESS 保持一致
-pub const USER_BASE_ADDRESS: usize = 0x80400000;
-pub const USER_SPACE_SIZE: usize = 0x00200000;
-pub const KERNEL_STACK_SIZE: usize = 0x8000;
-pub const USER_STACK_SIZE: usize = 0x8000;
+use crate::app_loader::{APP_LOADER, AppLoader, MAX_APP_NUM, new_app_ctx};
+use crate::task::context::TaskCtx;
+use crate::task::switch::__switch;
+use crate::task::task::{TaskControlBlock, TaskStatus};
+use crate::utils::safety::SyncRefCell;
+use crate::{info, printkln, sbi::sbi_shutdown};
 
-#[repr(align(4096))]
-struct KernelStack([u8; KERNEL_STACK_SIZE]);
-
-#[repr(align(4096))]
-struct UserStack([u8; USER_STACK_SIZE]);
-
-static KERNEL_STACK: KernelStack = KernelStack([0; KERNEL_STACK_SIZE]);
-static USER_STACK: UserStack = UserStack([0; USER_STACK_SIZE]);
-
-trait Stack {
-    fn top(&self) -> usize;
-}
-
-impl Stack for KernelStack {
-    fn top(&self) -> usize {
-        self.0.as_ptr() as usize + KERNEL_STACK_SIZE
-    }
-}
-
-impl Stack for UserStack {
-    fn top(&self) -> usize {
-        self.0.as_ptr() as usize + USER_STACK_SIZE
-    }
-}
-
-impl KernelStack {
-    fn push_ctx(&self, ctx: TrapCtx) -> usize {
-        // let ctx_ptr = &ctx as *const TrapCtx;
-        // let ctx_size = core::mem::size_of::<TrapCtx>();
-        // let ctx_dst = self.top() - ctx_size;
-        // let ctx_src = ctx_ptr;
-        // let ctx_dst = ctx_dst as *mut u8;
-        // let ctx_src = ctx_src as *const u8;
-        // unsafe {
-        //     ctx_dst.copy_from(ctx_src, ctx_size);
-        // }
-        // let ctx_dst = ctx_dst as *mut TrapCtx;
-        // unsafe { &mut *ctx_dst }
-        let cx_ptr = (self.top() - core::mem::size_of::<TrapCtx>()) as *mut TrapCtx;
-        unsafe {
-            *cx_ptr = ctx;
+lazy_static! {
+    pub static ref TASK_MANAGER: SyncRefCell<TaskManager> = {
+        SyncRefCell {
+            ref_cell: RefCell::new({
+                let app_count = APP_LOADER.ref_cell.borrow().app_count;
+                let mut tasks = [TaskControlBlock {
+                    id: 0,
+                    ctx: TaskCtx::default(),
+                    status: TaskStatus::Create,
+                }; MAX_APP_NUM];
+                for (i, task) in tasks.iter_mut().enumerate().take(app_count) {
+                    task.id = i;
+                    task.ctx = TaskCtx::restore_to_kernel(new_app_ctx(i));
+                    task.status = TaskStatus::Ready;
+                }
+                TaskManager {
+                    app_count,
+                    current: 0,
+                    tasks,
+                }
+            }),
         }
-        unsafe { cx_ptr.as_mut().unwrap() as *const _ as usize }
-    }
+    };
 }
 
-pub struct AppManager {
+pub struct TaskManager {
     /// 应用程序总数
     pub app_count: usize,
     /// 当前运行的应用程序编号
     pub current: usize,
-    /// 应用程序入口地址表
-    pub app_table: [usize; MAX_APP_NUM],
-    pub app_name_table: [&'static str; MAX_APP_NUM],
-    /// 最后一个应用程序的结束地址
-    pub apps_end: usize,
+    /// 任务控制块数组
+    pub tasks: [TaskControlBlock; MAX_APP_NUM],
 }
 
-impl AppManager {
-    /// 从应用程序表构造一个 AppManager
-    ///
-    /// ## 参数
-    /// - `app_count`：应用程序总数
-    /// - `app_table_ptr`：应用程序入口地址表（的指针）
-    ///
-    /// ## 应用程序表结构
-    /// 应用程序表是一个数组，每个元素是一个应用程序的入口地址（64 位整数）。
-    /// ```asm
-    /// .global __app_table
-    /// __app_table:
-    ///    .quad __app_0_start
-    ///    .quad __app_1_start
-    ///    ; ...
-    ///    .quad __app_{n-1}_start
-    ///    .quad __app_{n-1}_end
-    /// ```
-    ///
-    pub fn new(
-        app_count: usize,
-        app_table_ptr: *const usize,
-        app_name_table_ptr: *const usize,
-    ) -> Self {
-        let app_table_data: &[usize] =
-            unsafe { core::slice::from_raw_parts(app_table_ptr, app_count) }
-                .try_into()
-                .unwrap();
-        let mut app_table = [0; MAX_APP_NUM];
-        app_table[0..app_count].copy_from_slice(app_table_data);
-
-        let apps_end = unsafe {
-            core::slice::from_raw_parts(app_table_ptr.add(app_count), 1)
-                .get(0)
-                .copied()
-                .unwrap()
-        };
-
-        let app_name_table_data: &[usize] =
-            unsafe { core::slice::from_raw_parts(app_name_table_ptr, app_count) }
-                .try_into()
-                .unwrap();
-        let mut app_name_table = [""; MAX_APP_NUM];
-        for i in 0..app_count {
-            app_name_table[i] = Self::get_app_name(app_name_table_data[i] as *const i8);
-        }
-
-        Self {
-            app_count,
-            current: 0,
-            app_table,
-            apps_end,
-            app_name_table,
+impl TaskManager {
+    pub fn start() {
+        info!("Switch to task {}", 0);
+        APP_LOADER.ref_cell.borrow().print_app_info(0);
+        let mut this = TASK_MANAGER.ref_cell.borrow_mut();
+        this.tasks[0].status = crate::task::task::TaskStatus::Running;
+        let next_ptr = &this.tasks[0].ctx as *const TaskCtx;
+        drop(this);
+        let mut null = TaskCtx::default();
+        unsafe {
+            __switch(&mut null, next_ptr);
         }
     }
 
-    pub fn get_app_base_addr(app_id: usize) -> usize {
-        USER_BASE_ADDRESS + app_id * USER_SPACE_SIZE
-    }
-
-    pub fn get_app_name(app_name_ptr: *const i8) -> &'static str {
-        let app_name = unsafe { core::ffi::CStr::from_ptr(app_name_ptr) };
-        let app_name = app_name.to_str().unwrap();
-        app_name
-    }
-
-    pub fn print_apps_info(&self) {
-        for i in 0..self.app_count {
-            self.print_app_info(i);
+    pub fn switch_to(task_id: usize) {
+        info!("Switch to task {}", task_id);
+        APP_LOADER.ref_cell.borrow().print_app_info(task_id);
+        let mut this = TASK_MANAGER.ref_cell.borrow_mut();
+        let current = this.current;
+        this.tasks[task_id].status = crate::task::task::TaskStatus::Running;
+        let current_ptr = &mut this.tasks[current].ctx as *mut TaskCtx;
+        let next_ptr = &this.tasks[task_id].ctx as *const TaskCtx;
+        this.current = task_id;
+        drop(this);
+        unsafe {
+            __switch(current_ptr, next_ptr);
         }
     }
 
-    pub fn print_app_info(&self, app_id: usize) {
-        info!(
-            "App {} - Name: {}, Offset: [{:#x}, {:#x}), Base: {:#x}",
-            app_id,
-            self.app_name_table[app_id],
-            self.app_table[app_id],
-            if app_id + 1 < self.app_count {
-                self.app_table[app_id + 1]
-            } else {
-                self.apps_end
-            },
-            Self::get_app_base_addr(app_id)
-        );
+    pub fn cycle_to_next() {
+        let mut this = TASK_MANAGER.ref_cell.borrow_mut();
+        let current = this.current;
+        this.tasks[current].status = crate::task::task::TaskStatus::Ready;
+        drop(this);
+        TaskManager::run_next_task();
     }
-}
 
-pub fn run_next_app() {
-    info!("Running next app...");
-    let mut app_manager = APP_MANAGER.ref_cell.borrow_mut();
-    if app_manager.current >= app_manager.app_count {
-        info!("All apps have been run.");
-        sbi_shutdown(false);
+    pub fn replace_to_next() {
+        let mut this = TASK_MANAGER.ref_cell.borrow_mut();
+        let current = this.current;
+        this.tasks[current].status = crate::task::task::TaskStatus::Stopped;
+        drop(this);
+        TaskManager::run_next_task();
     }
-    let app_id = app_manager.current;
-    app_manager.print_app_info(app_id);
-    app_manager.current = app_manager.current + 1;
-    drop(app_manager);
-    unsafe extern "C" {
-        fn __restore_trap(ctx_ptr: usize);
+
+    pub fn run_next_task() {
+        if let Some(next_task_id) = TaskManager::get_next_task() {
+            TaskManager::switch_to(next_task_id);
+        } else {
+            printkln!("All tasks have been run.");
+            sbi_shutdown(false);
+        }
     }
-    unsafe {
-        let ctx = KERNEL_STACK.push_ctx(TrapCtx::init_app_context(
-            AppManager::get_app_base_addr(app_id),
-            USER_STACK.top(),
-        ));
-        __restore_trap(ctx);
+
+    pub fn get_next_task() -> Option<usize> {
+        let this = TASK_MANAGER.ref_cell.borrow();
+        let current = this.current;
+        // find a task that is ready to run
+        for i in 1..=this.app_count {
+            let task_id = (current + i) % this.app_count;
+            if this.tasks[task_id].status == crate::task::task::TaskStatus::Ready {
+                drop(this);
+                return Some(task_id);
+            }
+        }
+        drop(this);
+        None
     }
-    unreachable!();
 }
