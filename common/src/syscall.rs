@@ -7,10 +7,14 @@
 pub enum Syscall {
     Read = 63,
     Write = 64,
-    /// Terminate the calling process
+    /// 终止当前进程
     ///
     /// [_exit(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/exit.2.html)
     Exit = 93,
+    /// 让出处理器
+    ///
+    /// [sched_yield(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/sched_yield.2.html)
+    SchedYield = 124,
 }
 
 impl core::fmt::Display for Syscall {
@@ -31,6 +35,7 @@ impl From<usize> for Syscall {
             63 => Syscall::Read,
             64 => Syscall::Write,
             93 => Syscall::Exit,
+            124 => Syscall::SchedYield,
             _ => panic!("Unsupported syscall number: {}", syscall),
         }
     }

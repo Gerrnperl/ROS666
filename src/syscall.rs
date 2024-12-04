@@ -1,6 +1,6 @@
 use common::syscall::{Syscall, SyscallArgs, SyscallRet};
 
-use crate::{APP_MANAGER, printk, task};
+use crate::{printk, task};
 
 pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
     match call {
@@ -10,6 +10,7 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
             sys_exit(args[0]);
             0
         }
+        Syscall::SchedYield => sys_yield(),
         #[allow(
             unreachable_patterns,
             reason = "we may receive syscall numbers not defined in the enum"
@@ -34,5 +35,10 @@ pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
 
 pub fn sys_exit(code: usize) {
     printk!("Process exited with code {}\n", code);
-    task::manager::run_next_app();
+    task::manager::TaskManager::replace_to_next();
+}
+
+pub fn sys_yield() -> SyscallRet {
+    task::manager::TaskManager::cycle_to_next();
+    0
 }

@@ -3,11 +3,13 @@
 #![feature(linkage)]
 
 pub mod language_item;
+pub mod sched;
 pub mod stdio;
 pub mod syscall;
 pub mod unistd;
 
 pub use language_item::*;
+pub use sched::*;
 pub use stdio::*;
 pub use syscall::*;
 pub use unistd::*;

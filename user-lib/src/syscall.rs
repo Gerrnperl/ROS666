@@ -32,3 +32,7 @@ pub fn sys_exit(code: usize) -> ! {
     syscall(Syscall::Exit, [code, 0, 0]);
     unreachable!("Unreachable after sys_exit");
 }
+
+pub fn sys_sched_yield() -> SyscallRet {
+    syscall(Syscall::SchedYield, [0, 0, 0])
+}
