@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["embedded_hal",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"enum\" href=\"embedded_hal/digital/enum.ErrorKind.html\" title=\"enum embedded_hal::digital::ErrorKind\">ErrorKind</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"enum\" href=\"embedded_hal/i2c/enum.ErrorKind.html\" title=\"enum embedded_hal::i2c::ErrorKind\">ErrorKind</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"enum\" href=\"embedded_hal/i2c/enum.NoAcknowledgeSource.html\" title=\"enum embedded_hal::i2c::NoAcknowledgeSource\">NoAcknowledgeSource</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"enum\" href=\"embedded_hal/pwm/enum.ErrorKind.html\" title=\"enum embedded_hal::pwm::ErrorKind\">ErrorKind</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/cmp/trait.Ord.html\" title=\"trait core::cmp::Ord\">Ord</a> for <a class=\"enum\" href=\"embedded_hal/spi/enum.ErrorKind.html\" title=\"enum embedded_hal::spi::ErrorKind\">ErrorKind</a>"]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[1356]}

@@ -1,0 +1,1 @@
+searchState.loadedDescShard("common", 0, "Terminate the calling process\n系统调用号\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.")

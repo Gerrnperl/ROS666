@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["clear_cy","clear_hpm","clear_ir","clear_tm","read","set_cy","set_hpm","set_ir","set_tm","try_clear_hpm","try_read","try_set_hpm","try_write","write"],"struct":["Mcounteren"]};

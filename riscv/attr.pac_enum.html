@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Attribute-like macro that implements the traits of the `riscv-pac` crate for a given enum."><title>pac_enum in riscv - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-dbdb5eec.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="riscv" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (c44b3d50f 2024-12-03)" data-channel="nightly" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../static.files/storage-59e33391.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../riscv/index.html">riscv</a><span class="version">0.12.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">pac_<wbr>enum</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#safety" title="Safety">Safety</a></li><li><a href="#example" title="Example">Example</a></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate riscv</a></h2></div></div></nav><div class="sidebar-resizer"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><span class="rustdoc-breadcrumbs"><a href="index.html">riscv</a></span><h1>Attribute Macro <span class="attr">pac_enum</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"></span></div><pre class="rust item-decl"><code>#[pac_enum]</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Attribute-like macro that implements the traits of the <code>riscv-pac</code> crate for a given enum.</p>
+<p>As these traits are unsafe, the macro must be called with the <code>unsafe</code> keyword followed by the trait name.
+In this way, we warn callers that they must comply with the requirements of the trait.</p>
+<p>The trait name must be one of <code>ExceptionNumber</code>, <code>InterruptNumber</code>, <code>PriorityNumber</code>, or <code>HartIdNumber</code>.
+Marker traits <code>CoreInterruptNumber</code> and <code>ExternalInterruptNumber</code> cannot be implemented using this macro.</p>
+<h2 id="safety"><a class="doc-anchor" href="#safety">§</a>Safety</h2>
+<p>The struct to be implemented must comply with the requirements of the specified trait.</p>
+<h2 id="example"><a class="doc-anchor" href="#example">§</a>Example</h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>riscv::<span class="kw-2">*</span>;
+
+<span class="attr">#[repr(usize)]
+#[pac_enum(<span class="kw">unsafe </span>ExceptionNumber)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+</span><span class="kw">enum </span>Exception {
+    E1 = <span class="number">1</span>,
+    E3 = <span class="number">3</span>,
+}
+
+<span class="kw">fn </span>main() {
+    <span class="macro">assert_eq!</span>(Exception::E1.number(), <span class="number">1</span>);
+    <span class="macro">assert_eq!</span>(Exception::E3.number(), <span class="number">3</span>);
+
+    <span class="macro">assert_eq!</span>(Exception::from_number(<span class="number">1</span>), <span class="prelude-val">Ok</span>(Exception::E1));
+    <span class="macro">assert_eq!</span>(Exception::from_number(<span class="number">2</span>), <span class="prelude-val">Err</span>(<span class="number">2</span>));
+    <span class="macro">assert_eq!</span>(Exception::from_number(<span class="number">3</span>), <span class="prelude-val">Ok</span>(Exception::E3));
+
+    <span class="macro">assert_eq!</span>(Exception::MAX_EXCEPTION_NUMBER, <span class="number">3</span>);
+}</code></pre></div>
+</div></details></section></div></main></body></html>

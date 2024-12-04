@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/main.rs`."><title>main.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-dbdb5eec.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5e1440ae5 2024-12-01)" data-channel="nightly" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/</div>main.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/main.rs`."><title>main.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-dbdb5eec.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (c44b3d50f 2024-12-03)" data-channel="nightly" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/</div>main.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -64,22 +64,65 @@
 <a href="#63" id="63">63</a>
 <a href="#64" id="64">64</a>
 <a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
 #![no_main]
+#![feature(inline_const_pat)]
 
-</span><span class="kw">mod </span>io;
+</span><span class="kw">mod </span>batch;
+<span class="kw">mod </span>io;
 <span class="kw">mod </span>language_item;
 <span class="kw">mod </span>sbi;
+<span class="kw">mod </span>syscall;
+<span class="kw">mod </span>trap;
+<span class="kw">mod </span>utils;
 
-<span class="kw">use </span>core::arch::global_asm;
+<span class="kw">use </span>core::{arch::global_asm, cell::RefCell};
+
+<span class="kw">use </span>lazy_static::lazy_static;
+<span class="kw">use </span>utils::safety::SyncRefCell;
 
 <span class="macro">global_asm!</span>(<span class="macro">include_str!</span>(<span class="string">"entry.asm"</span>));
+<span class="macro">global_asm!</span>(<span class="macro">include_str!</span>(<span class="string">"app_loader.asm"</span>));
+
+<span class="macro">lazy_static!</span> {
+    <span class="kw">static </span><span class="kw-2">ref </span>APP_MANAGER: SyncRefCell&lt;batch::AppManager&gt; = {
+        <span class="kw">let </span>app_count = <span class="macro">extern_global!</span>(__app_count) <span class="kw">as </span><span class="kw-2">*const </span>usize;
+        <span class="kw">let </span>app_count = <span class="kw">unsafe </span>{ app_count.read_volatile() };
+        <span class="kw">let </span>app_table = <span class="macro">extern_global!</span>(__app_table) <span class="kw">as </span><span class="kw-2">*const </span>usize;
+        <span class="kw">let </span>app_name_table = <span class="macro">extern_global!</span>(__app_name_table) <span class="kw">as </span><span class="kw-2">*const </span>usize;
+
+        SyncRefCell {
+            ref_cell: RefCell::new(batch::AppManager::new(app_count, app_table, app_name_table)),
+        }
+    };
+}
 
 <span class="doccomment">/// 内核入口函数
 </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
 </span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>_kernel_entry() -&gt; ! {
     clear_bss();
     startup_log();
+    trap::init();
+    APP_MANAGER.ref_cell.borrow().print_apps_info();
+    batch::run_next_app();
     <span class="macro">printkln!</span>(<span class="string">"Hello, {}!"</span>, <span class="string">"World"</span>);
 
     <span class="comment">// sbi::sbi_shutdown(false);
@@ -87,33 +130,26 @@
 }
 
 <span class="kw">fn </span>startup_log() {
-    <span class="kw">unsafe extern </span><span class="string">"C" </span>{
-        <span class="kw">fn </span>__text_start();
-        <span class="kw">fn </span>__text_end();
-        <span class="kw">fn </span>__rodata_start();
-        <span class="kw">fn </span>__rodata_end();
-        <span class="kw">fn </span>__data_start();
-        <span class="kw">fn </span>__data_end();
-        <span class="kw">fn </span>__bss_start();
-        <span class="kw">fn </span>__bss_end();
-    }
-
     <span class="macro">info!</span>(<span class="string">"[Kernel] Secion:"</span>);
     <span class="macro">info!</span>(
         <span class="string">"[Kernel]  text   : [{:#x}, {:#x})"</span>,
-        __text_start <span class="kw">as </span>usize, __text_end <span class="kw">as </span>usize
+        <span class="macro">extern_global!</span>(__text_start) <span class="kw">as </span>usize,
+        <span class="macro">extern_global!</span>(__text_end) <span class="kw">as </span>usize
     );
     <span class="macro">info!</span>(
         <span class="string">"[Kernel]  rodata : [{:#x}, {:#x})"</span>,
-        __rodata_start <span class="kw">as </span>usize, __rodata_end <span class="kw">as </span>usize
+        <span class="macro">extern_global!</span>(__rodata_start) <span class="kw">as </span>usize,
+        <span class="macro">extern_global!</span>(__rodata_end) <span class="kw">as </span>usize
     );
     <span class="macro">info!</span>(
         <span class="string">"[Kernel]  data   : [{:#x}, {:#x})"</span>,
-        __data_start <span class="kw">as </span>usize, __data_end <span class="kw">as </span>usize
+        <span class="macro">extern_global!</span>(__data_start) <span class="kw">as </span>usize,
+        <span class="macro">extern_global!</span>(__data_end) <span class="kw">as </span>usize
     );
     <span class="macro">info!</span>(
         <span class="string">"[Kernel]  bss    : [{:#x}, {:#x})"</span>,
-        __bss_start <span class="kw">as </span>usize, __bss_end <span class="kw">as </span>usize
+        <span class="macro">extern_global!</span>(__bss_start) <span class="kw">as </span>usize,
+        <span class="macro">extern_global!</span>(__bss_end) <span class="kw">as </span>usize
     );
 }
 

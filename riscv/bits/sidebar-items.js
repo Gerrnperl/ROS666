@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["bf_extract","bf_insert"]};

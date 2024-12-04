@@ -1,2 +1,2 @@
-window.ALL_CRATES = ["bye","hello","lib","ros666","rustsbi","sbi_rt","sbi_spec"];
-//{"start":21,"fragment_lengths":[5,8,6,9,10,9,11]}
+window.ALL_CRATES = ["bye","common","critical_section","embedded_hal","hello","lazy_static","lib","riscv","riscv_pac","ros666","rustsbi","sbi_rt","sbi_spec","spin"];
+//{"start":21,"fragment_lengths":[5,9,19,15,8,14,6,8,12,9,10,9,11,7]}
