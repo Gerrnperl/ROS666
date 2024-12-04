@@ -17,3 +17,7 @@ lib = { path = "../user-lib" }
 
 [build-dependencies]
 build = { path = "../user-build" }
+
+[package.metadata.applications]
+# 应用程序顺序
+order = ["hello", "bye"]
