@@ -2,6 +2,7 @@
 #![no_main]
 #![feature(inline_const_pat)]
 
+mod app_loader;
 mod batch;
 mod io;
 mod language_item;
@@ -38,6 +39,7 @@ pub extern "C" fn _kernel_entry() -> ! {
     startup_log();
     trap::init();
     APP_MANAGER.ref_cell.borrow().print_apps_info();
+    app_loader::load_apps();
     batch::run_next_app();
     printkln!("Hello, {}!", "World");
 

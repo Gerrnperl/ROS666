@@ -123,27 +123,6 @@ impl AppManager {
         }
     }
 
-    pub fn load_app(&self, app_id: usize) {
-        let app_start = self.app_table[app_id];
-        let app_end = if app_id + 1 < self.app_count {
-            self.app_table[app_id + 1]
-        } else {
-            self.apps_end
-        };
-        let app_size = app_end - app_start;
-        let app_base = Self::get_app_base_addr(app_id);
-        unsafe { core::slice::from_raw_parts_mut(app_base as *mut u8, 0x20000).fill(0) };
-        let app_src = unsafe { core::slice::from_raw_parts(app_start as *const u8, app_size) };
-        let app_dst = unsafe { core::slice::from_raw_parts_mut(app_base as *mut u8, app_size) };
-        app_dst.copy_from_slice(app_src);
-        unsafe {
-            asm!("fence.i");
-        }
-        // let app_entry = app_base;
-        // let app_entry: extern "C" fn() -> ! = unsafe { core::mem::transmute(app_entry) };
-        // app_entry();
-    }
-
     pub fn get_app_base_addr(app_id: usize) -> usize {
         USER_BASE_ADDRESS + app_id * USER_SPACE_SIZE
     }
@@ -184,7 +163,6 @@ pub fn run_next_app() {
         sbi_shutdown(false);
     }
     let app_id = app_manager.current;
-    app_manager.load_app(app_id);
     app_manager.print_app_info(app_id);
     app_manager.current = app_manager.current + 1;
     drop(app_manager);
