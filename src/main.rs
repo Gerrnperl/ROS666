@@ -3,34 +3,23 @@
 #![feature(inline_const_pat)]
 
 mod app_loader;
-mod batch;
 mod io;
 mod language_item;
 mod sbi;
 mod syscall;
+mod task;
 mod trap;
 mod utils;
 
 use core::{arch::global_asm, cell::RefCell};
 
+use app_loader::{APP_LOADER, AppLoader, MAX_APP_NUM, new_app_ctx};
 use lazy_static::lazy_static;
+use task::{context::TaskCtx, task::TaskControlBlock};
 use utils::safety::SyncRefCell;
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("app_loader.asm"));
-
-lazy_static! {
-    static ref APP_MANAGER: SyncRefCell<batch::AppManager> = {
-        let app_count = extern_global!(__app_count) as *const usize;
-        let app_count = unsafe { app_count.read_volatile() };
-        let app_table = extern_global!(__app_table) as *const usize;
-        let app_name_table = extern_global!(__app_name_table) as *const usize;
-
-        SyncRefCell {
-            ref_cell: RefCell::new(batch::AppManager::new(app_count, app_table, app_name_table)),
-        }
-    };
-}
 
 /// 内核入口函数
 #[unsafe(no_mangle)]
@@ -38,9 +27,8 @@ pub extern "C" fn _kernel_entry() -> ! {
     clear_bss();
     startup_log();
     trap::init();
-    APP_MANAGER.ref_cell.borrow().print_apps_info();
-    app_loader::load_apps();
-    batch::run_next_app();
+    APP_LOADER.ref_cell.borrow().print_apps_info();
+    task::manager::TaskManager::start();
     printkln!("Hello, {}!", "World");
 
     // sbi::sbi_shutdown(false);
