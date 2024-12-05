@@ -1,10 +1,10 @@
 # 任务切换
 
 .altmacro
-.macro STORE regi, offset, base
+.macro STORE_SR regi, offset, base
     sd s\regi, \offset(\base)
 .endm
-.macro LOAD regi, offset, base
+.macro LOAD_SR regi, offset, base
     ld s\regi, \offset(\base)
 .endm
 
@@ -17,7 +17,7 @@ __switch: # a0: current_task_ctx_ptr, a1: next_task_ctx_ptr
     .set rept_i, 0
     .rept 12 # s0~s11
         .set plus2, 2 + rept_i
-        STORE %rept_i, %plus2*8, a0
+        STORE_SR %rept_i, %plus2*8, a0
         .set rept_i, rept_i+1
     .endr
 
@@ -27,7 +27,7 @@ __switch: # a0: current_task_ctx_ptr, a1: next_task_ctx_ptr
     .set rept_i, 0
     .rept 12 # s0~s11
         .set plus2, 2 + rept_i
-        LOAD %rept_i, %plus2*8, a1
+        LOAD_SR %rept_i, %plus2*8, a1
         .set rept_i, rept_i+1
     .endr
 

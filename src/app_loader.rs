@@ -23,9 +23,9 @@ pub struct KernelStack([u8; KERNEL_STACK_SIZE]);
 #[derive(Copy, Clone)]
 pub struct UserStack([u8; USER_STACK_SIZE]);
 
-pub static KERNEL_STACK: [KernelStack; MAX_APP_NUM] =
+pub static mut KERNEL_STACK: [KernelStack; MAX_APP_NUM] =
     [KernelStack([0; KERNEL_STACK_SIZE]); MAX_APP_NUM];
-static USER_STACK: [UserStack; MAX_APP_NUM] = [UserStack {
+static mut USER_STACK: [UserStack; MAX_APP_NUM] = [UserStack {
     0: [0; USER_STACK_SIZE],
 }; MAX_APP_NUM];
 trait Stack {
@@ -199,5 +199,7 @@ impl AppLoader {
 
 pub fn new_app_ctx(appid: usize) -> usize {
     let base = AppLoader::get_app_base_addr(appid);
-    KERNEL_STACK[appid].push_ctx(TrapCtx::init_app_context(base, USER_STACK[appid].top()))
+    unsafe {
+        KERNEL_STACK[appid].push_ctx(TrapCtx::init_app_context(base, USER_STACK[appid].top()))
+    }
 }
