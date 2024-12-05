@@ -1,10 +1,14 @@
 #![no_std]
 #![no_main]
 #![feature(inline_const_pat)]
+#![feature(alloc_error_handler)]
+
+extern crate alloc;
 
 mod app_loader;
 mod io;
 mod language_item;
+mod mm;
 mod sbi;
 mod syscall;
 mod task;
@@ -28,6 +32,10 @@ pub extern "C" fn _kernel_entry() -> ! {
     clear_bss();
     startup_log();
     trap::init();
+
+    mm::heap_allocator::init_heap();
+    mm::heap_allocator::heap_test();
+
     trap::init::enable_timer_interrupt();
     timer::set_next_timeout(trap::handler::TIMER_INTERVAL_USEC);
     APP_LOADER.ref_cell.borrow().print_apps_info();
