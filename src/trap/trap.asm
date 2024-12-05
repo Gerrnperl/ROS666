@@ -1,8 +1,8 @@
 .altmacro
-.macro STORE regi, offset, base
+.macro STORE_XR regi, offset, base
     sd x\regi, \offset(\base)
 .endm
-.macro LOAD regi, offset, base
+.macro LOAD_XR regi, offset, base
     ld x\regi, \offset(\base)
 .endm
 
@@ -20,7 +20,7 @@ __save_trap:
 
     .set rept_i, 5
     .rept 31-5+1
-        STORE %rept_i, %rept_i*8, sp
+        STORE_XR %rept_i, %rept_i*8, sp
         .set rept_i, rept_i+1
     .endr
 
@@ -51,7 +51,7 @@ __restore_trap:
     ld x3, 3*8(sp)
     .set rept_i, 5
     .rept 31-5+1
-        LOAD %rept_i, %rept_i*8, sp
+        LOAD_XR %rept_i, %rept_i*8, sp
         .set rept_i, rept_i+1
     .endr
 
