@@ -1,6 +1,6 @@
 use core::ops::Add;
 
-use rustsbi::{Console, Physical, Reset, SbiRet};
+use rustsbi::{Console, Physical, Reset, SbiRet, Timer};
 
 pub enum ConsolePutError {
     AddrInvalid,
@@ -76,4 +76,9 @@ pub fn sbi_shutdown(failure: bool) -> ! {
         rustsbi::Forward {}.system_reset(ResetType::Shutdown.into(), ResetReason::NoReason.into());
     }
     unreachable!("sbi_shutdown");
+}
+
+/// 设置下一个时钟中断触发时间 (mtimecmp)
+pub fn sbi_set_timer(stime_value: u64) {
+    rustsbi::Forward {}.set_timer(stime_value);
 }

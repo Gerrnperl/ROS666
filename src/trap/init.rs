@@ -14,3 +14,9 @@ pub fn init() {
         )
     };
 }
+
+pub fn enable_timer_interrupt() {
+    unsafe {
+        riscv::register::sie::set_stimer();
+    }
+}

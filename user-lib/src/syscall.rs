@@ -2,6 +2,8 @@ use core::arch::asm;
 
 use common::syscall::{Syscall, SyscallArgs, SyscallRet};
 
+pub use common::syscall::time::{TimeVal, TimeZone};
+
 /// 调用系统调用
 ///
 /// 通过 ecall 指令触发 Trap，进入 M 态
@@ -35,4 +37,8 @@ pub fn sys_exit(code: usize) -> ! {
 
 pub fn sys_sched_yield() -> SyscallRet {
     syscall(Syscall::SchedYield, [0, 0, 0])
+}
+
+pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
+    syscall(Syscall::GetTimeOfDay, [ts as usize, tz as usize, 0])
 }

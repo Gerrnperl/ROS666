@@ -8,6 +8,7 @@ mod language_item;
 mod sbi;
 mod syscall;
 mod task;
+mod timer;
 mod trap;
 mod utils;
 
@@ -27,6 +28,8 @@ pub extern "C" fn _kernel_entry() -> ! {
     clear_bss();
     startup_log();
     trap::init();
+    trap::init::enable_timer_interrupt();
+    timer::set_next_timeout(trap::handler::TIMER_INTERVAL_USEC);
     APP_LOADER.ref_cell.borrow().print_apps_info();
     task::manager::TaskManager::start();
     printkln!("Hello, {}!", "World");

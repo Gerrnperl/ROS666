@@ -1,6 +1,12 @@
-use common::syscall::{Syscall, SyscallArgs, SyscallRet};
+use common::syscall::{
+    Syscall, SyscallArgs, SyscallRet,
+    time::{TimeVal, TimeZone},
+};
 
-use crate::{printk, task};
+use crate::{
+    printk, task,
+    timer::{get_time, get_time_us},
+};
 
 pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
     match call {
@@ -11,6 +17,7 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
             0
         }
         Syscall::SchedYield => sys_yield(),
+        Syscall::GetTimeOfDay => sys_get_time_of_day(args[0] as *mut _, args[1] as *mut _),
         #[allow(
             unreachable_patterns,
             reason = "we may receive syscall numbers not defined in the enum"
@@ -40,5 +47,16 @@ pub fn sys_exit(code: usize) {
 
 pub fn sys_yield() -> SyscallRet {
     task::manager::TaskManager::cycle_to_next();
+    0
+}
+
+pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
+    let ts = unsafe { ts.as_mut().unwrap() };
+    let tz = unsafe { tz.as_mut().unwrap() };
+    let time = get_time_us();
+    ts.tv_sec = time / 1_000_000;
+    ts.tv_usec = time % 1_000_000;
+    tz.tz_minuteswest = 0;
+    tz.tz_dsttime = 0;
     0
 }

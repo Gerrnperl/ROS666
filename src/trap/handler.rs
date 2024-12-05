@@ -2,13 +2,15 @@ use core::usize;
 
 use common::syscall::Syscall;
 use riscv::{
-    interrupt::Exception,
+    interrupt::{Exception, supervisor::Interrupt},
     register::{scause, stval},
 };
 
-use crate::syscall::syscall;
+use crate::{syscall::syscall, task::manager::TaskManager, timer::set_next_timeout};
 
 use super::context::{Riscv64RegAlias, TrapCtx};
+
+pub const TIMER_INTERVAL_USEC: usize = 10_000;
 
 #[unsafe(no_mangle)]
 pub fn trap_handler(ctx: &mut TrapCtx) -> &mut TrapCtx {
@@ -26,6 +28,11 @@ pub fn trap_handler(ctx: &mut TrapCtx) -> &mut TrapCtx {
         }
         scause::Trap::Exception(const { Exception::IllegalInstruction as usize }) => {
             todo!("Kill the process");
+        }
+        scause::Trap::Interrupt(const { Interrupt::SupervisorTimer as usize }) => {
+            // todo!("Timer interrupt");
+            set_next_timeout(TIMER_INTERVAL_USEC);
+            TaskManager::cycle_to_next();
         }
         _ => {
             panic!("Unhandled trap: {:?}, stval: {:#x}", scause, stval);

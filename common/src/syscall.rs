@@ -15,6 +15,10 @@ pub enum Syscall {
     ///
     /// [sched_yield(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/sched_yield.2.html)
     SchedYield = 124,
+    /// 读取当前时间
+    ///
+    /// [gettimeofday(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/gettimeofday.2.html)
+    GetTimeOfDay = 169,
 }
 
 impl core::fmt::Display for Syscall {
@@ -36,6 +40,7 @@ impl From<usize> for Syscall {
             64 => Syscall::Write,
             93 => Syscall::Exit,
             124 => Syscall::SchedYield,
+            169 => Syscall::GetTimeOfDay,
             _ => panic!("Unsupported syscall number: {}", syscall),
         }
     }
@@ -43,3 +48,17 @@ impl From<usize> for Syscall {
 
 pub type SyscallArgs = [usize; 3];
 pub type SyscallRet = isize;
+
+pub mod time {
+    #[repr(C)]
+    pub struct TimeVal {
+        pub tv_sec: usize,
+        pub tv_usec: usize,
+    }
+
+    #[repr(C)]
+    pub struct TimeZone {
+        pub tz_minuteswest: i32,
+        pub tz_dsttime: i32,
+    }
+}
