@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["FD_STDOUT"],"fn":["sys_exit","sys_write","sys_yield","syscall"]};
+window.SIDEBAR_ITEMS = {"constant":["FD_STDOUT"],"fn":["sys_exit","sys_get_time_of_day","sys_write","sys_yield","syscall"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["init"]};
+window.SIDEBAR_ITEMS = {"fn":["enable_timer_interrupt","init"]};

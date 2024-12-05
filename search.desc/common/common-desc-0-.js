@@ -1,1 +1,1 @@
-searchState.loadedDescShard("common", 0, "终止当前进程\n让出处理器\n系统调用号\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.")
+searchState.loadedDescShard("common", 0, "终止当前进程\n读取当前时间\n让出处理器\n系统调用号\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.")

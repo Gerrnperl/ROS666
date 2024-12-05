@@ -1,1 +1,1 @@
-searchState.loadedDescShard("lib", 0, "清空 BSS 段\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\n退出当前进程, 报告返回值\n调用系统调用")
+searchState.loadedDescShard("lib", 0, "清空 BSS 段\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nReturns the argument unchanged.\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nCalls <code>U::from(self)</code>.\n退出当前进程, 报告返回值\n调用系统调用")
