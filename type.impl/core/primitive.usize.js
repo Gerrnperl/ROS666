@@ -1,9 +1,9 @@
 (function() {
-    var type_impls = Object.fromEntries([["ros666",[]]]);
+    var type_impls = Object.fromEntries([["ros666",[]],["slab_allocator",[]]]);
     if (window.register_type_impls) {
         window.register_type_impls(type_impls);
     } else {
         window.pending_type_impls = type_impls;
     }
 })()
-//{"start":55,"fragment_lengths":[13]}
+//{"start":55,"fragment_lengths":[13,22]}

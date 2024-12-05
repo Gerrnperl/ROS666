@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["KERNEL_HEAP_SIZE"],"fn":["alloc_error_handler","heap_test","init_heap"],"static":["HEAP","HEAP_ALLOCATOR"]};

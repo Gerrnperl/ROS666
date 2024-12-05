@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["ALLOCATORS_NUM","MAX_SLAB_SIZE","MIN_ALLOC_SIZE","SLABS_NUM"],"enum":["AllocType"],"fn":["get_slab_index"],"mod":["slab"],"struct":["Heap","LockedHeap"],"type":["Address"]};

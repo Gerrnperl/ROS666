@@ -201,7 +201,9 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::{arch::asm, cell::RefCell};
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::{arch::asm, cell::RefCell};
 
 <span class="kw">use </span>lazy_static::lazy_static;
 
@@ -226,9 +228,9 @@
 #[derive(Copy, Clone)]
 </span><span class="kw">pub struct </span>UserStack([u8; USER_STACK_SIZE]);
 
-<span class="kw">pub static </span>KERNEL_STACK: [KernelStack; MAX_APP_NUM] =
+<span class="kw">pub static </span><span class="kw-2">mut </span>KERNEL_STACK: [KernelStack; MAX_APP_NUM] =
     [KernelStack([<span class="number">0</span>; KERNEL_STACK_SIZE]); MAX_APP_NUM];
-<span class="kw">static </span>USER_STACK: [UserStack; MAX_APP_NUM] = [UserStack {
+<span class="kw">static </span><span class="kw-2">mut </span>USER_STACK: [UserStack; MAX_APP_NUM] = [UserStack {
     <span class="number">0</span>: [<span class="number">0</span>; USER_STACK_SIZE],
 }; MAX_APP_NUM];
 <span class="kw">trait </span>Stack {
@@ -402,6 +404,8 @@
 
 <span class="kw">pub fn </span>new_app_ctx(appid: usize) -&gt; usize {
     <span class="kw">let </span>base = AppLoader::get_app_base_addr(appid);
-    KERNEL_STACK[appid].push_ctx(TrapCtx::init_app_context(base, USER_STACK[appid].top()))
+    <span class="kw">unsafe </span>{
+        KERNEL_STACK[appid].push_ctx(TrapCtx::init_app_context(base, USER_STACK[appid].top()))
+    }
 }
 </code></pre></div></section></main></body></html>
