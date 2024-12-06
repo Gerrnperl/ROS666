@@ -60,7 +60,7 @@ impl KernelStack {
     }
 }
 
-pub fn get_add_count() -> usize {
+pub fn get_app_count() -> usize {
     let app_count = extern_global!(__app_count) as *const usize;
     let app_count = unsafe { app_count.read_volatile() };
     app_count
@@ -73,7 +73,7 @@ pub struct AppData {
 }
 
 pub fn load_app_data(app_id: usize) -> AppData {
-    let app_count = get_add_count();
+    let app_count = get_app_count();
     assert!(app_id < app_count);
     let app_table = extern_global!(__app_table) as *const usize;
     let app_name_table = extern_global!(__app_name_table) as *const usize;
