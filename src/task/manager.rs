@@ -3,7 +3,8 @@ use core::cell::RefCell;
 
 use lazy_static::lazy_static;
 
-use crate::app_loader::{APP_LOADER, AppLoader, MAX_APP_NUM, new_app_ctx};
+use crate::app_loader::get_app_count;
+use crate::app_loader::{MAX_APP_NUM, new_app_ctx};
 use crate::task::context::TaskCtx;
 use crate::task::switch::__switch;
 use crate::task::task::{TaskControlBlock, TaskStatus};
@@ -14,7 +15,7 @@ lazy_static! {
     pub static ref TASK_MANAGER: SyncRefCell<TaskManager> = {
         SyncRefCell {
             ref_cell: RefCell::new({
-                let app_count = APP_LOADER.ref_cell.borrow().app_count;
+                let app_count = get_app_count();
                 let mut tasks = [TaskControlBlock {
                     id: 0,
                     ctx: TaskCtx::default(),
@@ -47,7 +48,7 @@ pub struct TaskManager {
 impl TaskManager {
     pub fn start() {
         info!("Switch to task {}", 0);
-        APP_LOADER.ref_cell.borrow().print_app_info(0);
+        // APP_LOADER.ref_cell.borrow().print_app_info(0);
         let mut this = TASK_MANAGER.ref_cell.borrow_mut();
         this.tasks[0].status = crate::task::task::TaskStatus::Running;
         let next_ptr = &this.tasks[0].ctx as *const TaskCtx;
@@ -60,7 +61,7 @@ impl TaskManager {
 
     pub fn switch_to(task_id: usize) {
         info!("Switch to task {}", task_id);
-        APP_LOADER.ref_cell.borrow().print_app_info(task_id);
+        // APP_LOADER.ref_cell.borrow().print_app_info(task_id);
         let mut this = TASK_MANAGER.ref_cell.borrow_mut();
         let current = this.current;
         this.tasks[task_id].status = crate::task::task::TaskStatus::Running;

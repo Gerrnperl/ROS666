@@ -170,6 +170,20 @@ impl MemorySet {
 
     pub fn map_trampoline(&mut self) {
         unimplemented!("map_trampoline");
+        unsafe extern "C" {
+            fn _start();
+            fn trampoline();
+        }
+        // let mut trampoline = MapArea::new(
+        //     VPNRange::new(
+        //         VirtualAddress::from(_start).into(),
+        //         VirtualAddress::from(trampoline).into(),
+        //     ),
+        //     MapType::Linear,
+        //     MapPermission::Read | MapPermission::Execute,
+        // );
+        // trampoline.map(&mut self.page_table)6;
+        // self.areas.push(trampoline);
     }
     pub fn new_kernel() -> Self {
         let kernel_start = extern_global!(__kernel_start) as usize;
@@ -184,7 +198,7 @@ impl MemorySet {
         let bss_end = extern_global!(__bss_end) as usize;
 
         let mut memory_set = MemorySet::empty();
-        memory_set.map_trampoline();
+        // memory_set.map_trampoline();
         info!("mapping .text: [{:#x}, {:#x})", text_start, text_end);
         memory_set.push(
             MapArea::new(
@@ -301,17 +315,17 @@ impl MemorySet {
             None,
         );
 
-        memory_set.push(
-            MapArea::new(
-                VPNRange::new(
-                    VirtualAddress::from(TRAP_CONTEXT).into(),
-                    VirtualAddress::from(TRAMPOLINE).into(),
-                ),
-                MapType::Framed,
-                MapPermission::Read | MapPermission::Write,
-            ),
-            None,
-        );
+        // memory_set.push(
+        //     MapArea::new(
+        //         VPNRange::new(
+        //             VirtualAddress::from(TRAP_CONTEXT).into(),
+        //             VirtualAddress::from(TRAMPOLINE).into(),
+        //         ),
+        //         MapType::Framed,
+        //         MapPermission::Read | MapPermission::Write,
+        //     ),
+        //     None,
+        // );
         (
             memory_set,
             user_stack_top,
