@@ -36,6 +36,10 @@ pub extern "C" fn _kernel_entry() -> ! {
     mm::heap_allocator::init_heap();
     mm::heap_allocator::heap_test();
 
+    mm::frame_allocator::StackFrameAllocator::init_frame_allocator();
+    mm::frame_allocator::frame_allocator_test();
+    panic!("Stop here");
+
     trap::init::enable_timer_interrupt();
     timer::set_next_timeout(trap::handler::TIMER_INTERVAL_USEC);
     APP_LOADER.ref_cell.borrow().print_apps_info();
