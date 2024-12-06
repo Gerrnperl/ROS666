@@ -1,8 +1,5 @@
 use core::include_str;
 
-const USER_BASE_ADDRESS: usize = 0x80400000;
-const USER_SPACE_SIZE: usize = 0x00200000;
-
 pub fn setup() {
     let linker_dir = get_linker_dir();
     clean_linkers(&linker_dir);
@@ -55,10 +52,6 @@ fn setup_linker(profile: &str, app_name: &str, app_id: usize, linker_dir: &str) 
     } else {
         linker = replace_template(linker, "DEBUG-DISCARD", "");
     }
-
-    /*TEMPLATE {base-address}*/
-    let base_address = format!("0x{:08x}", USER_BASE_ADDRESS + app_id * USER_SPACE_SIZE);
-    linker = replace_template(linker, "BASE_ADDRESS", &base_address);
 
     let linker_path =
         std::path::Path::new(linker_dir).join(get_linker_name(app_name, app_id, profile));

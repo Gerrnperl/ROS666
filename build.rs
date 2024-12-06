@@ -39,11 +39,7 @@ fn gen_app_loader() {
         .iter()
         .enumerate()
         .map(|(id, name)| {
-            gen_app_section(
-                name.to_string(),
-                format!("{target_output_dir}/{name}.bin"),
-                id,
-            )
+            gen_app_section(name.to_string(), format!("{target_output_dir}/{name}"), id)
         })
         .collect::<Vec<_>>()
         .join("\n");
