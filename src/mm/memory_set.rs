@@ -144,4 +144,83 @@ impl MemorySet {
             None,
         );
     }
+    pub fn map_trampoline(&mut self) {
+        unimplemented!("map_trampoline");
+    }
+    pub fn new_kernel() -> Self {
+        let kernel_start = extern_global!(__kernel_start) as usize;
+        let kernel_end = extern_global!(__kernel_end) as usize;
+        let text_start = extern_global!(__text_start) as usize;
+        let text_end = extern_global!(__text_end) as usize;
+        let rodata_start = extern_global!(__rodata_start) as usize;
+        let rodata_end = extern_global!(__rodata_end) as usize;
+        let data_start = extern_global!(__data_start) as usize;
+        let data_end = extern_global!(__data_end) as usize;
+        let bss_start = extern_global!(__bss_start_stack) as usize;
+        let bss_end = extern_global!(__bss_end) as usize;
+
+        let mut memory_set = MemorySet::empty();
+        memory_set.map_trampoline();
+        info!("mapping .text: [{:#x}, {:#x})", text_start, text_end);
+        memory_set.push(
+            MapArea::new(
+                VPNRange::new(
+                    VirtualAddress::from(text_start).into(),
+                    VirtualAddress::from(text_end).into(),
+                ),
+                MapType::Linear,
+                MapPermission::Read | MapPermission::Execute,
+            ),
+            None,
+        );
+        info!("mapping .rodata: [{:#x}, {:#x})", rodata_start, rodata_end);
+        memory_set.push(
+            MapArea::new(
+                VPNRange::new(
+                    VirtualAddress::from(rodata_start).into(),
+                    VirtualAddress::from(rodata_end).into(),
+                ),
+                MapType::Linear,
+                MapPermission::Read,
+            ),
+            None,
+        );
+        info!("mapping .data: [{:#x}, {:#x})", data_start, data_end);
+        memory_set.push(
+            MapArea::new(
+                VPNRange::new(
+                    VirtualAddress::from(data_start).into(),
+                    VirtualAddress::from(data_end).into(),
+                ),
+                MapType::Linear,
+                MapPermission::Read | MapPermission::Write,
+            ),
+            None,
+        );
+        info!("mapping .bss: [{:#x}, {:#x})", bss_start, bss_end);
+        memory_set.push(
+            MapArea::new(
+                VPNRange::new(
+                    VirtualAddress::from(bss_start).into(),
+                    VirtualAddress::from(bss_end).into(),
+                ),
+                MapType::Linear,
+                MapPermission::Read | MapPermission::Write,
+            ),
+            None,
+        );
+        info!("mapping heap: [{:#x}, {:#x})", kernel_end, MEMORY_END);
+        memory_set.push(
+            MapArea::new(
+                VPNRange::new(
+                    VirtualAddress::from(kernel_end).into(),
+                    VirtualAddress::from(MEMORY_END).into(),
+                ),
+                MapType::Linear,
+                MapPermission::Read | MapPermission::Write,
+            ),
+            None,
+        );
+        memory_set
+    }
 }
