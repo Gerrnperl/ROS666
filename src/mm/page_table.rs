@@ -1,5 +1,7 @@
 use alloc::vec::Vec;
 
+use crate::printkln;
+
 use super::{
     address::{PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalPageNumber, VirtualPageNumber},
     frame_allocator::{FrameTracker, StackFrameAllocator},
@@ -15,7 +17,7 @@ impl PageTable {
         let root = StackFrameAllocator::alloc_frame().unwrap();
         Self {
             root: root.frame,
-            frames: Vec::new(),
+            frames: alloc::vec![root],
         }
     }
 
