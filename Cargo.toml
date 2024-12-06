@@ -11,6 +11,7 @@ rustsbi = { version = "0.4.0", features = ["forward"] }
 common = { path = "./common" }
 slab_allocator = { path = "./slab_allocator" }
 bitflags = "2.6.0"
+xmas-elf = "0.9.1"
 
 [profile.dev]
 panic = "abort"

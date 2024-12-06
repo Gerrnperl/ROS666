@@ -223,4 +223,75 @@ impl MemorySet {
         );
         memory_set
     }
+    pub fn from_elf_app(app: AppData) -> (Self, usize, usize) {
+        let elf = app.data;
+        let elf = ElfFile::new(elf).unwrap();
+        let elf_header = elf.header;
+        let elf_magic = elf_header.pt1.magic;
+        assert_eq!(elf_magic, [0x7f, 0x45, 0x4c, 0x46], "invalid elf file");
+        let ph_count = elf_header.pt2.ph_count();
+        let mut max_end = VirtualPageNumber(0);
+        let mut memory_set = MemorySet::empty();
+        memory_set.map_trampoline();
+        for i in 0..ph_count {
+            let ph = elf.program_header(i).unwrap();
+            if ph.get_type().unwrap() != xmas_elf::program::Type::Load {
+                continue;
+            }
+            let va_start = VirtualAddress::from(ph.virtual_addr() as usize).floor_page();
+            let va_end = VirtualAddress::from(ph.virtual_addr() as usize + ph.mem_size() as usize)
+                .ceil_page();
+            let vpn_range = VPNRange::new(va_start.into(), va_end.into());
+            let map_type = MapType::Framed;
+            let permission = {
+                let mut flags = MapPermission::empty();
+                if ph.flags().is_read() {
+                    flags |= MapPermission::Read;
+                }
+                if ph.flags().is_write() {
+                    flags |= MapPermission::Write;
+                }
+                if ph.flags().is_execute() {
+                    flags |= MapPermission::Execute;
+                }
+                flags
+            };
+            let map_area = MapArea::new(vpn_range, map_type, permission);
+            max_end = map_area.vpn_range.end();
+            let data = Some(&elf.input[ph.offset() as usize..][..ph.file_size() as usize]);
+            memory_set.push(map_area, data);
+        }
+        let max_end_va = VirtualAddress::from(max_end);
+        let mut user_stack_bottom: usize = max_end_va.into();
+        user_stack_bottom += PAGE_SIZE_SV39;
+        let user_stack_top = user_stack_bottom + USER_STACK_SIZE;
+        memory_set.push(
+            MapArea::new(
+                VPNRange::new(
+                    VirtualAddress::from(user_stack_bottom).into(),
+                    VirtualAddress::from(user_stack_top).into(),
+                ),
+                MapType::Framed,
+                MapPermission::Read | MapPermission::Write | MapPermission::User,
+            ),
+            None,
+        );
+
+        memory_set.push(
+            MapArea::new(
+                VPNRange::new(
+                    VirtualAddress::from(TRAP_CONTEXT).into(),
+                    VirtualAddress::from(TRAMPOLINE).into(),
+                ),
+                MapType::Framed,
+                MapPermission::Read | MapPermission::Write,
+            ),
+            None,
+        );
+        (
+            memory_set,
+            user_stack_top,
+            elf.header.pt2.entry_point() as usize,
+        )
+    }
 }
