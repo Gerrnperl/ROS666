@@ -18,7 +18,7 @@ mod utils;
 
 use core::{arch::global_asm, cell::RefCell};
 
-use app_loader::{APP_LOADER, AppLoader, MAX_APP_NUM, new_app_ctx};
+// use app_loader::{APP_LOADER, AppLoader, MAX_APP_NUM, new_app_ctx};
 use lazy_static::lazy_static;
 use task::{context::TaskCtx, task::TaskControlBlock};
 use utils::safety::SyncRefCell;
@@ -33,16 +33,13 @@ pub extern "C" fn _kernel_entry() -> ! {
     startup_log();
     trap::init();
 
-    mm::heap_allocator::init_heap();
-    mm::heap_allocator::heap_test();
-
-    mm::frame_allocator::StackFrameAllocator::init_frame_allocator();
-    mm::frame_allocator::frame_allocator_test();
+    mm::init::init();
+    mm::memory_set::remap_test();
     panic!("Stop here");
 
     trap::init::enable_timer_interrupt();
     timer::set_next_timeout(trap::handler::TIMER_INTERVAL_USEC);
-    APP_LOADER.ref_cell.borrow().print_apps_info();
+    // APP_LOADER.ref_cell.borrow().print_apps_info();
     task::manager::TaskManager::start();
     printkln!("Hello, {}!", "World");
 

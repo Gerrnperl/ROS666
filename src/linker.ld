@@ -31,6 +31,7 @@ SECTIONS
 
     . = ALIGN(4K);
     __data_end = .;
+    __bss_start_stack = .;
     .bss : {
         *(.bss.stack)
         __bss_start = .;

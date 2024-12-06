@@ -19,12 +19,16 @@ impl PageTable {
         }
     }
 
+    pub fn token(&self) -> usize {
+        self.root.0 | (8 << 60)
+    }
+
     pub fn map(&mut self, vpn: VirtualPageNumber, ppn: PhysicalPageNumber, flags: PTEFlags) {
         let entry = self.find_pte(vpn, true).unwrap();
         if (*entry).valid() {
             panic!("map: {:?} has been mapped", vpn);
         }
-        *entry = PageTableEntry::new(ppn, flags);
+        *entry = PageTableEntry::new(ppn, flags | PTEFlags::Valid);
     }
 
     pub fn unmap(&mut self, vpn: VirtualPageNumber) {
@@ -41,9 +45,9 @@ impl PageTable {
         create: bool,
     ) -> Option<&mut PageTableEntry> {
         let indexes = vpn.indexes();
-        let mut page_table = self.root.get_pte_array().get_mut(0).unwrap() as *mut PageTableEntry;
+        let mut ppn = self.root;
         for i in 0..3 {
-            let entry = unsafe { &mut *page_table.add(indexes[i]) };
+            let entry = &mut ppn.get_pte_array()[indexes[i]];
             if i == 2 {
                 return Some(entry);
             }
@@ -55,14 +59,13 @@ impl PageTable {
                 *entry = PageTableEntry::new(frame.frame, PTEFlags::Valid);
                 self.frames.push(frame);
             }
-            let next_ppn: PhysicalPageNumber = (&*entry).into();
-            page_table = next_ppn.get_pte_array().get_mut(0).unwrap() as *mut PageTableEntry;
+            ppn = PhysicalPageNumber::from(entry);
         }
         None
     }
 
-    pub fn translate(&mut self, vpn: VirtualPageNumber) -> Option<PhysicalPageNumber> {
-        self.find_pte(vpn, false).map(|entry| (&*entry).into())
+    pub fn translate(&mut self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
+        self.find_pte(vpn, false).map(|entry| *entry)
     }
 
     pub fn from_satp(satp: usize) -> Self {
@@ -88,8 +91,6 @@ bitflags::bitflags! {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
-#[repr(C)]
 /// 页表项 PTE
 ///
 /// 64 位 RISC-V 地址空间下，页表项大小为 64 位
@@ -98,6 +99,8 @@ bitflags::bitflags! {
 /// | 63-54 | 53-10 | 9-8 | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
 /// |-------|-------|-----|---|---|---|---|---|---|---|---|
 /// | 保留位 | 物理页号 | RSW | D | A | G | U | X | W | R | V |
+#[derive(Clone, Copy, Debug)]
+#[repr(C)]
 pub struct PageTableEntry {
     pub bits: usize,
 }
@@ -152,6 +155,11 @@ impl From<&PageTableEntry> for PTEFlags {
 
 impl From<&PageTableEntry> for PhysicalPageNumber {
     fn from(pte: &PageTableEntry) -> Self {
-        PhysicalPageNumber(pte.bits >> 10 & ((1 << PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - 1))
+        PhysicalPageNumber::from(pte.bits >> 10 & ((1 << PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - 1))
+    }
+}
+impl From<&mut PageTableEntry> for PhysicalPageNumber {
+    fn from(pte: &mut PageTableEntry) -> Self {
+        PhysicalPageNumber::from(pte.bits >> 10 & ((1 << PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - 1))
     }
 }

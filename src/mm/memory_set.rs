@@ -1,9 +1,11 @@
-use core::ops::Range;
+use core::{arch::asm, borrow::BorrowMut, cell::RefCell, ops::Range};
 
 use crate::{
     app_loader::{AppData, USER_STACK_SIZE},
     extern_global, info,
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
+    printkln,
+    utils::safety::SyncRefCell,
 };
 
 use super::{
@@ -11,9 +13,20 @@ use super::{
     frame_allocator::{FrameTracker, StackFrameAllocator},
     page_table::{self, PageTable},
 };
-use alloc::{collections::btree_map::BTreeMap, vec::Vec};
+use alloc::{collections::btree_map::BTreeMap, sync::Arc, vec::Vec};
 use bitflags::bitflags;
+use riscv::register::satp;
 use xmas_elf::ElfFile;
+
+use lazy_static::lazy_static;
+
+lazy_static! {
+    pub static ref KERNEL_SPACE: Arc<SyncRefCell<MemorySet>> = {
+        Arc::new(SyncRefCell {
+            ref_cell: RefCell::new(MemorySet::new_kernel()),
+        })
+    };
+}
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum MapType {
@@ -109,8 +122,8 @@ impl MapArea {
         let mut current_vpn = self.vpn_range.start;
         while offset < len {
             let vpn = current_vpn;
-            let ppn = page_table.translate(vpn).unwrap();
-            let dst = ppn.get_bytes_array();
+            let pte = page_table.translate(vpn).unwrap();
+            let dst = PhysicalPageNumber::from(&pte).get_bytes_array();
             let src = &src[offset..];
             let copy_len = dst.len().min(src.len());
             dst[..copy_len].copy_from_slice(&src[..copy_len]);
@@ -127,6 +140,15 @@ impl MemorySet {
             areas: Vec::new(),
         }
     }
+
+    pub fn activate(&self) {
+        let satp = self.page_table.token();
+        unsafe {
+            satp::write(satp);
+            asm!("sfence.vma"); // 刷新 TLB
+        }
+    }
+
     pub fn push(&mut self, mut area: MapArea, data: Option<&[u8]>) {
         area.map(&mut self.page_table);
         if let Some(data) = data {
@@ -134,6 +156,7 @@ impl MemorySet {
         }
         self.areas.push(area);
     }
+
     pub fn insert(&mut self, va_range: Range<VirtualAddress>, permission: MapPermission) {
         self.push(
             MapArea::new(
@@ -294,4 +317,40 @@ impl MemorySet {
             elf.header.pt2.entry_point() as usize,
         )
     }
+}
+
+pub fn remap_test() {
+    let mut kernel_space = KERNEL_SPACE.ref_cell.borrow_mut();
+    let mid_text: VirtualAddress =
+        ((extern_global!(__text_start) as usize + extern_global!(__text_end) as usize) / 2).into();
+    let mid_rodata: VirtualAddress =
+        ((extern_global!(__rodata_start) as usize + extern_global!(__rodata_end) as usize) / 2)
+            .into();
+    let mid_data: VirtualAddress =
+        ((extern_global!(__data_start) as usize + extern_global!(__data_end) as usize) / 2).into();
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate(mid_text.floor_page().into())
+            .unwrap()
+            .writable(),
+        false
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate(mid_rodata.floor_page().into())
+            .unwrap()
+            .writable(),
+        false,
+    );
+    assert_eq!(
+        kernel_space
+            .page_table
+            .translate(mid_data.floor_page().into())
+            .unwrap()
+            .executable(),
+        false,
+    );
+    printkln!("remap_test passed!");
 }
