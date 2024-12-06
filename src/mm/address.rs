@@ -142,12 +142,20 @@ impl VirtualAddress {
         self.0 & (PAGE_SIZE_SV39 - 1)
     }
 
-    pub fn floor_page(&self) -> VirtualAddress {
+    pub fn floor(&self) -> VirtualAddress {
         VirtualAddress(self.0 & !(PAGE_SIZE_SV39 - 1))
     }
 
-    pub fn ceil_page(&self) -> VirtualAddress {
+    pub fn ceil(&self) -> VirtualAddress {
         VirtualAddress(self.0 + PAGE_SIZE_SV39 - 1 & !(PAGE_SIZE_SV39 - 1))
+    }
+
+    pub fn floor_page(&self) -> VirtualPageNumber {
+        VirtualPageNumber::from(self.floor())
+    }
+
+    pub fn ceil_page(&self) -> VirtualPageNumber {
+        VirtualPageNumber::from(self.ceil())
     }
 }
 
@@ -167,26 +175,34 @@ impl From<VirtualPageNumber> for VirtualAddress {
 pub struct VPNRange {
     pub start: VirtualPageNumber,
     pub length: usize,
+    current: VirtualPageNumber,
 }
 
 impl Iterator for VPNRange {
     type Item = VirtualPageNumber;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.length == 0 {
-            return None;
+        if self.current.0 < self.start.0 + self.length {
+            let current = self.current;
+            self.current.0 += 1;
+            Some(current)
+        } else {
+            None
         }
-        self.length -= 1;
-        Some(VirtualPageNumber(self.start.0 + self.length))
     }
 }
 
 impl VPNRange {
-    pub fn new(start: VirtualAddress, end: VirtualAddress) -> Self {
-        let start = VirtualPageNumber(start.floor_page().into());
-        let end = VirtualPageNumber(end.ceil_page().into());
+    pub fn new(start: VirtualPageNumber, end: VirtualPageNumber) -> Self {
         let length = end.0 - start.0;
-        Self { start, length }
+        Self {
+            start,
+            length,
+            current: start,
+        }
+    }
+    pub fn from_addr(start: VirtualAddress, end: VirtualAddress) -> Self {
+        Self::new(start.into(), end.into())
     }
     pub fn end(&self) -> VirtualPageNumber {
         VirtualPageNumber(self.start.0 + self.length)

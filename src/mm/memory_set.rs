@@ -160,13 +160,14 @@ impl MemorySet {
     pub fn insert(&mut self, va_range: Range<VirtualAddress>, permission: MapPermission) {
         self.push(
             MapArea::new(
-                VPNRange::new(va_range.start.into(), va_range.end.into()),
+                VPNRange::from_addr(va_range.start, va_range.end),
                 MapType::Framed,
                 permission,
             ),
             None,
         );
     }
+
     pub fn map_trampoline(&mut self) {
         unimplemented!("map_trampoline");
     }
@@ -187,9 +188,9 @@ impl MemorySet {
         info!("mapping .text: [{:#x}, {:#x})", text_start, text_end);
         memory_set.push(
             MapArea::new(
-                VPNRange::new(
-                    VirtualAddress::from(text_start).into(),
-                    VirtualAddress::from(text_end).into(),
+                VPNRange::from_addr(
+                    VirtualAddress::from(text_start),
+                    VirtualAddress::from(text_end),
                 ),
                 MapType::Linear,
                 MapPermission::Read | MapPermission::Execute,
@@ -199,9 +200,9 @@ impl MemorySet {
         info!("mapping .rodata: [{:#x}, {:#x})", rodata_start, rodata_end);
         memory_set.push(
             MapArea::new(
-                VPNRange::new(
-                    VirtualAddress::from(rodata_start).into(),
-                    VirtualAddress::from(rodata_end).into(),
+                VPNRange::from_addr(
+                    VirtualAddress::from(rodata_start),
+                    VirtualAddress::from(rodata_end),
                 ),
                 MapType::Linear,
                 MapPermission::Read,
@@ -211,9 +212,9 @@ impl MemorySet {
         info!("mapping .data: [{:#x}, {:#x})", data_start, data_end);
         memory_set.push(
             MapArea::new(
-                VPNRange::new(
-                    VirtualAddress::from(data_start).into(),
-                    VirtualAddress::from(data_end).into(),
+                VPNRange::from_addr(
+                    VirtualAddress::from(data_start),
+                    VirtualAddress::from(data_end),
                 ),
                 MapType::Linear,
                 MapPermission::Read | MapPermission::Write,
@@ -223,9 +224,9 @@ impl MemorySet {
         info!("mapping .bss: [{:#x}, {:#x})", bss_start, bss_end);
         memory_set.push(
             MapArea::new(
-                VPNRange::new(
-                    VirtualAddress::from(bss_start).into(),
-                    VirtualAddress::from(bss_end).into(),
+                VPNRange::from_addr(
+                    VirtualAddress::from(bss_start),
+                    VirtualAddress::from(bss_end),
                 ),
                 MapType::Linear,
                 MapPermission::Read | MapPermission::Write,
@@ -235,9 +236,9 @@ impl MemorySet {
         info!("mapping heap: [{:#x}, {:#x})", kernel_end, MEMORY_END);
         memory_set.push(
             MapArea::new(
-                VPNRange::new(
-                    VirtualAddress::from(kernel_end).into(),
-                    VirtualAddress::from(MEMORY_END).into(),
+                VPNRange::from_addr(
+                    VirtualAddress::from(kernel_end),
+                    VirtualAddress::from(MEMORY_END),
                 ),
                 MapType::Linear,
                 MapPermission::Read | MapPermission::Write,
@@ -261,10 +262,10 @@ impl MemorySet {
             if ph.get_type().unwrap() != xmas_elf::program::Type::Load {
                 continue;
             }
-            let va_start = VirtualAddress::from(ph.virtual_addr() as usize).floor_page();
-            let va_end = VirtualAddress::from(ph.virtual_addr() as usize + ph.mem_size() as usize)
+            let vpn_start = VirtualAddress::from(ph.virtual_addr() as usize).floor_page();
+            let vpn_end = VirtualAddress::from(ph.virtual_addr() as usize + ph.mem_size() as usize)
                 .ceil_page();
-            let vpn_range = VPNRange::new(va_start.into(), va_end.into());
+            let vpn_range = VPNRange::new(vpn_start, vpn_end);
             let map_type = MapType::Framed;
             let permission = {
                 let mut flags = MapPermission::empty();
@@ -290,9 +291,9 @@ impl MemorySet {
         let user_stack_top = user_stack_bottom + USER_STACK_SIZE;
         memory_set.push(
             MapArea::new(
-                VPNRange::new(
-                    VirtualAddress::from(user_stack_bottom).into(),
-                    VirtualAddress::from(user_stack_top).into(),
+                VPNRange::from_addr(
+                    VirtualAddress::from(user_stack_bottom),
+                    VirtualAddress::from(user_stack_top),
                 ),
                 MapType::Framed,
                 MapPermission::Read | MapPermission::Write | MapPermission::User,
