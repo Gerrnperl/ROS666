@@ -55,7 +55,7 @@ impl VirtualPageNumber {
     /// 取出三级页索引
     pub fn indexes(&self) -> [usize; 3] {
         let vpn = self.0;
-        [vpn & 0x1ff, vpn >> 9 & 0x1ff, vpn >> 18 & 0x1ff]
+        [vpn >> 18 & 0x1ff, vpn >> 9 & 0x1ff, vpn & 0x1ff]
     }
 }
 
