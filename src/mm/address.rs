@@ -51,6 +51,14 @@ impl PhysicalPageNumber {
     }
 }
 
+impl VirtualPageNumber {
+    /// 取出三级页索引
+    pub fn indexes(&self) -> [usize; 3] {
+        let vpn = self.0;
+        [vpn & 0x1ff, vpn >> 9 & 0x1ff, vpn >> 18 & 0x1ff]
+    }
+}
+
 impl From<usize> for PhysicalAddress {
     fn from(address: usize) -> Self {
         // 只保留低 56 位
@@ -152,5 +160,35 @@ impl From<VirtualAddress> for VirtualPageNumber {
 impl From<VirtualPageNumber> for VirtualAddress {
     fn from(page_number: VirtualPageNumber) -> Self {
         VirtualAddress(page_number.0 << PAGE_OFFSET_WIDTH_SV39)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct VPNRange {
+    pub start: VirtualPageNumber,
+    pub length: usize,
+}
+
+impl Iterator for VPNRange {
+    type Item = VirtualPageNumber;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.length == 0 {
+            return None;
+        }
+        self.length -= 1;
+        Some(VirtualPageNumber(self.start.0 + self.length))
+    }
+}
+
+impl VPNRange {
+    pub fn new(start: VirtualAddress, end: VirtualAddress) -> Self {
+        let start = VirtualPageNumber(start.floor_page().into());
+        let end = VirtualPageNumber(end.ceil_page().into());
+        let length = end.0 - start.0;
+        Self { start, length }
+    }
+    pub fn end(&self) -> VirtualPageNumber {
+        VirtualPageNumber(self.start.0 + self.length)
     }
 }
