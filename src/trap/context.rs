@@ -6,6 +6,9 @@ pub struct TrapCtx {
     pub x: [usize; 32],
     pub sstatus: usize,
     pub sepc: usize,
+    pub kernel_satp: usize,
+    pub kernel_virt_sp: usize,
+    pub kernel_virt_trap_handler: usize,
 }
 
 impl TrapCtx {
@@ -14,7 +17,13 @@ impl TrapCtx {
     }
 
     /// 创建一个新的 TrapCtx，用于应用程序上下文。
-    pub fn init_app_context(entry: usize, sp: usize) -> Self {
+    pub fn init_app_context(
+        entry: usize,
+        sp: usize,
+        kernel_satp: usize,
+        kernel_virt_sp: usize,
+        kernel_virt_trap_handler: usize,
+    ) -> Self {
         // the riscv crate does not provide a way to get bits from sstatus
         // so we have to use inline assembly
         let mut sstatus: usize;
@@ -26,6 +35,9 @@ impl TrapCtx {
             x: [0; 32],
             sstatus: sstatus,
             sepc: entry,
+            kernel_satp,
+            kernel_virt_sp,
+            kernel_virt_trap_handler,
         };
         ctx.set_sp(sp);
         ctx

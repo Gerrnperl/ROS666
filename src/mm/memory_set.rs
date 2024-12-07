@@ -5,20 +5,23 @@ use crate::{
     extern_global, info,
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
     printkln,
+    task::task::TRAP_CONTEXT,
     utils::safety::SyncRefCell,
 };
 
 use super::{
-    address::{PhysicalPageNumber, VPNRange, VirtualAddress, VirtualPageNumber},
+    address::{PhysicalAddress, PhysicalPageNumber, VPNRange, VirtualAddress, VirtualPageNumber},
     frame_allocator::{FrameTracker, StackFrameAllocator},
-    page_table::{self, PageTable},
+    page_table::{self, PTEFlags, PageTable, PageTableEntry},
 };
 use alloc::{collections::btree_map::BTreeMap, sync::Arc, vec::Vec};
 use bitflags::bitflags;
-use riscv::register::satp;
+use riscv::register::{satp, sstatus};
 use xmas_elf::ElfFile;
 
 use lazy_static::lazy_static;
+
+pub const TRAMPOLINE: usize = usize::MAX - PAGE_SIZE_SV39 + 1;
 
 lazy_static! {
     pub static ref KERNEL_SPACE: Arc<SyncRefCell<MemorySet>> = {
@@ -54,8 +57,8 @@ pub struct MapArea {
 
 /// 一组虚拟内存 (地址空间)
 pub struct MemorySet {
-    page_table: PageTable,
-    areas: Vec<MapArea>,
+    pub page_table: PageTable,
+    pub areas: Vec<MapArea>,
 }
 
 impl MapArea {
@@ -141,9 +144,18 @@ impl MemorySet {
         }
     }
 
+    pub fn token(&self) -> usize {
+        self.page_table.token()
+    }
+
     pub fn activate(&self) {
         let satp = self.page_table.token();
         unsafe {
+            // NOTE:
+            // 但是经测试，必须设置 SUM 位才能正常运行
+            // 猜测是 内核态无法访问用户态内存 导致
+            // 解决此 Bug 时间: 10.5 h. QAQ
+            sstatus::set_sum();
             satp::write(satp);
             asm!("sfence.vma"); // 刷新 TLB
         }
@@ -169,22 +181,17 @@ impl MemorySet {
     }
 
     pub fn map_trampoline(&mut self) {
-        unimplemented!("map_trampoline");
-        unsafe extern "C" {
-            fn _start();
-            fn trampoline();
-        }
-        // let mut trampoline = MapArea::new(
-        //     VPNRange::new(
-        //         VirtualAddress::from(_start).into(),
-        //         VirtualAddress::from(trampoline).into(),
-        //     ),
-        //     MapType::Linear,
-        //     MapPermission::Read | MapPermission::Execute,
-        // );
-        // trampoline.map(&mut self.page_table)6;
-        // self.areas.push(trampoline);
+        self.page_table.map(
+            VirtualPageNumber::from(VirtualAddress::from(TRAMPOLINE)),
+            PhysicalPageNumber::from(PhysicalAddress::from(extern_global!(__strampoline) as usize)),
+            PTEFlags::Read | PTEFlags::Execute,
+        );
     }
+
+    pub fn translate(&mut self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
+        self.page_table.translate(vpn)
+    }
+
     pub fn new_kernel() -> Self {
         let kernel_start = extern_global!(__kernel_start) as usize;
         let kernel_end = extern_global!(__kernel_end) as usize;
@@ -198,7 +205,7 @@ impl MemorySet {
         let bss_end = extern_global!(__bss_end) as usize;
 
         let mut memory_set = MemorySet::empty();
-        // memory_set.map_trampoline();
+        memory_set.map_trampoline();
         info!("mapping .text: [{:#x}, {:#x})", text_start, text_end);
         memory_set.push(
             MapArea::new(
@@ -259,6 +266,26 @@ impl MemorySet {
             ),
             None,
         );
+
+        pub const MMIO: &[(usize, usize)] = &[
+            (0x0010_0000, 0x00_2000), // VIRT_TEST/RTC  in virt machine
+            (0x2000000, 0x10000),     // core local interrupter (CLINT)
+            (0xc000000, 0x210000),    // VIRT_PLIC in virt machine
+            (0x10000000, 0x9000),     // VIRT_UART0 with GPU  in virt machine
+        ];
+        for pair in MMIO {
+            memory_set.push(
+                MapArea::new(
+                    VPNRange::from_addr(
+                        VirtualAddress::from((*pair).0),
+                        VirtualAddress::from((*pair).0 + (*pair).1),
+                    ),
+                    MapType::Linear,
+                    MapPermission::Read | MapPermission::Write,
+                ),
+                None,
+            );
+        }
         memory_set
     }
     pub fn from_elf_app(app: AppData) -> (Self, usize, usize) {
@@ -282,7 +309,7 @@ impl MemorySet {
             let vpn_range = VPNRange::new(vpn_start, vpn_end);
             let map_type = MapType::Framed;
             let permission = {
-                let mut flags = MapPermission::empty();
+                let mut flags = MapPermission::User;
                 if ph.flags().is_read() {
                     flags |= MapPermission::Read;
                 }
@@ -314,18 +341,29 @@ impl MemorySet {
             ),
             None,
         );
-
+        // used in sbrk
         // memory_set.push(
         //     MapArea::new(
-        //         VPNRange::new(
-        //             VirtualAddress::from(TRAP_CONTEXT).into(),
-        //             VirtualAddress::from(TRAMPOLINE).into(),
+        //         VPNRange::from_addr(
+        //             VirtualAddress::from(user_stack_top),
+        //             VirtualAddress::from(user_stack_top),
         //         ),
         //         MapType::Framed,
-        //         MapPermission::Read | MapPermission::Write,
+        //         MapPermission::Read | MapPermission::Write | MapPermission::User,
         //     ),
         //     None,
         // );
+        memory_set.push(
+            MapArea::new(
+                VPNRange::from_addr(
+                    VirtualAddress::from(TRAP_CONTEXT),
+                    VirtualAddress::from(TRAMPOLINE),
+                ),
+                MapType::Framed,
+                MapPermission::Read | MapPermission::Write,
+            ),
+            None,
+        );
         (
             memory_set,
             user_stack_top,

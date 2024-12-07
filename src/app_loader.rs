@@ -3,7 +3,10 @@ use core::{arch::asm, cell::RefCell};
 use lazy_static::lazy_static;
 
 use crate::{
-    extern_global, info, task::manager::TaskManager, trap::context::TrapCtx,
+    extern_global, info,
+    mm::{address::PAGE_SIZE_SV39, memory_set::TRAMPOLINE},
+    task::manager::TaskManager,
+    trap::context::TrapCtx,
     utils::safety::SyncRefCell,
 };
 
@@ -44,20 +47,11 @@ impl Stack for UserStack {
     }
 }
 
-impl KernelStack {
-    fn push_ctx(&self, ctx: TrapCtx) -> usize {
-        let ctx_ptr = &ctx as *const TrapCtx;
-        let ctx_size = core::mem::size_of::<TrapCtx>();
-        let ctx_dst = self.top() - ctx_size;
-        let ctx_src = ctx_ptr;
-        let ctx_dst = ctx_dst as *mut u8;
-        let ctx_src = ctx_src as *const u8;
-        unsafe {
-            ctx_dst.copy_from(ctx_src, ctx_size);
-        }
-        let ctx_dst = ctx_dst as *mut TrapCtx;
-        unsafe { &mut *ctx_dst as *mut TrapCtx as usize }
-    }
+
+pub fn kernel_stack_position(app_id: usize) -> (usize, usize) {
+    let top = TRAMPOLINE - app_id * (KERNEL_STACK_SIZE + PAGE_SIZE_SV39);
+    let bottom = top - KERNEL_STACK_SIZE;
+    (bottom, top)
 }
 
 pub fn get_app_count() -> usize {
@@ -83,7 +77,7 @@ pub fn load_app_data(app_id: usize) -> AppData {
             .copied()
             .unwrap()
     };
-    let app_end = if app_id + 1 < app_count {
+    let app_end: usize = if app_id + 1 < app_count {
         unsafe {
             core::slice::from_raw_parts(app_table.add(app_id + 1), 1)
                 .get(0)
@@ -91,7 +85,12 @@ pub fn load_app_data(app_id: usize) -> AppData {
                 .unwrap()
         }
     } else {
-        extern_global!(__apps_end) as usize
+        unsafe {
+            core::slice::from_raw_parts(app_table.add(app_count), 1)
+                .get(0)
+                .copied()
+                .unwrap()
+        }
     };
     let app_name_ptr = unsafe {
         core::slice::from_raw_parts(app_name_table.add(app_id), 1)
@@ -100,7 +99,7 @@ pub fn load_app_data(app_id: usize) -> AppData {
             .unwrap()
     };
     let app_name = get_app_name(app_name_ptr as *const i8);
-    let app_data =
+    let app_data: &[u8] =
         unsafe { core::slice::from_raw_parts(app_start as *const u8, app_end - app_start) };
     AppData {
         app_id,
@@ -123,12 +122,5 @@ impl AppData {
             self.app_name,
             self.data.len(),
         );
-    }
-}
-
-pub fn new_app_ctx(appid: usize) -> usize {
-    let base = todo!();
-    unsafe {
-        KERNEL_STACK[appid].push_ctx(TrapCtx::init_app_context(base, USER_STACK[appid].top()))
     }
 }

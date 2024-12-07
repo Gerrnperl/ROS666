@@ -10,6 +10,10 @@ SECTIONS
     __text_start = .;
     .text : {
         *(.text.entry)
+        . = ALIGN(4K);
+        __strampoline = .;
+        *(.text.trampoline);
+        . = ALIGN(4K);
         *(.text .text.*)
     }
 

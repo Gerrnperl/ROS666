@@ -1,13 +1,14 @@
 use core::arch::asm;
 use core::cell::RefCell;
 
+use alloc::vec::Vec;
 use lazy_static::lazy_static;
 
-use crate::app_loader::get_app_count;
-use crate::app_loader::{MAX_APP_NUM, new_app_ctx};
+use crate::app_loader::{get_app_count, load_app_data};
 use crate::task::context::TaskCtx;
 use crate::task::switch::__switch;
 use crate::task::task::{TaskControlBlock, TaskStatus};
+use crate::trap::context::TrapCtx;
 use crate::utils::safety::SyncRefCell;
 use crate::{info, printkln, sbi::sbi_shutdown};
 
@@ -16,15 +17,9 @@ lazy_static! {
         SyncRefCell {
             ref_cell: RefCell::new({
                 let app_count = get_app_count();
-                let mut tasks = [TaskControlBlock {
-                    id: 0,
-                    ctx: TaskCtx::default(),
-                    status: TaskStatus::Create,
-                }; MAX_APP_NUM];
-                for (i, task) in tasks.iter_mut().enumerate().take(app_count) {
-                    task.id = i;
-                    task.ctx = TaskCtx::restore_to_kernel(new_app_ctx(i));
-                    task.status = TaskStatus::Ready;
+                let mut tasks = Vec::with_capacity(app_count);
+                for i in 0..app_count {
+                    tasks.push(TaskControlBlock::new(load_app_data(i)));
                 }
                 TaskManager {
                     app_count,
@@ -42,12 +37,12 @@ pub struct TaskManager {
     /// 当前运行的应用程序编号
     pub current: usize,
     /// 任务控制块数组
-    pub tasks: [TaskControlBlock; MAX_APP_NUM],
+    pub tasks: Vec<TaskControlBlock>,
 }
 
 impl TaskManager {
     pub fn start() {
-        info!("Switch to task {}", 0);
+        info!("Start at task {}", 0);
         // APP_LOADER.ref_cell.borrow().print_app_info(0);
         let mut this = TASK_MANAGER.ref_cell.borrow_mut();
         this.tasks[0].status = crate::task::task::TaskStatus::Running;
@@ -60,7 +55,7 @@ impl TaskManager {
     }
 
     pub fn switch_to(task_id: usize) {
-        info!("Switch to task {}", task_id);
+        // info!("Switch to task {}", task_id);
         // APP_LOADER.ref_cell.borrow().print_app_info(task_id);
         let mut this = TASK_MANAGER.ref_cell.borrow_mut();
         let current = this.current;
@@ -112,5 +107,17 @@ impl TaskManager {
         }
         drop(this);
         None
+    }
+
+    pub fn current_user_token() -> usize {
+        let mut tm = TASK_MANAGER.ref_cell.borrow_mut();
+        let current = tm.current;
+        tm.tasks[current].get_user_token()
+    }
+
+    pub fn current_trap_cx() -> &'static mut TrapCtx {
+        let tm = TASK_MANAGER.ref_cell.borrow();
+        let current = tm.current;
+        tm.tasks[current].get_trap_cx()
     }
 }
