@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["enable_timer_interrupt","init"]};
+window.SIDEBAR_ITEMS = {"fn":["enable_timer_interrupt","init","set_kernel_trap_entry"]};

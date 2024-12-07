@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["MEMORY_END"],"fn":["frame_allocator_test"],"struct":["FRAME_ALLOCATOR","FrameTracker","StackFrameAllocator"],"trait":["FrameAllocator"]};

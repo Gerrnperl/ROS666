@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["KERNEL_STACK_SIZE","MAX_APP_NUM","USER_BASE_ADDRESS","USER_SPACE_SIZE","USER_STACK_SIZE"],"fn":["new_app_ctx"],"static":["KERNEL_STACK","USER_STACK"],"struct":["APP_LOADER","AppLoader","KernelStack","UserStack"],"trait":["Stack"]};
+window.SIDEBAR_ITEMS = {"constant":["KERNEL_STACK_SIZE","USER_STACK_SIZE"],"fn":["get_app_count","get_app_name","kernel_stack_position","load_app_data"],"struct":["AppData"]};

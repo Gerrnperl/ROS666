@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["PAGE_OFFSET_WIDTH_SV39","PAGE_SIZE_SV39","PHYSICAL_ADDRESS_WIDTH_SV39","PHYSICAL_PAGE_NUMBER_WIDTH_SV39","VIRTUAL_ADDRESS_WIDTH_SV39","VIRTUAL_PAGE_NUMBER_WIDTH_SV39"],"struct":["PhysicalAddress","PhysicalPageNumber","VPNRange","VirtualAddress","VirtualPageNumber"]};

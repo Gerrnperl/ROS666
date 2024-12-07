@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["heap_allocator"]};
+window.SIDEBAR_ITEMS = {"mod":["address","frame_allocator","heap_allocator","init","memory_set","page_table"]};

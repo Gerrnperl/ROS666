@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["TIMER_INTERVAL_USEC"],"fn":["trap_handler"]};
+window.SIDEBAR_ITEMS = {"constant":["TIMER_INTERVAL_USEC"],"fn":["set_user_trap_entry","trap_from_kernel","trap_handler","trap_return"]};

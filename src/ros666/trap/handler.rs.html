@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/trap/handler.rs`."><title>handler.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-dbdb5eec.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (acabb5248 2024-12-04)" data-channel="nightly" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/trap/</div>handler.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/trap/handler.rs`."><title>handler.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (8dc83770f 2024-12-06)" data-channel="nightly" data-search-js="search-92e6798f.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/trap/</div>handler.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -40,23 +40,77 @@
 <a href="#39" id="39">39</a>
 <a href="#40" id="40">40</a>
 <a href="#41" id="41">41</a>
-<a href="#42" id="42">42</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::usize;
+<a href="#42" id="42">42</a>
+<a href="#43" id="43">43</a>
+<a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a>
+<a href="#47" id="47">47</a>
+<a href="#48" id="48">48</a>
+<a href="#49" id="49">49</a>
+<a href="#50" id="50">50</a>
+<a href="#51" id="51">51</a>
+<a href="#52" id="52">52</a>
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::{arch::asm, usize};
 
 <span class="kw">use </span>common::syscall::Syscall;
 <span class="kw">use </span>riscv::{
     interrupt::{Exception, supervisor::Interrupt},
-    register::{scause, stval},
+    register::{
+        scause, stval,
+        stvec::{<span class="self">self</span>, TrapMode},
+    },
 };
 
-<span class="kw">use crate</span>::{syscall::syscall, task::manager::TaskManager, timer::set_next_timeout};
+<span class="kw">use crate</span>::{
+    extern_global,
+    mm::memory_set::TRAMPOLINE,
+    printk,
+    syscall::syscall,
+    task::{manager::TaskManager, task::TRAP_CONTEXT},
+    timer::set_next_timeout,
+};
 
 <span class="kw">use </span><span class="kw">super</span>::context::{Riscv64RegAlias, TrapCtx};
 
 <span class="kw">pub const </span>TIMER_INTERVAL_USEC: usize = <span class="number">10_000</span>;
 
 <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
-</span><span class="kw">pub fn </span>trap_handler(ctx: <span class="kw-2">&amp;mut </span>TrapCtx) -&gt; <span class="kw-2">&amp;mut </span>TrapCtx {
+</span><span class="kw">pub fn </span>trap_handler() -&gt; ! {
+    set_user_trap_entry();
     <span class="kw">let </span>scause = scause::read().cause();
+    <span class="kw">let </span>ctx = TaskManager::current_trap_cx();
     <span class="kw">let </span>stval = stval::read();
     <span class="kw">match </span>scause {
         scause::Trap::Exception(<span class="kw">const </span>{ Exception::UserEnvCall <span class="kw">as </span>usize }) =&gt; {
@@ -80,6 +134,36 @@
             <span class="macro">panic!</span>(<span class="string">"Unhandled trap: {:?}, stval: {:#x}"</span>, scause, stval);
         }
     };
-    ctx
+    trap_return();
+}
+
+<span class="kw">fn </span>set_user_trap_entry() {
+    <span class="kw">unsafe </span>{
+        stvec::write(TRAMPOLINE <span class="kw">as </span>usize, TrapMode::Direct);
+    }
+}
+
+<span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
+</span><span class="kw">pub fn </span>trap_return() -&gt; ! {
+    set_user_trap_entry();
+    <span class="kw">let </span>trap_cx_ptr = TRAP_CONTEXT;
+    <span class="kw">let </span>user_satp = TaskManager::current_user_token();
+    <span class="kw">let </span>restore_va =
+        <span class="macro">extern_global!</span>(__restore_trap) <span class="kw">as </span>usize - <span class="macro">extern_global!</span>(__save_trap) <span class="kw">as </span>usize + TRAMPOLINE;
+    <span class="kw">unsafe </span>{
+        <span class="macro">asm!</span>(
+            <span class="string">"fence.i"</span>,
+            <span class="string">"jr {restore_va}"</span>,             <span class="comment">// jump to new addr of __restore asm function
+            </span>restore_va = <span class="kw">in</span>(reg) restore_va,
+            <span class="kw">in</span>(<span class="string">"a0"</span>) trap_cx_ptr,      <span class="comment">// a0 = virt addr of Trap Context
+            </span><span class="kw">in</span>(<span class="string">"a1"</span>) user_satp,        <span class="comment">// a1 = phy addr of usr page table
+            </span>options(noreturn)
+        );
+    }
+}
+
+<span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
+</span><span class="kw">pub fn </span>trap_from_kernel() -&gt; ! {
+    <span class="macro">panic!</span>(<span class="string">"A trap from kernel occurs!"</span>);
 }
 </code></pre></div></section></main></body></html>

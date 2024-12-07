@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["TRAMPOLINE"],"enum":["MapType"],"fn":["remap_test"],"struct":["KERNEL_SPACE","MapArea","MapPermission","MemorySet"]};
