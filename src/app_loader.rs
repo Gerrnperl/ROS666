@@ -10,43 +10,8 @@ use crate::{
     utils::safety::SyncRefCell,
 };
 
-pub const MAX_APP_NUM: usize = 64;
-/// 与 user-build 中 linker.ld 中的 BASE_ADDRESS 保持一致
-pub const USER_BASE_ADDRESS: usize = 0x80400000;
-pub const USER_SPACE_SIZE: usize = 0x00200000;
-
 pub const KERNEL_STACK_SIZE: usize = 4096 * 2;
 pub const USER_STACK_SIZE: usize = 4096 * 2;
-
-#[repr(align(4096))]
-#[derive(Copy, Clone)]
-pub struct KernelStack([u8; KERNEL_STACK_SIZE]);
-
-#[repr(align(4096))]
-#[derive(Copy, Clone)]
-pub struct UserStack([u8; USER_STACK_SIZE]);
-
-pub static mut KERNEL_STACK: [KernelStack; MAX_APP_NUM] =
-    [KernelStack([0; KERNEL_STACK_SIZE]); MAX_APP_NUM];
-static mut USER_STACK: [UserStack; MAX_APP_NUM] = [UserStack {
-    0: [0; USER_STACK_SIZE],
-}; MAX_APP_NUM];
-trait Stack {
-    fn top(&self) -> usize;
-}
-
-impl Stack for KernelStack {
-    fn top(&self) -> usize {
-        self.0.as_ptr() as usize + KERNEL_STACK_SIZE
-    }
-}
-
-impl Stack for UserStack {
-    fn top(&self) -> usize {
-        self.0.as_ptr() as usize + USER_STACK_SIZE
-    }
-}
-
 
 pub fn kernel_stack_position(app_id: usize) -> (usize, usize) {
     let top = TRAMPOLINE - app_id * (KERNEL_STACK_SIZE + PAGE_SIZE_SV39);
