@@ -35,13 +35,12 @@ pub extern "C" fn _kernel_entry() -> ! {
 
     mm::init::init();
     mm::memory_set::remap_test();
-    panic!("Stop here");
 
+    printkln!("Hello, {}!", "World");
     trap::init::enable_timer_interrupt();
     timer::set_next_timeout(trap::handler::TIMER_INTERVAL_USEC);
     // APP_LOADER.ref_cell.borrow().print_apps_info();
     task::manager::TaskManager::start();
-    printkln!("Hello, {}!", "World");
 
     // sbi::sbi_shutdown(false);
     loop {}

@@ -3,7 +3,9 @@ use alloc::vec::Vec;
 use crate::printkln;
 
 use super::{
-    address::{PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalPageNumber, VirtualPageNumber},
+    address::{
+        PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalPageNumber, VirtualAddress, VirtualPageNumber,
+    },
     frame_allocator::{FrameTracker, StackFrameAllocator},
 };
 
@@ -164,4 +166,27 @@ impl From<&mut PageTableEntry> for PhysicalPageNumber {
     fn from(pte: &mut PageTableEntry) -> Self {
         PhysicalPageNumber::from(pte.bits >> 10 & ((1 << PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - 1))
     }
+}
+
+pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static [u8]> {
+    let mut page_table = PageTable::from_satp(token);
+    let mut start = ptr as usize;
+    let end = start + len;
+    let mut v = Vec::new();
+    while start < end {
+        let start_va = VirtualAddress::from(start);
+        let mut vpn = start_va.floor_page();
+        let ppn = PhysicalPageNumber::from(&page_table.translate(vpn).unwrap());
+        vpn.0 += 1;
+        let mut end_va: VirtualAddress = vpn.into();
+        end_va = end_va.min(VirtualAddress::from(end));
+
+        v.push(if end_va.page_offset() == 0 {
+            &ppn.get_bytes_array()[start_va.page_offset()..]
+        } else {
+            &ppn.get_bytes_array()[start_va.page_offset()..end_va.page_offset()]
+        });
+        start = end_va.into();
+    }
+    v
 }
