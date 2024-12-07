@@ -39,11 +39,7 @@ fn gen_app_loader() {
         .iter()
         .enumerate()
         .map(|(id, name)| {
-            gen_app_section(
-                name.to_string(),
-                format!("{target_output_dir}/{name}.bin"),
-                id,
-            )
+            gen_app_section(name.to_string(), format!("{target_output_dir}/{name}"), id)
         })
         .collect::<Vec<_>>()
         .join("\n");
@@ -85,6 +81,7 @@ fn gen_app_section(name: String, path: String, id: usize) -> String {
     format!(
         r#".section .data
 .global __app_{id}_start
+.align 3
 __app_{id}_start:
     .incbin "{path}"
 .global __app_{id}_end

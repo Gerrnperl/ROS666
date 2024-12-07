@@ -10,6 +10,10 @@ SECTIONS
     __text_start = .;
     .text : {
         *(.text.entry)
+        . = ALIGN(4K);
+        __strampoline = .;
+        *(.text.trampoline);
+        . = ALIGN(4K);
         *(.text .text.*)
     }
 
@@ -31,6 +35,7 @@ SECTIONS
 
     . = ALIGN(4K);
     __data_end = .;
+    __bss_start_stack = .;
     .bss : {
         *(.bss.stack)
         __bss_start = .;

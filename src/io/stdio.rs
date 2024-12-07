@@ -6,7 +6,10 @@ struct Stdout {}
 
 impl Write for Stdout {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        sbi::sbi_console_put(s).map_err(|_| core::fmt::Error)?;
+        // sbi::sbi_console_put(s).map_err(|_| core::fmt::Error)?;
+        for c in s.chars() {
+            let _ = sbi::sbi_console_putchar(c as usize);
+        }
         Ok(())
     }
 }

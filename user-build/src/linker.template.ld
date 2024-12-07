@@ -1,6 +1,6 @@
 OUTPUT_ARCH(riscv)
 ENTRY(_start)
-BASE_ADDRESS = /*TEMPLATE {BASE_ADDRESS}*/;
+BASE_ADDRESS = 0x10000;
 
 SECTIONS
 {
@@ -12,7 +12,7 @@ SECTIONS
         *(.text.entry)
         *(.text .text.*)
     }
-
+    . = ALIGN(4K);
     __text_end = .;
 
     __rodata_start = .;
@@ -20,7 +20,7 @@ SECTIONS
         *(.rodata .rodata.*)
         *(.srodata .srodata.*)
     }
-
+    . = ALIGN(4K);
     __rodata_end = .;
 
     __data_start = .;
@@ -28,7 +28,7 @@ SECTIONS
         *(.data .data.*)
         *(.sdata .sdata.*)
     }
-
+    . = ALIGN(4K);
     __data_end = .;
 
     .bss : {
@@ -36,7 +36,7 @@ SECTIONS
         *(.bss .bss.*)
         *(.sbss .sbss.*)
     }
-
+    . = ALIGN(4K);
     __bss_end = .;
     __app_end = .;
 

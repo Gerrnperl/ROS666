@@ -1,3 +1,5 @@
+use crate::trap::handler::trap_return;
+
 /// 任务上下文
 ///
 /// 保存任务的寄存器信息
@@ -23,12 +25,9 @@ impl Default for TaskCtx {
 }
 
 impl TaskCtx {
-    pub fn restore_to_kernel(kernel_stack_ptr: usize) -> Self {
-        unsafe extern "C" {
-            fn __restore_trap();
-        }
+    pub fn goto_trap_return(kernel_stack_ptr: usize) -> Self {
         Self {
-            ra: __restore_trap as usize,
+            ra: trap_return as usize,
             sp: kernel_stack_ptr,
             s: [0; 12],
         }

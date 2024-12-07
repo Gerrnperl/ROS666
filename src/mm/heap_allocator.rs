@@ -2,7 +2,7 @@ use slab_allocator::LockedHeap;
 
 use crate::{extern_global, printkln, trace};
 
-pub const KERNEL_HEAP_SIZE: usize = 0x80_0000;
+pub const KERNEL_HEAP_SIZE: usize = 0x30_0000;
 
 #[global_allocator]
 static HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();

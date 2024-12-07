@@ -4,7 +4,9 @@ use common::syscall::{
 };
 
 use crate::{
-    printk, task,
+    mm::page_table::translated_byte_buffer,
+    printk,
+    task::{self, manager::TaskManager},
     timer::{get_time, get_time_us},
 };
 
@@ -31,10 +33,12 @@ const FD_STDOUT: usize = 1;
 pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
     match fd {
         FD_STDOUT => {
-            let buffer = unsafe { core::slice::from_raw_parts(buffer, len) };
-            let s = core::str::from_utf8(buffer).unwrap();
-            printk!("{}", s);
-            buffer.len() as SyscallRet
+            let buffers = translated_byte_buffer(TaskManager::current_user_token(), buffer, len);
+            for buffer in buffers {
+                let s = core::str::from_utf8(buffer).unwrap();
+                printk!("{}", s);
+            }
+            len as SyscallRet
         }
         _ => panic!("Unsupported file descriptor: {}", fd),
     }

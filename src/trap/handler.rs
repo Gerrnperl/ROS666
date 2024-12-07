@@ -1,20 +1,32 @@
-use core::usize;
+use core::{arch::asm, usize};
 
 use common::syscall::Syscall;
 use riscv::{
     interrupt::{Exception, supervisor::Interrupt},
-    register::{scause, stval},
+    register::{
+        scause, stval,
+        stvec::{self, TrapMode},
+    },
 };
 
-use crate::{syscall::syscall, task::manager::TaskManager, timer::set_next_timeout};
+use crate::{
+    extern_global,
+    mm::memory_set::TRAMPOLINE,
+    printk,
+    syscall::syscall,
+    task::{manager::TaskManager, task::TRAP_CONTEXT},
+    timer::set_next_timeout,
+};
 
 use super::context::{Riscv64RegAlias, TrapCtx};
 
 pub const TIMER_INTERVAL_USEC: usize = 10_000;
 
 #[unsafe(no_mangle)]
-pub fn trap_handler(ctx: &mut TrapCtx) -> &mut TrapCtx {
+pub fn trap_handler() -> ! {
+    set_user_trap_entry();
     let scause = scause::read().cause();
+    let ctx = TaskManager::current_trap_cx();
     let stval = stval::read();
     match scause {
         scause::Trap::Exception(const { Exception::UserEnvCall as usize }) => {
@@ -38,5 +50,35 @@ pub fn trap_handler(ctx: &mut TrapCtx) -> &mut TrapCtx {
             panic!("Unhandled trap: {:?}, stval: {:#x}", scause, stval);
         }
     };
-    ctx
+    trap_return();
+}
+
+fn set_user_trap_entry() {
+    unsafe {
+        stvec::write(TRAMPOLINE as usize, TrapMode::Direct);
+    }
+}
+
+#[unsafe(no_mangle)]
+pub fn trap_return() -> ! {
+    set_user_trap_entry();
+    let trap_cx_ptr = TRAP_CONTEXT;
+    let user_satp = TaskManager::current_user_token();
+    let restore_va =
+        extern_global!(__restore_trap) as usize - extern_global!(__save_trap) as usize + TRAMPOLINE;
+    unsafe {
+        asm!(
+            "fence.i",
+            "jr {restore_va}",             // jump to new addr of __restore asm function
+            restore_va = in(reg) restore_va,
+            in("a0") trap_cx_ptr,      // a0 = virt addr of Trap Context
+            in("a1") user_satp,        // a1 = phy addr of usr page table
+            options(noreturn)
+        );
+    }
+}
+
+#[unsafe(no_mangle)]
+pub fn trap_from_kernel() -> ! {
+    panic!("A trap from kernel occurs!");
 }
