@@ -81,6 +81,7 @@ fn gen_app_section(name: String, path: String, id: usize) -> String {
     format!(
         r#".section .data
 .global __app_{id}_start
+.align 3
 __app_{id}_start:
     .incbin "{path}"
 .global __app_{id}_end
