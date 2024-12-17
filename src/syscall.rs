@@ -4,7 +4,7 @@ use common::syscall::{
 };
 
 use crate::{
-    mm::page_table::translated_byte_buffer,
+    mm::page_table::get_translated_byte_slices,
     printk,
     task::{self, manager::TaskManager},
     timer::{get_time, get_time_us},
@@ -33,7 +33,8 @@ const FD_STDOUT: usize = 1;
 pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
     match fd {
         FD_STDOUT => {
-            let buffers = translated_byte_buffer(TaskManager::current_user_token(), buffer, len);
+            let buffers =
+                get_translated_byte_slices(TaskManager::current_user_token(), buffer, len);
             for buffer in buffers {
                 let s = core::str::from_utf8(buffer).unwrap();
                 printk!("{}", s);
@@ -55,8 +56,18 @@ pub fn sys_yield() -> SyscallRet {
 }
 
 pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
-    let ts = unsafe { ts.as_mut().unwrap() };
-    let tz = unsafe { tz.as_mut().unwrap() };
+    let ts_buffer = get_translated_byte_slices(
+        TaskManager::current_user_token(),
+        ts as *const u8,
+        core::mem::size_of::<TimeVal>(),
+    );
+    let ts = unsafe { &mut *(ts_buffer[0].as_ptr() as *mut TimeVal) };
+    let tz_buffer = get_translated_byte_slices(
+        TaskManager::current_user_token(),
+        tz as *const u8,
+        core::mem::size_of::<TimeZone>(),
+    );
+    let tz = unsafe { &mut *(tz_buffer[0].as_ptr() as *mut TimeZone) };
     let time = get_time_us();
     ts.tv_sec = time / 1_000_000;
     ts.tv_usec = time % 1_000_000;

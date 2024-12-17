@@ -168,25 +168,24 @@ impl From<&mut PageTableEntry> for PhysicalPageNumber {
     }
 }
 
-pub fn translated_byte_buffer(token: usize, ptr: *const u8, len: usize) -> Vec<&'static [u8]> {
+pub fn get_translated_byte_slices(token: usize, ptr: *const u8, len: usize) -> Vec<&'static [u8]> {
     let mut page_table = PageTable::from_satp(token);
     let mut start = ptr as usize;
     let end = start + len;
-    let mut v = Vec::new();
+    let mut slices = Vec::new();
     while start < end {
         let start_va = VirtualAddress::from(start);
-        let mut vpn = start_va.floor_page();
+        let vpn = start_va.floor_page();
         let ppn = PhysicalPageNumber::from(&page_table.translate(vpn).unwrap());
-        vpn.0 += 1;
-        let mut end_va: VirtualAddress = vpn.into();
-        end_va = end_va.min(VirtualAddress::from(end));
-
-        v.push(if end_va.page_offset() == 0 {
+        let end_va = VirtualAddress::from(vpn + VirtualPageNumber(1));
+        let end_va = end_va.min(VirtualAddress::from(end));
+        let slice = if end_va.page_offset() == 0 {
             &ppn.get_bytes_array()[start_va.page_offset()..]
         } else {
             &ppn.get_bytes_array()[start_va.page_offset()..end_va.page_offset()]
-        });
-        start = end_va.into();
+        };
+        slices.push(slice);
+        start = usize::from(end_va);
     }
-    v
+    slices
 }
