@@ -4,6 +4,12 @@ use alloc::vec::Vec;
 use core::{cell::RefCell, ops::Range};
 use lazy_static::lazy_static;
 
+// debug: 0x84800000;
+// release: 0x80800000;
+// pub const MEMORY_END: usize = 0x80800000;
+#[cfg(debug_assertions)]
+pub const MEMORY_END: usize = 0x84800000;
+#[cfg(not(debug_assertions))]
 pub const MEMORY_END: usize = 0x80800000;
 
 trait FrameAllocator {
