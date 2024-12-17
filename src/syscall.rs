@@ -20,6 +20,9 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
         }
         Syscall::SchedYield => sys_yield(),
         Syscall::GetTimeOfDay => sys_get_time_of_day(args[0] as *mut _, args[1] as *mut _),
+        Syscall::Clone => sys_clone(),
+        Syscall::Execve => sys_execve(args[0] as *const u8),
+        Syscall::Wait4 => sys_wait4(args[0] as isize, args[1] as *mut i32),
         #[allow(
             unreachable_patterns,
             reason = "we may receive syscall numbers not defined in the enum"
@@ -29,6 +32,10 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
 }
 
 const FD_STDOUT: usize = 1;
+
+pub fn sys_read(fd: usize, buffer: *mut u8, len: usize) -> SyscallRet {
+    todo!()
+}
 
 pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
     match fd {
@@ -74,4 +81,16 @@ pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
     tz.tz_minuteswest = 0;
     tz.tz_dsttime = 0;
     0
+}
+
+pub fn sys_clone() -> SyscallRet {
+    todo!()
+}
+
+pub fn sys_execve(path: *const u8) -> SyscallRet {
+    todo!()
+}
+
+pub fn sys_wait4(pid: isize, exit_code: *mut i32) -> SyscallRet {
+    todo!()
 }

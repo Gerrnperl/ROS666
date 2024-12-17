@@ -25,6 +25,10 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
     ret
 }
 
+pub fn sys_read(fd: usize, buffer: &mut [u8]) -> SyscallRet {
+    syscall(Syscall::Read, [fd, buffer.as_ptr() as usize, buffer.len()])
+}
+
 pub fn sys_write(fd: usize, buffer: &[u8]) -> SyscallRet {
     syscall(Syscall::Write, [fd, buffer.as_ptr() as usize, buffer.len()])
 }
@@ -41,4 +45,16 @@ pub fn sys_sched_yield() -> SyscallRet {
 
 pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
     syscall(Syscall::GetTimeOfDay, [ts as usize, tz as usize, 0])
+}
+
+pub fn sys_clone() -> SyscallRet {
+    syscall(Syscall::Clone, [0, 0, 0])
+}
+
+pub fn sys_execve(path: &str) -> SyscallRet {
+    syscall(Syscall::Execve, [path.as_ptr() as usize, 0, 0])
+}
+
+pub fn sys_wait4(pid: isize, exit_code: *mut i32) -> SyscallRet {
+    syscall(Syscall::Wait4, [pid as usize, exit_code as usize, 0])
 }
