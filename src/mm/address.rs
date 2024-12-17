@@ -1,3 +1,5 @@
+use core::ops::Add;
+
 use super::page_table::PageTableEntry;
 
 /// 页内偏移位数
@@ -108,6 +110,14 @@ impl From<PhysicalPageNumber> for usize {
 impl From<VirtualPageNumber> for usize {
     fn from(address: VirtualPageNumber) -> Self {
         address.0
+    }
+}
+
+impl Add for VirtualPageNumber {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self {
+        VirtualPageNumber(self.0 + rhs.0)
     }
 }
 
