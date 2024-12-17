@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(linkage)]
+#![feature(alloc_error_handler)]
 
 pub mod language_item;
 pub mod sched;
@@ -9,11 +10,14 @@ pub mod sys;
 pub mod syscall;
 pub mod unistd;
 
+use heap_allocator::init_heap;
 pub use language_item::*;
 pub use sched::*;
 pub use stdio::*;
 pub use syscall::*;
 pub use unistd::*;
+
+mod heap_allocator;
 
 use core::arch::{asm, global_asm};
 
@@ -21,6 +25,7 @@ use core::arch::{asm, global_asm};
 #[unsafe(link_section = ".text.entry")]
 pub extern "C" fn _start() -> ! {
     clear_bss();
+    init_heap();
     exit(main());
 }
 
