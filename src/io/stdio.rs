@@ -1,6 +1,6 @@
 use core::fmt::Write;
 
-use crate::sbi;
+use crate::sbi::{self, sbi_console_getchar};
 
 struct Stdout {}
 
@@ -11,6 +11,15 @@ impl Write for Stdout {
         //     let _ = sbi::sbi_console_putchar(c as usize);
         // }
         Ok(())
+    }
+}
+
+pub fn read_str(buf: &mut [u8], len: usize) {
+    for i in 0..len {
+        match sbi_console_getchar() {
+            Ok(c) => buf[i] = c,
+            Err(_) => break,
+        }
     }
 }
 

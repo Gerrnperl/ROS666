@@ -24,7 +24,6 @@ use core::arch::{asm, global_asm};
 #[unsafe(no_mangle)]
 #[unsafe(link_section = ".text.entry")]
 pub extern "C" fn _start() -> ! {
-    clear_bss();
     init_heap();
     exit(main());
 }

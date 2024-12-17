@@ -4,7 +4,8 @@ use common::syscall::{
 };
 
 use crate::{
-    mm::page_table::get_translated_byte_slices,
+    io::stdio::read_str,
+    mm::page_table::{get_mut_translated_byte_slices, get_translated_byte_slices},
     printk,
     task::{self, manager::TaskManager},
     timer::{get_time, get_time_us},
@@ -12,7 +13,7 @@ use crate::{
 
 pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
     match call {
-        Syscall::Read => todo!(),
+        Syscall::Read => sys_read(args[0], args[1] as *mut u8, args[2]),
         Syscall::Write => sys_write(args[0], args[1] as *const u8, args[2]),
         Syscall::Exit => {
             sys_exit(args[0]);
@@ -31,10 +32,21 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
     }
 }
 
+const FD_STDIN: usize = 0;
 const FD_STDOUT: usize = 1;
 
 pub fn sys_read(fd: usize, buffer: *mut u8, len: usize) -> SyscallRet {
-    todo!()
+    match fd {
+        FD_STDIN => {
+            let buffers =
+                get_mut_translated_byte_slices(TaskManager::current_user_token(), buffer, len);
+            for buffer in buffers {
+                read_str(buffer, buffer.len());
+            }
+            len as SyscallRet
+        }
+        _ => panic!("Unsupported file descriptor: {}", fd),
+    }
 }
 
 pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {

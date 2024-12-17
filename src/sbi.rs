@@ -1,6 +1,9 @@
 use core::ops::Add;
 
+use alloc::vec;
 use rustsbi::{Console, Physical, Reset, SbiRet, Timer};
+
+use crate::mm::{self};
 
 pub enum ConsolePutError {
     AddrInvalid,
@@ -61,6 +64,40 @@ pub fn sbi_console_put(s: &str) -> Result<(), ConsolePutError> {
     }
 
     Err(ConsolePutError::AddrInvalid)
+}
+
+/// 读取字符
+pub fn sbi_console_getchar() -> Result<u8, SbiRet> {
+    if unsafe { mm::init::HEAP_INITED } {
+        let mut buf = vec![0u8; 1];
+        // rustsbi::Forward {}.read() 是非阻塞的
+        // 这里尝试用循环来读取字符
+        // 也许有更好的方法？
+        let sbi_ret = loop {
+            let physical = Physical::new(1, buf.as_mut_ptr() as usize, buf.as_mut_ptr() as usize);
+            let sbi_ret = rustsbi::Forward {}.read(physical);
+            if sbi_ret.value != 0 {
+                break sbi_ret;
+            }
+        };
+        if sbi_ret.is_ok() {
+            return Ok(buf[0]);
+        }
+        return Err(sbi_ret);
+    } else {
+        let mut buf = [0u8; 1];
+        let sbi_ret = loop {
+            let physical = Physical::new(1, buf.as_mut_ptr() as usize, buf.as_mut_ptr() as usize);
+            let sbi_ret = rustsbi::Forward {}.read(physical);
+            if sbi_ret.value != 0 {
+                break sbi_ret;
+            }
+        };
+        if sbi_ret.is_ok() {
+            return Ok(buf[0]);
+        }
+        return Err(sbi_ret);
+    }
 }
 
 /// SRST 系统重置类型
