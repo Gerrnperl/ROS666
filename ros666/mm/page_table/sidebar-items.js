@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["translated_byte_buffer"],"struct":["PTEFlags","PageTable","PageTableEntry"]};
+window.SIDEBAR_ITEMS = {"fn":["get_translated_byte_slices"],"struct":["PTEFlags","PageTable","PageTableEntry"]};
