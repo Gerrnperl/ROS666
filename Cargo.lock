@@ -48,6 +48,7 @@ name = "lib"
 version = "0.1.0"
 dependencies = [
  "common",
+ "slab_allocator",
 ]
 
 [[package]]
