@@ -1,19 +1,31 @@
+use core::borrow::Borrow;
+
+use alloc::{
+    sync::{Arc, Weak},
+    vec::Vec,
+};
+
 use crate::{
-    app_loader::{AppData, kernel_stack_position},
+    app_loader::AppData,
     mm::{
         KERNEL_SPACE,
         address::{PAGE_SIZE_SV39, PhysicalPageNumber, VirtualAddress, VirtualPageNumber},
         memory_set::{self, MapPermission, MemorySet, TRAMPOLINE},
     },
-    trap::{context::TrapCtx, handler::trap_handler},
+    trap::{self, context::TrapCtx, handler::trap_handler},
+    utils::safety::SyncRefCell,
 };
 
-use super::context::TaskCtx;
+use super::{
+    context::TaskCtx,
+    pid::{PID_ALLOCATOR, PidAllocator, PidHandler},
+    stack::{KernelStack, kernel_stack_position},
+};
 
 pub const TRAP_CONTEXT: usize = TRAMPOLINE - PAGE_SIZE_SV39;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum TaskStatus {
+pub enum ProcessStatus {
     Create,
     Ready,
     Running,
@@ -21,18 +33,23 @@ pub enum TaskStatus {
     Stopped,
 }
 
-pub type TaskId = usize;
+pub struct ProcessControlBlock {
+    pub pid: PidHandler,
+    pub kernel_stack: KernelStack,
 
-pub struct TaskControlBlock {
-    pub id: TaskId,
-    pub status: TaskStatus,
+    pub status: ProcessStatus,
     pub ctx: TaskCtx,
     pub memory_set: MemorySet,
     pub trap_ctx_ppn: PhysicalPageNumber,
     pub base_size: usize,
+
+    pub parent: Option<Weak<SyncRefCell<ProcessControlBlock>>>,
+    pub children: Vec<Arc<SyncRefCell<ProcessControlBlock>>>,
+
+    pub exit_code: i32,
 }
 
-impl TaskControlBlock {
+impl ProcessControlBlock {
     pub fn get_trap_cx(&self) -> &'static mut TrapCtx {
         self.trap_ctx_ppn.get_mut()
     }
