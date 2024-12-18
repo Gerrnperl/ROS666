@@ -126,6 +126,37 @@ pub fn sys_execve(path: *const u8) -> SyscallRet {
     }
 }
 
-pub fn sys_wait4(pid: isize, exit_code: *mut i32) -> SyscallRet {
-    todo!()
+pub fn sys_wait4(pid: isize, exit_code_ptr: *mut i32) -> SyscallRet {
+    let task = Processor::get_current().unwrap();
+    let mut pcb = task.inner_borrow_mut();
+
+    let mut is_child_stopped = false;
+    let mut child_index = None;
+
+    for (index, child) in pcb.children.iter().enumerate() {
+        let child_pcb = child.inner_borrow();
+        if child_pcb.pid.0 == pid as usize || pid == -1 {
+            child_index = Some(index);
+            if child_pcb.status == ProcessStatus::Stopped {
+                is_child_stopped = true;
+            }
+        }
+    }
+
+    if child_index.is_none() {
+        return -1;
+    }
+
+    if is_child_stopped {
+        let child = pcb.children.remove(child_index.unwrap());
+        assert_eq!(Arc::strong_count(&child), 1);
+        let child_pcb = child.inner_borrow();
+        let child_exit_code = child_pcb.exit_code;
+        let child_pid = child_pcb.pid.0;
+        *get_translated_refmut(pcb.memory_set.token(), exit_code_ptr) = child_exit_code;
+
+        child_pid as SyscallRet
+    } else {
+        -2
+    }
 }

@@ -1,10 +1,11 @@
-use alloc::vec::Vec;
+use alloc::{string::String, vec::Vec};
 
 use crate::printkln;
 
 use super::{
     address::{
-        PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalPageNumber, VirtualAddress, VirtualPageNumber,
+        PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalAddress, PhysicalPageNumber, VirtualAddress,
+        VirtualPageNumber,
     },
     frame_allocator::{FrameTracker, StackFrameAllocator},
 };
@@ -28,7 +29,7 @@ impl PageTable {
     }
 
     pub fn map(&mut self, vpn: VirtualPageNumber, ppn: PhysicalPageNumber, flags: PTEFlags) {
-        let entry = self.find_pte(vpn, true).unwrap();
+        let entry = self.find_pte_mut(vpn).unwrap();
         if (*entry).valid() {
             panic!("map: {:?} has been mapped", vpn);
         }
@@ -36,18 +37,14 @@ impl PageTable {
     }
 
     pub fn unmap(&mut self, vpn: VirtualPageNumber) {
-        let entry = self.find_pte(vpn, false).unwrap();
+        let entry = self.find_pte(vpn).unwrap();
         if !(*entry).valid() {
             panic!("unmap: {:?} has not been mapped", vpn);
         }
         *entry = PageTableEntry::default();
     }
 
-    pub fn find_pte(
-        &mut self,
-        vpn: VirtualPageNumber,
-        create: bool,
-    ) -> Option<&mut PageTableEntry> {
+    pub fn find_pte_mut(&mut self, vpn: VirtualPageNumber) -> Option<&mut PageTableEntry> {
         let indexes = vpn.indexes();
         let mut ppn = self.root;
         for i in 0..3 {
@@ -56,9 +53,6 @@ impl PageTable {
                 return Some(entry);
             }
             if !entry.valid() {
-                if !create {
-                    return None;
-                }
                 let frame = StackFrameAllocator::alloc_frame().unwrap();
                 *entry = PageTableEntry::new(frame.frame, PTEFlags::Valid);
                 self.frames.push(frame);
@@ -68,8 +62,32 @@ impl PageTable {
         None
     }
 
-    pub fn translate(&mut self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
-        self.find_pte(vpn, false).map(|entry| *entry)
+    pub fn find_pte(&self, vpn: VirtualPageNumber) -> Option<&mut PageTableEntry> {
+        let indexes = vpn.indexes();
+        let mut ppn = self.root;
+        for i in 0..3 {
+            let entry = &mut ppn.get_pte_array()[indexes[i]];
+            if i == 2 {
+                return Some(entry);
+            }
+            if !entry.valid() {
+                return None;
+            }
+            ppn = PhysicalPageNumber::from(entry);
+        }
+        None
+    }
+
+    pub fn translate(&self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
+        self.find_pte(vpn).map(|entry| *entry)
+    }
+
+    pub fn translate_addr(&self, va: VirtualAddress) -> Option<PhysicalAddress> {
+        self.find_pte(VirtualPageNumber::from(va)).map(|entry| {
+            let floor = PhysicalAddress::from(PhysicalPageNumber::from(entry));
+            let offset = va.page_offset();
+            PhysicalAddress::from(usize::from(floor) + offset)
+        })
     }
 
     pub fn from_satp(satp: usize) -> Self {
@@ -254,4 +272,30 @@ pub fn get_mut_translated_byte_slices(
             &mut ppn.get_bytes_array()[start_offset..end_offset]
         }
     })
+}
+
+pub fn get_translated_string(token: usize, ptr: *const u8) -> String {
+    let page_table = PageTable::from_satp(token);
+    let mut string = String::new();
+    let mut start = ptr as usize;
+    loop {
+        let ch: u8 = *(page_table
+            .translate_addr(VirtualAddress::from(start))
+            .unwrap())
+        .get_mut();
+        if ch == 0 {
+            return string;
+        } else {
+            string.push(ch as char);
+            start += 1;
+        }
+    }
+}
+
+pub fn get_translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
+    let page_table = PageTable::from_satp(token);
+    page_table
+        .translate_addr(VirtualAddress::from(ptr as usize))
+        .unwrap()
+        .get_mut()
 }

@@ -189,6 +189,20 @@ impl MemorySet {
         );
     }
 
+    pub fn remove_area(&mut self, start_vpn: VirtualPageNumber) {
+        let mut index = None;
+        for (i, area) in self.areas.iter().enumerate() {
+            if area.vpn_range.start == start_vpn {
+                index = Some(i);
+                break;
+            }
+        }
+        if let Some(index) = index {
+            let mut area = self.areas.remove(index);
+            area.unmap(&mut self.page_table);
+        }
+    }
+
     pub fn map_trampoline(&mut self) {
         self.page_table.map(
             VirtualPageNumber::from(VirtualAddress::from(TRAMPOLINE)),
@@ -197,8 +211,12 @@ impl MemorySet {
         );
     }
 
-    pub fn translate(&mut self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
+    pub fn translate(&self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
         self.page_table.translate(vpn)
+    }
+
+    pub fn recycle(&mut self) {
+        self.areas.clear();
     }
 
     pub fn new_kernel() -> Self {
