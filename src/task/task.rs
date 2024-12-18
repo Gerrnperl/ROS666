@@ -98,5 +98,40 @@ impl ProcessControlBlock {
         pcb
     }
 }
+
+impl SyncRefCell<ProcessControlBlock> {
+    pub fn fork(
+        self: &Arc<SyncRefCell<ProcessControlBlock>>,
+    ) -> Arc<SyncRefCell<ProcessControlBlock>> {
+        let mut parent = self.inner_borrow_mut();
+        let memory_set = MemorySet::from_existed_user(&parent.memory_set);
+        let trap_ctx_ppn = PhysicalPageNumber::from(
+            &memory_set
+                .translate(VirtualPageNumber::from(VirtualAddress::from(TRAP_CONTEXT)))
+                .unwrap(),
+        );
+        let pid = PidAllocator::alloc_pid();
+        let kernel_stack = KernelStack::new(&pid);
+        let kernel_stack_top = kernel_stack.top();
+        let child = Arc::new(SyncRefCell::new(ProcessControlBlock {
+            pid,
+            kernel_stack,
+            status: ProcessStatus::Ready,
+            ctx: TaskCtx::goto_trap_return(kernel_stack_top),
+            memory_set,
+            trap_ctx_ppn,
+            base_size: parent.base_size,
+            parent: Some(Arc::downgrade(self)),
+            children: Vec::new(),
+            exit_code: 0,
+        }));
+        parent.children.push(child.clone());
+
+        let ctx = child.inner_borrow().get_trap_cx();
+        ctx.kernel_virt_sp = kernel_stack_top;
+
+        child
+    }
+
     }
 }

@@ -1,11 +1,11 @@
 use core::{arch::asm, borrow::BorrowMut, cell::RefCell, ops::Range};
 
 use crate::{
-    app_loader::{AppData, USER_STACK_SIZE},
+    app_loader::AppData,
     extern_global, info,
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
     printkln,
-    task::task::TRAP_CONTEXT,
+    task::{stack::USER_STACK_SIZE, task::TRAP_CONTEXT},
     utils::safety::SyncRefCell,
 };
 
@@ -132,6 +132,15 @@ impl MapArea {
             dst[..copy_len].copy_from_slice(&src[..copy_len]);
             offset += copy_len;
             current_vpn.0 += 1;
+        }
+    }
+
+    pub fn from_another(another: &MapArea) -> Self {
+        Self {
+            vpn_range: another.vpn_range,
+            data: BTreeMap::new(),
+            map_type: another.map_type,
+            permission: another.permission,
         }
     }
 }
@@ -369,6 +378,23 @@ impl MemorySet {
             user_stack_top,
             elf.header.pt2.entry_point() as usize,
         )
+    }
+
+    pub fn from_existed_user(user_space: &MemorySet) -> Self {
+        let mut memory_set = MemorySet::empty();
+        memory_set.map_trampoline();
+        for area in user_space.areas.iter() {
+            let new_area = MapArea::from_another(area);
+            memory_set.push(new_area, None);
+            for vpn in area.vpn_range {
+                let src_ppn = PhysicalPageNumber::from(&user_space.translate(vpn).unwrap());
+                let dst_ppn = PhysicalPageNumber::from(&memory_set.translate(vpn).unwrap());
+                dst_ppn
+                    .get_bytes_array()
+                    .copy_from_slice(src_ppn.get_bytes_array());
+            }
+        }
+        memory_set
     }
 }
 
