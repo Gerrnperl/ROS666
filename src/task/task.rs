@@ -133,5 +133,23 @@ impl SyncRefCell<ProcessControlBlock> {
         child
     }
 
+    pub fn exec(self: &Arc<SyncRefCell<ProcessControlBlock>>, app_data: AppData) {
+        let (memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
+        let trap_ctx_ppn = PhysicalPageNumber::from(
+            &memory_set
+                .translate(VirtualPageNumber::from(VirtualAddress::from(TRAP_CONTEXT)))
+                .unwrap(),
+        );
+        let mut pcb = self.inner_borrow_mut();
+        pcb.memory_set = memory_set;
+        pcb.trap_ctx_ppn = trap_ctx_ppn;
+        let ctx = pcb.get_trap_cx();
+        *ctx = TrapCtx::init_app_context(
+            entry,
+            user_sp,
+            KERNEL_SPACE.ref_cell.borrow_mut().token(),
+            pcb.kernel_stack.top(),
+            trap_handler as usize,
+        );
     }
 }
