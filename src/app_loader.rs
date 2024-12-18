@@ -1,5 +1,6 @@
 use core::{arch::asm, cell::RefCell};
 
+use alloc::{collections::btree_map::BTreeMap, vec::Vec};
 use lazy_static::lazy_static;
 
 use crate::{
@@ -10,13 +11,22 @@ use crate::{
     utils::safety::SyncRefCell,
 };
 
-pub const KERNEL_STACK_SIZE: usize = 4096 * 2;
-pub const USER_STACK_SIZE: usize = 4096 * 2;
+lazy_static! {
+    /// All app names
+    pub static ref APP_NAMES: BTreeMap<&'static str, usize> = {
+        let mut app_names = BTreeMap::new();
+        let names = get_all_app_names();
+        for (i, name) in names.iter().enumerate() {
+            app_names.insert(*name, i);
+        }
+        app_names
+    };
+}
 
-pub fn kernel_stack_position(app_id: usize) -> (usize, usize) {
-    let top = TRAMPOLINE - app_id * (KERNEL_STACK_SIZE + PAGE_SIZE_SV39);
-    let bottom = top - KERNEL_STACK_SIZE;
-    (bottom, top)
+pub struct AppData {
+    pub app_id: usize,
+    pub app_name: &'static str,
+    pub data: &'static [u8],
 }
 
 pub fn get_app_count() -> usize {
@@ -25,10 +35,26 @@ pub fn get_app_count() -> usize {
     app_count
 }
 
-pub struct AppData {
-    pub app_id: usize,
-    pub app_name: &'static str,
-    pub data: &'static [u8],
+pub fn get_all_app_names() -> Vec<&'static str> {
+    let app_count = get_app_count();
+    let app_name_table = extern_global!(__app_name_table) as *const usize;
+    let mut app_names = Vec::new();
+    for i in 0..app_count {
+        let app_name_ptr = unsafe {
+            core::slice::from_raw_parts(app_name_table.add(i), 1)
+                .get(0)
+                .copied()
+                .unwrap()
+        };
+        let app_name = get_app_name(app_name_ptr as *const i8);
+        app_names.push(app_name);
+    }
+    app_names
+}
+
+pub fn load_app_data_by_name(app_name: &str) -> Option<AppData> {
+    let app_id = APP_NAMES.get(app_name)?;
+    Some(load_app_data(*app_id))
 }
 
 pub fn load_app_data(app_id: usize) -> AppData {
