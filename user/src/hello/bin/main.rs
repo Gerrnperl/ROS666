@@ -13,8 +13,8 @@ pub fn main() -> i32 {
     println!("Array: {:#?}", [1, 2, 3, 4, 5]);
     sched_yield();
     let mut a: usize = 0;
-    const CLOCK_FREQ: usize = 12500000;
-    for i in 0..(12500000 * 10) {
+    const CLOCK_FREQ: usize = 125000;
+    for i in 0..(125000 * 10) {
         if i % CLOCK_FREQ == 0 {
             println!("Hello, world! {}", a);
             a += 1;
