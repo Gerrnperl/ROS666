@@ -55,17 +55,38 @@ impl TaskManager {
     }
 
     pub fn cycle_to_next() {
-    }
+        let task = Processor::take_current().unwrap();
 
-    pub fn run_next_task() {
-        if let Some(next_task_id) = TaskManager::get_next_task() {
-            TaskManager::switch_to(next_task_id);
-        } else {
-            printkln!("All tasks have been run.");
-            sbi_shutdown(false);
-        }
+        let mut pcb = task.inner_borrow_mut();
+        let ctx = &mut pcb.ctx as *mut TaskCtx;
+        pcb.status = ProcessStatus::Ready;
+        drop(pcb);
+
+        TaskManager::put_task(task);
+        Processor::schedule(ctx);
     }
 
     pub fn replace_to_next(exit_code: i32) {
+        let task = Processor::take_current().unwrap();
+        let mut pcb = task.inner_borrow_mut();
+        pcb.exit_code = exit_code;
+        pcb.status = ProcessStatus::Stopped;
+        let mut initproc = INIT_PROC.inner_borrow_mut();
+        for child in pcb.children.iter() {
+            child.inner_borrow_mut().parent = Some(Arc::downgrade(&INIT_PROC));
+            initproc.children.push(child.clone());
+        }
+        drop(initproc);
+        pcb.children.clear();
+        pcb.memory_set.recycle();
+        drop(pcb);
+        drop(task);
+        let mut _unused = TaskCtx::default();
+        Processor::schedule(&mut _unused as *mut _);
+        // let mut this = TASK_MANAGER.ref_cell.borrow_mut();
+        // let current = this.current;
+        // this.tasks[current].status = crate::task::task::ProcessStatus::Stopped;
+        // drop(this);
+        // TaskManager::run_next_task();
     }
 }
