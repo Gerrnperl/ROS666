@@ -1,6 +1,9 @@
 use core::fmt::Write;
 
-use crate::sbi::{self, sbi_console_getchar};
+use crate::{
+    sbi::{self, sbi_console_getchar},
+    task::manager::TaskManager,
+};
 
 struct Stdout {}
 
@@ -15,9 +18,26 @@ impl Write for Stdout {
 }
 
 pub fn read_str(buf: &mut [u8], len: usize) {
-    for i in 0..len {
+    // for i in 0..len {
+    //     match sbi_console_getchar() {
+    //         Ok(c) => buf[i] = c,
+    //         Err(_) => break,
+    //     }
+    // }
+    let mut i = 0;
+    loop {
         match sbi_console_getchar() {
-            Ok(c) => buf[i] = c,
+            Ok(0) => {
+                TaskManager::cycle_to_next();
+                continue;
+            }
+            Ok(c) => {
+                buf[i] = c;
+                i += 1;
+                if i == len {
+                    break;
+                }
+            }
             Err(_) => break,
         }
     }
