@@ -80,7 +80,7 @@ impl StackFrameAllocator {
             .ref_cell
             .borrow_mut()
             .alloc()
-            .map(|frame| FrameTracker { frame })
+            .map(|frame| FrameTracker::new(frame))
     }
 
     pub fn dealloc_frame(frame: PhysicalPageNumber) {
