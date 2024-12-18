@@ -57,6 +57,12 @@ impl ProcessControlBlock {
         let t = self.memory_set.token();
         t
     }
+    pub fn get_status(&self) -> ProcessStatus {
+        self.status
+    }
+    pub fn get_pid(&self) -> usize {
+        self.pid.0
+    }
     pub fn new(app_data: AppData) -> Self {
         let app_id = app_data.app_id;
         let (mut memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
