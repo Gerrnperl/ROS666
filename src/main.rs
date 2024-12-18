@@ -18,10 +18,7 @@ mod utils;
 
 use core::{arch::global_asm, cell::RefCell};
 
-// use app_loader::{APP_LOADER, AppLoader, MAX_APP_NUM, new_app_ctx};
-use lazy_static::lazy_static;
-use task::{context::TaskCtx, task::TaskControlBlock};
-use utils::safety::SyncRefCell;
+use app_loader::APP_NAMES;
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("app_loader.asm"));
@@ -36,11 +33,18 @@ pub extern "C" fn _kernel_entry() -> ! {
     mm::init::init();
     mm::memory_set::remap_test();
 
-    printkln!("Hello, {}!", "World");
+    info!("Hi there, it's {}.", "ROS666");
+
+    APP_NAMES.iter().for_each(|(name, id)| {
+        info!("App: {} id: {}", name, id);
+    });
+
+    task::init();
+
     trap::init::enable_timer_interrupt();
     timer::set_next_timeout(trap::handler::TIMER_INTERVAL_USEC);
     // APP_LOADER.ref_cell.borrow().print_apps_info();
-    task::manager::TaskManager::start();
+    task::processor::Processor::run_tasks();
 
     // sbi::sbi_shutdown(false);
     loop {}

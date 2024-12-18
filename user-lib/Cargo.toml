@@ -9,3 +9,4 @@ name = "lib"
 
 [dependencies]
 common = { path = "../common" }
+slab_allocator = { path = "../slab_allocator" }

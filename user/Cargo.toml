@@ -5,6 +5,14 @@ edition = "2024"
 build = "build.rs"
 
 [[bin]]
+name = "initproc"
+path = "src/initproc/bin/main.rs"
+
+[[bin]]
+name = "sh"
+path = "src/sh/bin/main.rs"
+
+[[bin]]
 name = "hello"
 path = "src/hello/bin/main.rs"
 
@@ -20,4 +28,4 @@ build = { path = "../user-build" }
 
 [package.metadata.applications]
 # 应用程序顺序
-order = ["hello", "bye"]
+order = ["initproc", "sh", "hello", "bye"]

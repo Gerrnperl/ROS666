@@ -5,7 +5,13 @@
 /// https://gpages.juszkiewicz.com.pl/syscalls-table/syscalls.html
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Syscall {
+    /// 从文件描述符读取
+    ///
+    /// [read(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/read.2.html)
     Read = 63,
+    /// 写入文件描述符
+    ///
+    /// [write(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/write.2.html)
     Write = 64,
     /// 终止当前进程
     ///
@@ -19,6 +25,18 @@ pub enum Syscall {
     ///
     /// [gettimeofday(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/gettimeofday.2.html)
     GetTimeOfDay = 169,
+    /// 创建子进程 (fork)
+    ///
+    /// [clone(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/clone.2.html)
+    Clone = 220,
+    /// 执行程序 (exec)
+    ///
+    /// [execve(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/execve.2.html)
+    Execve = 221,
+    /// 等待子进程 (waitpid)
+    ///
+    /// [wait4(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/wait4.2.html)
+    Wait4 = 260,
 }
 
 impl core::fmt::Display for Syscall {
@@ -41,6 +59,9 @@ impl From<usize> for Syscall {
             93 => Syscall::Exit,
             124 => Syscall::SchedYield,
             169 => Syscall::GetTimeOfDay,
+            220 => Syscall::Clone,
+            221 => Syscall::Execve,
+            260 => Syscall::Wait4,
             _ => panic!("Unsupported syscall number: {}", syscall),
         }
     }

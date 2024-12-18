@@ -9,8 +9,8 @@ extern crate lib;
 #[unsafe(no_mangle)]
 pub fn main() -> i32 {
     let mut a: usize = 0;
-    const CLOCK_FREQ: usize = 12500000;
-    for i in 0..(12500000 * 10) {
+    const CLOCK_FREQ: usize = 1250000;
+    for i in 0..(1250000 * 10) {
         if i % CLOCK_FREQ == 0 {
             println!("Bye, world! {}", a);
             a += 1;

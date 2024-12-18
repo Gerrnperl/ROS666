@@ -1,16 +1,45 @@
 use core::fmt::Write;
 
-use crate::sbi;
+use crate::{
+    sbi::{self, sbi_console_getchar},
+    task::manager::TaskManager,
+};
 
 struct Stdout {}
 
 impl Write for Stdout {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
-        // sbi::sbi_console_put(s).map_err(|_| core::fmt::Error)?;
-        for c in s.chars() {
-            let _ = sbi::sbi_console_putchar(c as usize);
-        }
+        sbi::sbi_console_put(s).map_err(|_| core::fmt::Error)?;
+        // for c in s.chars() {
+        //     let _ = sbi::sbi_console_putchar(c as usize);
+        // }
         Ok(())
+    }
+}
+
+pub fn read_str(buf: &mut [u8], len: usize) {
+    // for i in 0..len {
+    //     match sbi_console_getchar() {
+    //         Ok(c) => buf[i] = c,
+    //         Err(_) => break,
+    //     }
+    // }
+    let mut i = 0;
+    loop {
+        match sbi_console_getchar() {
+            Ok(0) => {
+                TaskManager::cycle_to_next();
+                continue;
+            }
+            Ok(c) => {
+                buf[i] = c;
+                i += 1;
+                if i == len {
+                    break;
+                }
+            }
+            Err(_) => break,
+        }
     }
 }
 

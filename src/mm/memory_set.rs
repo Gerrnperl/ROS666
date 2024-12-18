@@ -1,11 +1,11 @@
 use core::{arch::asm, borrow::BorrowMut, cell::RefCell, ops::Range};
 
 use crate::{
-    app_loader::{AppData, USER_STACK_SIZE},
+    app_loader::AppData,
     extern_global, info,
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
     printkln,
-    task::task::TRAP_CONTEXT,
+    task::{stack::USER_STACK_SIZE, task::TRAP_CONTEXT},
     utils::safety::SyncRefCell,
 };
 
@@ -134,6 +134,15 @@ impl MapArea {
             current_vpn.0 += 1;
         }
     }
+
+    pub fn from_another(another: &MapArea) -> Self {
+        Self {
+            vpn_range: another.vpn_range,
+            data: BTreeMap::new(),
+            map_type: another.map_type,
+            permission: another.permission,
+        }
+    }
 }
 
 impl MemorySet {
@@ -180,6 +189,20 @@ impl MemorySet {
         );
     }
 
+    pub fn remove_area(&mut self, start_vpn: VirtualPageNumber) {
+        let mut index = None;
+        for (i, area) in self.areas.iter().enumerate() {
+            if area.vpn_range.start == start_vpn {
+                index = Some(i);
+                break;
+            }
+        }
+        if let Some(index) = index {
+            let mut area = self.areas.remove(index);
+            area.unmap(&mut self.page_table);
+        }
+    }
+
     pub fn map_trampoline(&mut self) {
         self.page_table.map(
             VirtualPageNumber::from(VirtualAddress::from(TRAMPOLINE)),
@@ -188,8 +211,12 @@ impl MemorySet {
         );
     }
 
-    pub fn translate(&mut self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
+    pub fn translate(&self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
         self.page_table.translate(vpn)
+    }
+
+    pub fn recycle(&mut self) {
+        self.areas.clear();
     }
 
     pub fn new_kernel() -> Self {
@@ -369,6 +396,23 @@ impl MemorySet {
             user_stack_top,
             elf.header.pt2.entry_point() as usize,
         )
+    }
+
+    pub fn from_existed_user(user_space: &MemorySet) -> Self {
+        let mut memory_set = MemorySet::empty();
+        memory_set.map_trampoline();
+        for area in user_space.areas.iter() {
+            let new_area = MapArea::from_another(area);
+            memory_set.push(new_area, None);
+            for vpn in area.vpn_range {
+                let src_ppn = PhysicalPageNumber::from(&user_space.translate(vpn).unwrap());
+                let dst_ppn = PhysicalPageNumber::from(&memory_set.translate(vpn).unwrap());
+                dst_ppn
+                    .get_bytes_array()
+                    .copy_from_slice(src_ppn.get_bytes_array());
+            }
+        }
+        memory_set
     }
 }
 

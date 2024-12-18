@@ -14,7 +14,7 @@ use crate::{
     mm::memory_set::TRAMPOLINE,
     printk,
     syscall::syscall,
-    task::{manager::TaskManager, task::TRAP_CONTEXT},
+    task::{manager::TaskManager, processor::Processor, task::TRAP_CONTEXT},
     timer::set_next_timeout,
 };
 
@@ -26,12 +26,14 @@ pub const TIMER_INTERVAL_USEC: usize = 10_000;
 pub fn trap_handler() -> ! {
     set_user_trap_entry();
     let scause = scause::read().cause();
-    let ctx = TaskManager::current_trap_cx();
     let stval = stval::read();
     match scause {
         scause::Trap::Exception(const { Exception::UserEnvCall as usize }) => {
+            let ctx = Processor::current_trap_cx().unwrap();
             ctx.sepc += 4;
             let ret = syscall(Syscall::from(*ctx.a(7)), [*ctx.a(0), *ctx.a(1), *ctx.a(2)]);
+            // ctx 在 syscall 之后会被修改，所以这里需要重新获取
+            let ctx = Processor::current_trap_cx().unwrap();
             *ctx.a(0) = ret as usize;
         }
         scause::Trap::Exception(const { Exception::StoreFault as usize })
@@ -63,7 +65,7 @@ fn set_user_trap_entry() {
 pub fn trap_return() -> ! {
     set_user_trap_entry();
     let trap_cx_ptr = TRAP_CONTEXT;
-    let user_satp = TaskManager::current_user_token();
+    let user_satp = Processor::current_user_token().unwrap();
     let restore_va =
         extern_global!(__restore_trap) as usize - extern_global!(__save_trap) as usize + TRAMPOLINE;
     unsafe {
