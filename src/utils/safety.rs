@@ -7,7 +7,15 @@ pub struct SyncRefCell<T> {
 unsafe impl<T> Sync for SyncRefCell<T> {}
 
 impl<T> SyncRefCell<T> {
-    // fn borrow_mut(&self) -> RefMut<'_, T> {
-    //     self.ref_cell.borrow_mut()
-    // }
+    pub fn new(t: T) -> Self {
+        Self {
+            ref_cell: RefCell::new(t),
+        }
+    }
+    pub fn inner_borrow_mut(&self) -> RefMut<'_, T> {
+        self.ref_cell.borrow_mut()
+    }
+    pub fn inner_borrow(&self) -> core::cell::Ref<'_, T> {
+        self.ref_cell.borrow()
+    }
 }
