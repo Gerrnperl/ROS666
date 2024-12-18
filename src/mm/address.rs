@@ -133,6 +133,10 @@ impl PhysicalAddress {
     pub fn ceil_page(&self) -> PhysicalAddress {
         PhysicalAddress(self.0 + PAGE_SIZE_SV39 - 1 & !(PAGE_SIZE_SV39 - 1))
     }
+
+    pub fn get_mut<T>(&self) -> &'static mut T {
+        unsafe { &mut *(self.0 as *mut T) }
+    }
 }
 
 impl From<PhysicalAddress> for PhysicalPageNumber {
