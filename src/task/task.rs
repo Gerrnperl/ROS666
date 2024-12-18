@@ -71,20 +71,23 @@ impl ProcessControlBlock {
                 .translate(VirtualPageNumber::from(VirtualAddress::from(TRAP_CONTEXT)))
                 .unwrap(),
         );
-        let (kernel_stack_btm, kernel_stack_top) = kernel_stack_position(app_id);
-        KERNEL_SPACE.ref_cell.borrow_mut().insert(
-            VirtualAddress::from(kernel_stack_btm)..VirtualAddress::from(kernel_stack_top),
-            MapPermission::Read | MapPermission::Write,
-        );
-        let tcb = Self {
-            id: app_id,
-            status: TaskStatus::Ready,
+        let pid = PidAllocator::alloc_pid();
+        let kernel_stack = KernelStack::new(&pid);
+        let kernel_stack_top = kernel_stack.top();
+
+        let pcb = Self {
+            pid,
+            kernel_stack,
+            status: ProcessStatus::Ready,
             ctx: TaskCtx::goto_trap_return(kernel_stack_top),
             memory_set,
             trap_ctx_ppn,
             base_size: user_sp,
+            parent: None,
+            children: Vec::new(),
+            exit_code: 0,
         };
-        let ctx = tcb.get_trap_cx();
+        let ctx = pcb.get_trap_cx();
         *ctx = TrapCtx::init_app_context(
             entry,
             user_sp,
@@ -92,6 +95,8 @@ impl ProcessControlBlock {
             kernel_stack_top,
             trap_handler as usize,
         );
-        tcb
+        pcb
+    }
+}
     }
 }
