@@ -215,4 +215,53 @@ impl DiskInode {
             offset += 1;
         }
     }
+
+    fn clear_size(&mut self, dev: &Arc<dyn BlockDevice>) -> Vec<u32> {
+        let mut recycled = Vec::new();
+        for i in 0..INODE_DIRECT_BLOCKS {
+            if self.direct[i] != 0 {
+                recycled.push(self.direct[i]);
+                self.direct[i] = 0;
+            }
+        }
+        if self.indirect != 0 {
+            let cache = get_cache(self.indirect as usize, dev.clone()).expect("cannot get cache");
+            cache
+                .lock()
+                .read_at(0, |indirect: &IndirectBlock| {
+                    for &block in indirect.iter().filter(|&&b| b != 0) {
+                        recycled.push(block);
+                    }
+                })
+                .expect("cannot read cache");
+            recycled.push(self.indirect);
+            self.indirect = 0;
+        }
+        if self.double_indirect != 0 {
+            let cache =
+                get_cache(self.double_indirect as usize, dev.clone()).expect("cannot get cache");
+            cache
+                .lock()
+                .read_at(0, |indirect: &IndirectBlock| {
+                    for &block in indirect.iter().filter(|&&b| b != 0) {
+                        let cache =
+                            get_cache(block as usize, dev.clone()).expect("cannot get cache");
+                        cache
+                            .lock()
+                            .read_at(0, |indirect: &IndirectBlock| {
+                                for &block in indirect.iter().filter(|&&b| b != 0) {
+                                    recycled.push(block);
+                                }
+                            })
+                            .expect("cannot read cache");
+                        recycled.push(block);
+                    }
+                })
+                .expect("cannot read cache");
+            recycled.push(self.double_indirect);
+            self.double_indirect = 0;
+        }
+
+        recycled
+    }
 }
