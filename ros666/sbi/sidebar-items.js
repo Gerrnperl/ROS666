@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ConsolePutError","ResetReason","ResetType"],"fn":["sbi_console_put","sbi_console_putchar","sbi_set_timer","sbi_shutdown"]};
+window.SIDEBAR_ITEMS = {"enum":["ConsolePutError","ResetReason","ResetType"],"fn":["sbi_console_getchar","sbi_console_put","sbi_console_putchar","sbi_set_timer","sbi_shutdown"]};

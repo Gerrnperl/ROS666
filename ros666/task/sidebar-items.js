@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["context","manager","switch","task"]};
+window.SIDEBAR_ITEMS = {"fn":["init"],"mod":["context","manager","pid","processor","stack","switch","task"],"struct":["INIT_PROC"]};

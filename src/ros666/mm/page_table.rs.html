@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/mm/page_table.rs`."><title>page_table.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (6d9f6ae36 2024-12-16)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/mm/</div>page_table.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/mm/page_table.rs`."><title>page_table.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (a4cb3c831 2024-12-17)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/mm/</div>page_table.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -189,13 +189,124 @@
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a></pre></div><pre class="rust"><code><span class="kw">use </span>alloc::vec::Vec;
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a></pre></div><pre class="rust"><code><span class="kw">use </span>alloc::{string::String, vec::Vec};
 
 <span class="kw">use </span><span class="kw">crate</span>::printkln;
 
 <span class="kw">use super</span>::{
     address::{
-        PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalPageNumber, VirtualAddress, VirtualPageNumber,
+        PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalAddress, PhysicalPageNumber, VirtualAddress,
+        VirtualPageNumber,
     },
     frame_allocator::{FrameTracker, StackFrameAllocator},
 };
@@ -219,7 +330,7 @@
     }
 
     <span class="kw">pub fn </span>map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber, ppn: PhysicalPageNumber, flags: PTEFlags) {
-        <span class="kw">let </span>entry = <span class="self">self</span>.find_pte(vpn, <span class="bool-val">true</span>).unwrap();
+        <span class="kw">let </span>entry = <span class="self">self</span>.find_pte_mut(vpn).unwrap();
         <span class="kw">if </span>(<span class="kw-2">*</span>entry).valid() {
             <span class="macro">panic!</span>(<span class="string">"map: {:?} has been mapped"</span>, vpn);
         }
@@ -227,18 +338,14 @@
     }
 
     <span class="kw">pub fn </span>unmap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber) {
-        <span class="kw">let </span>entry = <span class="self">self</span>.find_pte(vpn, <span class="bool-val">false</span>).unwrap();
+        <span class="kw">let </span>entry = <span class="self">self</span>.find_pte(vpn).unwrap();
         <span class="kw">if </span>!(<span class="kw-2">*</span>entry).valid() {
             <span class="macro">panic!</span>(<span class="string">"unmap: {:?} has not been mapped"</span>, vpn);
         }
         <span class="kw-2">*</span>entry = PageTableEntry::default();
     }
 
-    <span class="kw">pub fn </span>find_pte(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        vpn: VirtualPageNumber,
-        create: bool,
-    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PageTableEntry&gt; {
+    <span class="kw">pub fn </span>find_pte_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PageTableEntry&gt; {
         <span class="kw">let </span>indexes = vpn.indexes();
         <span class="kw">let </span><span class="kw-2">mut </span>ppn = <span class="self">self</span>.root;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">3 </span>{
@@ -247,9 +354,6 @@
                 <span class="kw">return </span><span class="prelude-val">Some</span>(entry);
             }
             <span class="kw">if </span>!entry.valid() {
-                <span class="kw">if </span>!create {
-                    <span class="kw">return </span><span class="prelude-val">None</span>;
-                }
                 <span class="kw">let </span>frame = StackFrameAllocator::alloc_frame().unwrap();
                 <span class="kw-2">*</span>entry = PageTableEntry::new(frame.frame, PTEFlags::Valid);
                 <span class="self">self</span>.frames.push(frame);
@@ -259,8 +363,32 @@
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">pub fn </span>translate(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;PageTableEntry&gt; {
-        <span class="self">self</span>.find_pte(vpn, <span class="bool-val">false</span>).map(|entry| <span class="kw-2">*</span>entry)
+    <span class="kw">pub fn </span>find_pte(<span class="kw-2">&amp;</span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PageTableEntry&gt; {
+        <span class="kw">let </span>indexes = vpn.indexes();
+        <span class="kw">let </span><span class="kw-2">mut </span>ppn = <span class="self">self</span>.root;
+        <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">3 </span>{
+            <span class="kw">let </span>entry = <span class="kw-2">&amp;mut </span>ppn.get_pte_array()[indexes[i]];
+            <span class="kw">if </span>i == <span class="number">2 </span>{
+                <span class="kw">return </span><span class="prelude-val">Some</span>(entry);
+            }
+            <span class="kw">if </span>!entry.valid() {
+                <span class="kw">return </span><span class="prelude-val">None</span>;
+            }
+            ppn = PhysicalPageNumber::from(entry);
+        }
+        <span class="prelude-val">None
+    </span>}
+
+    <span class="kw">pub fn </span>translate(<span class="kw-2">&amp;</span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;PageTableEntry&gt; {
+        <span class="self">self</span>.find_pte(vpn).map(|entry| <span class="kw-2">*</span>entry)
+    }
+
+    <span class="kw">pub fn </span>translate_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, va: VirtualAddress) -&gt; <span class="prelude-ty">Option</span>&lt;PhysicalAddress&gt; {
+        <span class="self">self</span>.find_pte(VirtualPageNumber::from(va)).map(|entry| {
+            <span class="kw">let </span>floor = PhysicalAddress::from(PhysicalPageNumber::from(entry));
+            <span class="kw">let </span>offset = va.page_offset();
+            PhysicalAddress::from(usize::from(floor) + offset)
+        })
     }
 
     <span class="kw">pub fn </span>from_satp(satp: usize) -&gt; <span class="self">Self </span>{
@@ -359,7 +487,31 @@
     }
 }
 
-<span class="kw">pub fn </span>get_translated_byte_slices(token: usize, ptr: <span class="kw-2">*const </span>u8, len: usize) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8]&gt; {
+<span class="doccomment">/// 根据给定的页表 token、指针和长度，获取翻译后的切片。
+///
+/// 用于将一个指针指向的用户地址空间区域翻译为内核地址空间的切片。内核可以通过切片引用到用户地址空间的数据。
+///
+/// 该函数会将用户地址空间区域根据其虚拟页号划分为多个页，然后逐页翻译，翻译时进行页表查找，获取物理页号。
+/// 再获取物理页号的字节数组，根据起始偏移和结束偏移获取切片。
+/// 最后将翻译后的切片收集到一个向量中并返回。
+///
+/// ## 参数
+/// - `token`: 页表的 token，用于从 SATP 寄存器中创建页表。
+/// - `ptr`: 指向内存区域的指针。
+/// - `len`: 内存区域的长度。
+/// - `get_slice`: 一个闭包函数，用于根据物理页号、起始偏移和结束偏移获取切片。
+///
+/// ## 泛型参数
+/// - `T`: 切片的类型。例如 `&amp;'static [u8]` 或 `&amp;'static mut [u8]`。
+///
+/// ## 返回值
+/// 返回一个包含翻译后切片的向量数组。
+</span><span class="kw">fn </span>get_translated_slices&lt;T&gt;(
+    token: usize,
+    ptr: <span class="kw-2">*const </span>u8,
+    len: usize,
+    get_slice: <span class="kw">impl </span>Fn(<span class="kw-2">&amp;</span>PhysicalPageNumber, usize, usize) -&gt; T,
+) -&gt; Vec&lt;T&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>page_table = PageTable::from_satp(token);
     <span class="kw">let </span><span class="kw-2">mut </span>start = ptr <span class="kw">as </span>usize;
     <span class="kw">let </span>end = start + len;
@@ -370,14 +522,82 @@
         <span class="kw">let </span>ppn = PhysicalPageNumber::from(<span class="kw-2">&amp;</span>page_table.translate(vpn).unwrap());
         <span class="kw">let </span>end_va = VirtualAddress::from(vpn + VirtualPageNumber(<span class="number">1</span>));
         <span class="kw">let </span>end_va = end_va.min(VirtualAddress::from(end));
-        <span class="kw">let </span>slice = <span class="kw">if </span>end_va.page_offset() == <span class="number">0 </span>{
-            <span class="kw-2">&amp;</span>ppn.get_bytes_array()[start_va.page_offset()..]
-        } <span class="kw">else </span>{
-            <span class="kw-2">&amp;</span>ppn.get_bytes_array()[start_va.page_offset()..end_va.page_offset()]
-        };
+        <span class="kw">let </span>slice = get_slice(<span class="kw-2">&amp;</span>ppn, start_va.page_offset(), end_va.page_offset());
         slices.push(slice);
         start = usize::from(end_va);
     }
     slices
+}
+
+<span class="doccomment">/// 根据给定的页表 token、指针和长度，获取翻译后的字节切片。
+///
+/// 用于将一个指针指向的用户地址空间区域翻译为内核地址空间的字节切片。内核可以通过切片引用到用户地址空间的数据。
+///
+/// ## 参数
+/// - `token`: 页表的 token，用于从 SATP 寄存器中创建页表。
+/// - `ptr`: 指向内存区域的指针。
+/// - `len`: 内存区域的长度。
+///
+/// ## 返回值
+/// 返回一个包含翻译后字节切片的向量数组。
+</span><span class="kw">pub fn </span>get_translated_byte_slices(token: usize, ptr: <span class="kw-2">*const </span>u8, len: usize) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>[u8]&gt; {
+    get_translated_slices(token, ptr, len, |ppn, start_offset, end_offset| {
+        <span class="kw">if </span>end_offset == <span class="number">0 </span>{
+            <span class="kw-2">&amp;</span>ppn.get_bytes_array()[start_offset..]
+        } <span class="kw">else </span>{
+            <span class="kw-2">&amp;</span>ppn.get_bytes_array()[start_offset..end_offset]
+        }
+    })
+}
+
+<span class="doccomment">/// 根据给定的页表 token、指针和长度，获取翻译后的可变字节切片。
+///
+/// 用于将一个指针指向的用户地址空间区域翻译为内核地址空间的可变字节切片。内核可以通过切片引用到用户地址空间的数据。
+///
+/// ## 参数
+/// - `token`: 页表的 token，用于从 SATP 寄存器中创建页表。
+/// - `ptr`: 指向内存区域的指针。
+/// - `len`: 内存区域的长度。
+///
+/// ## 返回值
+/// 返回一个包含翻译后可变字节切片的向量数组。
+</span><span class="kw">pub fn </span>get_mut_translated_byte_slices(
+    token: usize,
+    ptr: <span class="kw-2">*const </span>u8,
+    len: usize,
+) -&gt; Vec&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>[u8]&gt; {
+    get_translated_slices(token, ptr, len, |ppn, start_offset, end_offset| {
+        <span class="kw">if </span>end_offset == <span class="number">0 </span>{
+            <span class="kw-2">&amp;mut </span>ppn.get_bytes_array()[start_offset..]
+        } <span class="kw">else </span>{
+            <span class="kw-2">&amp;mut </span>ppn.get_bytes_array()[start_offset..end_offset]
+        }
+    })
+}
+
+<span class="kw">pub fn </span>get_translated_string(token: usize, ptr: <span class="kw-2">*const </span>u8) -&gt; String {
+    <span class="kw">let </span>page_table = PageTable::from_satp(token);
+    <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>start = ptr <span class="kw">as </span>usize;
+    <span class="kw">loop </span>{
+        <span class="kw">let </span>ch: u8 = <span class="kw-2">*</span>(page_table
+            .translate_addr(VirtualAddress::from(start))
+            .unwrap())
+        .get_mut();
+        <span class="kw">if </span>ch == <span class="number">0 </span>{
+            <span class="kw">return </span>string;
+        } <span class="kw">else </span>{
+            string.push(ch <span class="kw">as </span>char);
+            start += <span class="number">1</span>;
+        }
+    }
+}
+
+<span class="kw">pub fn </span>get_translated_refmut&lt;T&gt;(token: usize, ptr: <span class="kw-2">*mut </span>T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>T {
+    <span class="kw">let </span>page_table = PageTable::from_satp(token);
+    page_table
+        .translate_addr(VirtualAddress::from(ptr <span class="kw">as </span>usize))
+        .unwrap()
+        .get_mut()
 }
 </code></pre></div></section></main></body></html>

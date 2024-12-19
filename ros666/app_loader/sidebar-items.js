@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["KERNEL_STACK_SIZE","USER_STACK_SIZE"],"fn":["get_app_count","get_app_name","kernel_stack_position","load_app_data"],"struct":["AppData"]};
+window.SIDEBAR_ITEMS = {"fn":["get_all_app_names","get_app_count","get_app_name","load_app_data","load_app_data_by_name"],"struct":["APP_NAMES","AppData"]};
