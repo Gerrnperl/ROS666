@@ -3,6 +3,7 @@
 #![feature(linkage)]
 #![feature(alloc_error_handler)]
 
+pub mod fcntl;
 pub mod language_item;
 pub mod sched;
 pub mod stdio;

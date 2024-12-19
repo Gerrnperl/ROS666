@@ -1,3 +1,5 @@
+use bitflags::bitflags;
+
 /// 系统调用号
 ///
 /// 为调试方便，应当与 Linux 系统为 RISC-V 架构定义的系统调用号保持一致
@@ -5,6 +7,14 @@
 /// https://gpages.juszkiewicz.com.pl/syscalls-table/syscalls.html
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Syscall {
+    /// 打开文件
+    ///
+    /// [openat(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/openat.2.html)
+    OpenAt = 56,
+    /// 关闭文件
+    ///
+    /// [close(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/close.2.html)
+    Close = 57,
     /// 从文件描述符读取
     ///
     /// [read(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/read.2.html)
@@ -81,5 +91,15 @@ pub mod time {
     pub struct TimeZone {
         pub tz_minuteswest: i32,
         pub tz_dsttime: i32,
+    }
+}
+
+bitflags! {
+    pub struct OpenFlags: usize {
+        const READONLY  = 0b00000000000;
+        const WRITEONLY = 0b00000000001;
+        const READWRITE = 0b00000000010;
+        const CREATE    = 0b01000000000;
+        const TRUNCATE  = 0b10000000000;
     }
 }

@@ -20,6 +20,10 @@ path = "src/hello/bin/main.rs"
 name = "bye"
 path = "src/bye/bin/main.rs"
 
+[[bin]]
+name = "fstest"
+path = "src/fstest/bin/main.rs"
+
 [dependencies]
 lib = { path = "../user-lib" }
 
@@ -28,4 +32,4 @@ build = { path = "../user-build" }
 
 [package.metadata.applications]
 # 应用程序顺序
-order = ["initproc", "sh", "hello", "bye"]
+order = ["initproc", "sh", "hello", "bye", "fstest"]

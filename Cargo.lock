@@ -21,6 +21,9 @@ version = "0.1.0"
 [[package]]
 name = "common"
 version = "0.1.0"
+dependencies = [
+ "bitflags",
+]
 
 [[package]]
 name = "critical-section"
