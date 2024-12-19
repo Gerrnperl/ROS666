@@ -216,7 +216,7 @@ impl DiskInode {
         }
     }
 
-    fn clear_size(&mut self, dev: &Arc<dyn BlockDevice>) -> Vec<u32> {
+    pub fn clear_size(&mut self, dev: &Arc<dyn BlockDevice>) -> Vec<u32> {
         let mut recycled = Vec::new();
         for i in 0..INODE_DIRECT_BLOCKS {
             if self.direct[i] != 0 {
