@@ -1,0 +1,132 @@
+use alloc::{sync::Arc, vec::Vec};
+
+use crate::{
+    block_cache::{BLOCK_SIZE, get_cache},
+    block_dev::BlockDevice,
+};
+
+const INODE_DIRECT_BLOCKS: usize = 28;
+const INODE_INDIRECT_BLOCKS: usize = BLOCK_SIZE / 4;
+const INODE_DOUBLE_INDIRECT_START: usize = INODE_DIRECT_BLOCKS + INODE_INDIRECT_BLOCKS;
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum InodeType {
+    File,
+    Dir,
+}
+
+type IndirectBlock = [u32; INODE_INDIRECT_BLOCKS];
+
+#[repr(C)]
+pub struct DiskInode {
+    r#type: InodeType,
+    pub size: u32,
+    /// 直接索引
+    pub direct: [u32; INODE_DIRECT_BLOCKS],
+    /// 一级索引
+    pub indirect: u32,
+    /// 二级索引
+    pub double_indirect: u32,
+}
+
+impl DiskInode {
+    pub fn init(&mut self, r#type: InodeType) {
+        self.size = 0;
+        self.r#type = r#type;
+        self.direct.iter_mut().for_each(|x| *x = 0);
+        self.indirect = 0;
+        self.double_indirect = 0;
+    }
+
+    pub fn get_type(&self) -> InodeType {
+        self.r#type
+    }
+
+    fn get_direct_block(&self, offset: usize) -> u32 {
+        self.direct[offset]
+    }
+
+    fn get_indirect_block(&self, offset: usize, dev: &Arc<dyn BlockDevice>) -> u32 {
+        get_cache(self.indirect as usize, dev.clone())
+            .expect("cannot get cache")
+            .lock()
+            .read_at(0, |indirect: &IndirectBlock| {
+                indirect[offset as usize - INODE_DIRECT_BLOCKS]
+            })
+            .expect("cannot read cache")
+    }
+
+    /// 计算偏移在二级索引中的位置
+    ///
+    /// ## 参数
+    /// - `offset`：偏移, 需要大于等于 [INODE_DOUBLE_INDIRECT_START]
+    ///
+    /// ## 返回
+    /// 在二级索引中的位置二元组，分别偏移在一级索引表的偏移和二级索引表的偏移，
+    /// 如果偏移不在二级索引范围内，返回 None
+    fn extract_double_indirect_block(offset: usize) -> Option<(usize, usize)> {
+        let start = INODE_DOUBLE_INDIRECT_START;
+        if offset < start {
+            return None;
+        }
+        let offset = offset - start;
+        let level1_offset = offset / INODE_INDIRECT_BLOCKS;
+        let level2_offset = offset % INODE_INDIRECT_BLOCKS;
+        Some((level1_offset, level2_offset))
+    }
+
+    fn get_double_indirect_block(&self, offset: usize, dev: &Arc<dyn BlockDevice>) -> u32 {
+        let (level1_offset, level2_offset) =
+            Self::extract_double_indirect_block(offset).expect("invalid offset");
+        let cache =
+            get_cache(self.double_indirect as usize, dev.clone()).expect("cannot get cache");
+        let indirect_block = cache
+            .lock()
+            .read_at(0, |indirect: &IndirectBlock| indirect[level1_offset])
+            .expect("cannot read cache");
+        get_cache(indirect_block as usize, dev.clone())
+            .expect("cannot get cache")
+            .lock()
+            .read_at(0, |indirect: &IndirectBlock| indirect[level2_offset])
+            .expect("cannot read cache")
+    }
+
+    pub fn translate(&self, offset: u32, dev: &Arc<dyn BlockDevice>) -> u32 {
+        let offset = offset as usize;
+        if offset < INODE_DIRECT_BLOCKS {
+            self.get_direct_block(offset)
+        } else if offset < INODE_DOUBLE_INDIRECT_START {
+            self.get_indirect_block(offset, dev)
+        } else {
+            self.get_double_indirect_block(offset, dev)
+        }
+    }
+
+    fn calc_required_block_for(size: u32) -> u32 {
+        size.div_ceil(BLOCK_SIZE as u32)
+    }
+
+    pub fn required_data_blocks_for(&self, size: u32) -> u32 {
+        Self::calc_required_block_for(size)
+    }
+
+    pub fn required_blocks_for(&self, size: u32) -> u32 {
+        let data_blocks = Self::calc_required_block_for(size) as usize;
+        let mut index_blocks = 0;
+        if data_blocks > INODE_DIRECT_BLOCKS {
+            index_blocks += 1;
+        }
+        if data_blocks > INODE_DOUBLE_INDIRECT_START {
+            index_blocks += 1;
+            index_blocks +=
+                (data_blocks - INODE_DOUBLE_INDIRECT_START).div_ceil(INODE_INDIRECT_BLOCKS);
+        }
+        data_blocks as u32 + index_blocks as u32
+    }
+
+    pub fn required_delta_blocks_for(&self, new_size: u32) -> u32 {
+        assert!(new_size >= self.size);
+        self.required_blocks_for(new_size) - self.required_blocks_for(self.size)
+    }
+
+}
