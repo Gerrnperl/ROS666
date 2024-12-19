@@ -1,4 +1,7 @@
-use alloc::{sync::Arc, vec::Vec};
+use alloc::{
+    sync::Arc,
+    vec::{self, Vec},
+};
 
 use crate::{
     block_cache::{BLOCK_SIZE, get_cache},
@@ -16,6 +19,7 @@ pub enum InodeType {
 }
 
 type IndirectBlock = [u32; INODE_INDIRECT_BLOCKS];
+type DataBlock = [u8; BLOCK_SIZE];
 
 #[repr(C)]
 pub struct DiskInode {
@@ -263,5 +267,75 @@ impl DiskInode {
         }
 
         recycled
+    }
+
+    pub fn read_at(&self, mut offset: usize, dev: &Arc<dyn BlockDevice>, buf: &mut [u8]) -> usize {
+        let mut read = 0;
+        let end = (offset + buf.len()).min(self.size as usize);
+        if offset >= end {
+            return 0;
+        }
+        let mut offset_block = offset / BLOCK_SIZE;
+        loop {
+            let current_block_end = ((offset_block / BLOCK_SIZE + 1) * BLOCK_SIZE).min(end);
+            let size_to_read = current_block_end - offset;
+            let dst = &mut buf[read..read + size_to_read];
+            let cache = get_cache(
+                self.translate(offset_block as u32, dev) as usize,
+                dev.clone(),
+            )
+            .expect("cannot get cache");
+            cache.lock().read_at(0, |block: &DataBlock| {
+                let start = offset % BLOCK_SIZE;
+                dst.copy_from_slice(&block[start..start + size_to_read]);
+            });
+            read += size_to_read;
+            offset_block += 1;
+            offset = current_block_end;
+            if current_block_end == end
+            /*|| (read == buf.len()) */
+            {
+                break;
+            }
+        }
+        todo!()
+    }
+
+    pub fn write_at(&mut self, mut offset: usize, dev: &Arc<dyn BlockDevice>, buf: &[u8]) -> usize {
+        let mut written = 0;
+        let end = offset + buf.len();
+        if offset >= end {
+            return 0;
+        }
+        // if end as u32 > self.size {
+        //     let new_size = end as u32;
+        //     let new_blocks = todo!();
+        //     self.extend_size(new_size, new_blocks, dev);
+        // }
+        let mut offset_block = offset / BLOCK_SIZE;
+        loop {
+            let current_block_end = ((offset_block / BLOCK_SIZE + 1) * BLOCK_SIZE).min(end);
+            let size_to_write = current_block_end - offset;
+            let src = &buf[written..written + size_to_write];
+            let cache = get_cache(
+                self.translate(offset_block as u32, dev) as usize,
+                dev.clone(),
+            )
+            .expect("cannot get cache");
+            cache.lock().modify_at(0, |block: &mut DataBlock| {
+                let start = offset % BLOCK_SIZE;
+                block[start..start + size_to_write].copy_from_slice(src);
+            });
+            written += size_to_write;
+            offset_block += 1;
+            offset = current_block_end;
+            if current_block_end == end
+            /*|| (written == buf.len()) */
+            {
+                break;
+            }
+        }
+        self.size = self.size.max(end as u32);
+        written
     }
 }
