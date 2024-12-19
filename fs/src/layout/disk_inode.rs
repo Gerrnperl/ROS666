@@ -129,4 +129,90 @@ impl DiskInode {
         self.required_blocks_for(new_size) - self.required_blocks_for(self.size)
     }
 
+    pub fn extend_size(&mut self, new_size: u32, new_blocks: Vec<u32>, dev: &Arc<dyn BlockDevice>) {
+        let old_size = self.size;
+        self.size = new_size;
+        let old_blocks_cnt = self.required_blocks_for(old_size);
+        let new_blocks_cnt = self.required_blocks_for(new_size);
+        let delta_blocks_cnt = new_blocks_cnt - old_blocks_cnt;
+        // 从 offset 开始分配新块
+        let mut offset = old_blocks_cnt as usize;
+        // 已经分配的块数
+        let mut consumed = 0;
+        // 二级索引的索引表写入偏移
+        // 当前分配偏移未达到二级索引时，从 0 开始
+        let (mut level1_offset, mut level2_offset) =
+            Self::extract_double_indirect_block(offset).unwrap_or((0, 0));
+        // 二级索引块缓存
+        let mut level2_cache = None;
+        for _ in 0..delta_blocks_cnt {
+            // 从新分配的块中获取块号
+            if consumed >= new_blocks.len() {
+                panic!("not enough blocks");
+            }
+            let block = new_blocks[consumed] as usize;
+            consumed += 1;
+            if offset < INODE_DIRECT_BLOCKS {
+                self.direct[offset] = block as u32;
+            } else if offset < INODE_DOUBLE_INDIRECT_START {
+                if offset == INODE_DIRECT_BLOCKS {
+                    // 分配一级索引块
+                    self.indirect = block as u32;
+                } else {
+                    // 分配一级索引块中链接的块，写入一级索引块
+                    let cache =
+                        get_cache(self.indirect as usize, dev.clone()).expect("cannot get cache");
+                    cache
+                        .lock()
+                        .modify_at(0, |indirect: &mut IndirectBlock| {
+                            indirect[offset - INODE_DIRECT_BLOCKS] = block as u32;
+                        })
+                        .expect("cannot modify cache");
+                }
+            } else {
+                if offset == INODE_DOUBLE_INDIRECT_START {
+                    // 分配二级索引块
+                    self.double_indirect = block as u32;
+                } else {
+                    if level2_offset == 0 && level2_cache.is_none() {
+                        // 分配二级索引表中的二级索引块
+                        // 写入二级索引表的一级索引块
+                        let cache = get_cache(self.double_indirect as usize, dev.clone())
+                            .expect("cannot get cache");
+                        cache
+                            .lock()
+                            .modify_at(0, |indirect: &mut IndirectBlock| {
+                                indirect[level1_offset] = block as u32;
+                            })
+                            .expect("cannot modify cache");
+                        level2_cache =
+                            Some(get_cache(block as usize, dev.clone()).expect("cannot get cache"));
+
+                        // 更新索引偏移
+                        level1_offset += 1;
+                    } else {
+                        // 分配二级索引表中的数据块
+                        // 写入二级索引表的二级索引块
+                        level2_cache
+                            .as_ref()
+                            .unwrap()
+                            .lock()
+                            .modify_at(0, |indirect: &mut IndirectBlock| {
+                                indirect[level2_offset] = block as u32;
+                            })
+                            .expect("cannot modify cache");
+
+                        // 更新索引偏移
+                        if level2_offset == INODE_INDIRECT_BLOCKS - 1 {
+                            level2_offset = 0;
+                            level2_cache = None;
+                        } else {
+                            level2_offset += 1;
+                        }
+                    }
+                }
+            }
+            offset += 1;
+        }
+    }
 }
