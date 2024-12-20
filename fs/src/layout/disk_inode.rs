@@ -299,12 +299,12 @@ impl DiskInode {
                 break;
             }
         }
-        todo!()
+        read
     }
 
     pub fn write_at(&mut self, mut offset: usize, dev: &Arc<dyn BlockDevice>, buf: &[u8]) -> usize {
         let mut written = 0;
-        let end = offset + buf.len();
+        let end = (offset + buf.len()).min(self.size as usize);
         if offset >= end {
             return 0;
         }
