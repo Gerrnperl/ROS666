@@ -36,7 +36,7 @@ impl FileSystem {
         let data_bitmap_blocks = remaining_blocks.div_ceil(4097);
         let data_area_blocks = remaining_blocks - data_bitmap_blocks;
         let data_bitmap = Bitmap::new(
-            (1 + inode_total_blocks + inode_area_blocks) as usize,
+            (1 + inode_bitmap_blocks + inode_area_blocks) as usize,
             data_bitmap_blocks as usize,
         );
         let fs = Self {

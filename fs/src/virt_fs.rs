@@ -77,7 +77,7 @@ impl MemInode {
                 return Some(buf.inode());
             }
         }
-        todo!()
+        None
     }
 
     pub fn ls(&self) -> Vec<String> {
