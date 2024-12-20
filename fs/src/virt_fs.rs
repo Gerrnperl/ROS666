@@ -153,19 +153,18 @@ impl MemInode {
 
     pub fn read_at(&self, offset: usize, buf: &mut [u8]) -> usize {
         let _fs = self.fs.lock();
-        let read_size = 0;
-        let _ = self.read_disk_inode(|disk_inode| disk_inode.read_at(offset, &self.dev, buf));
-        read_size
+        let read_size =
+            self.read_disk_inode(|disk_inode| disk_inode.read_at(offset, &self.dev, buf));
+        read_size.unwrap()
     }
 
     pub fn write_at(&self, offset: usize, buf: &[u8]) -> usize {
         let mut fs = self.fs.lock();
-        let write_size = 0;
-        let _ = self.modify_disk_inode(|disk_inode| {
+        let write_size = self.modify_disk_inode(|disk_inode| {
             let new_size = offset as u32 + buf.len() as u32;
             self.increase_size(new_size, disk_inode, &mut fs);
             disk_inode.write_at(offset, &self.dev, buf)
         });
-        write_size
+        write_size.unwrap()
     }
 }
