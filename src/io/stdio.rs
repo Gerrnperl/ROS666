@@ -29,7 +29,6 @@ impl Write for Stdout {
 /// 从标准输入读取字符串
 ///
 /// # 参数
-///
 /// * `buf` - 存储读取到的字符串的缓冲区
 /// * `len` - 要读取的字符串的长度
 pub fn read_str(buf: &mut [u8], len: usize) {
@@ -70,7 +69,6 @@ pub fn printk(args: core::fmt::Arguments) {
 /// 打印格式化字符串到标准输出的宏
 ///
 /// # 示例
-///
 /// ```rust
 /// printk!("Hello, world!");
 /// printk!("Hello, {}!", "world");
@@ -88,7 +86,6 @@ macro_rules! printk {
 /// 打印格式化字符串并换行到标准输出的宏
 ///
 /// # 示例
-///
 /// ```rust
 /// printkln!();
 /// printkln!("Hello, world!");

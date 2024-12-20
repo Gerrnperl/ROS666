@@ -2,7 +2,6 @@
 //! 使用 Linked List Allocator 作为备选分配器，分配大于 4096 字节的内存
 //!
 //! # Example
-//!
 //! ```no_run
 //! use slab_allocator::LockedHeap;
 //!
@@ -11,7 +10,6 @@
 //!    heap.lock().init(begin, size);
 //! }
 //! ```
-//!
 //! Credits:
 //! - 接口参考 [buddy_system_allocator - A buddy system allocator in pure Rust.](https://github.com/rcore-os/buddy_system_allocator) (MIT License)
 //! - 实现参考 [slab_allocator - Slab allocator for no_std systems. ](https://github.com/weclaw1/slab_allocator/tree/master) (MIT License)
@@ -48,11 +46,8 @@ pub const SLABS_NUM: usize = ALLOCATORS_NUM - 1;
 /// 根据大小获取对应的 Slab 索引
 ///
 /// ## 参数
-///
 /// - `size`: 要分配的内存大小
-///
 /// ## 返回
-///
 /// 返回对应的 Slab 索引，如果大小超过最大 Slab 大小，则返回 Fallback 分配器的索引
 pub fn get_slab_index(mut size: usize) -> usize {
     if size <= MIN_ALLOC_SIZE {
@@ -121,11 +116,8 @@ impl Heap {
     /// 根据索引获取分配器类型
     ///
     /// ## 参数
-    ///
     /// - `index`: 分配器索引
-    ///
     /// ## 返回
-    ///
     /// 返回对应的分配器类型，如果索引小于 ALLOCATORS_NUM - 1，则返回 Slab 分配器，
     /// 否则返回 Fallback 分配器
     fn get_inner(&self, index: usize) -> AllocType {
@@ -190,12 +182,9 @@ impl Heap {
     /// 初始化堆内存分配器
     ///
     /// ## 参数
-    ///
     /// - `start`: 内存起始地址
     /// - `size`: 内存大小
-    ///
     /// ## 说明
-    ///
     /// 将内存分配给 Slab 分配器和 Fallback 分配器
     pub unsafe fn init(&mut self, start: usize, size: usize) {
         // 计算每个分配器的分配大小
@@ -215,11 +204,8 @@ impl Heap {
     /// 根据内存布局选择合适的分配器
     ///
     /// ## 参数
-    ///
     /// - `layout`: 内存布局
-    ///
     /// ## 返回
-    ///
     /// 返回对应的分配器类型，如果大小小于等于最大 Slab 大小，则返回 Slab 分配器，
     /// 否则返回 Fallback 分配器
     fn select_allocator(&self, layout: &Layout) -> AllocType {
@@ -231,11 +217,8 @@ impl Heap {
     /// 从堆中分配一段满足 `layout` 要求的内存
     ///
     /// ## 参数
-    ///
     /// - `layout`: 内存布局
-    ///
     /// ## 返回
-    ///
     /// 返回一个指向分配内存的指针，如果分配失败，则返回错误
     pub fn alloc(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocError> {
         let size = layout.size();
@@ -313,7 +296,6 @@ impl core::fmt::Debug for Heap {
 /// 一个锁定版本的 `Heap`
 ///
 /// # 用法
-///
 /// 创建一个锁定的堆并添加一个内存区域:
 /// ```no_run
 /// use buddy_system_allocator::*;
@@ -363,17 +345,14 @@ impl core::ops::Deref for LockedHeap {
 
 #[cfg(feature = "use_spin")]
 /// # Safety
-///
 /// 这个实现是 `GlobalAlloc` trait 的一个不安全实现，
 /// 需要确保在使用过程中不会违反 Rust 的内存安全规则。
 ///
 /// # 注意事项
-///
 /// 由于这些方法都是不安全的（`unsafe`），调用者必须确保传入的参数是有效的，
 /// 并且在调用这些方法时不会导致未定义行为。
 unsafe impl alloc::GlobalAlloc for LockedHeap {
     /// # 分配器
-    ///
     /// `alloc` 方法用于分配内存，根据传入的 `layout` 参数返回一个指向分配内存的指针。
     /// 如果分配失败，返回一个空指针。
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
@@ -385,7 +364,6 @@ unsafe impl alloc::GlobalAlloc for LockedHeap {
     }
 
     /// # 释放器
-    ///
     /// `dealloc` 方法用于释放内存，根据传入的指针 `ptr` 和 `layout` 参数释放对应的内存。
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
         self.0
