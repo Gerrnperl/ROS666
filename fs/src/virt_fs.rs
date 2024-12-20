@@ -167,4 +167,11 @@ impl MemInode {
         });
         write_size.unwrap()
     }
+
+    pub fn get_size(&self) -> u32 {
+        let size = self
+            .read_disk_inode(|disk_inode| disk_inode.size)
+            .expect("read disk inode failed");
+        size
+    }
 }
