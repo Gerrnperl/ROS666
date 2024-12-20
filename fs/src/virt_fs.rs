@@ -44,10 +44,11 @@ impl MemInode {
     }
 
     pub fn find(&self, name: &str) -> Option<Arc<MemInode>> {
+        let fs = self.fs.lock();
         let inode = self
             .read_disk_inode(|disk_inode| {
                 self.find_inode_id(name, disk_inode).map(|inode_id| {
-                    let (block_id, block_offset) = self.fs.lock().get_disk_inode_pos(inode_id);
+                    let (block_id, block_offset) = fs.get_disk_inode_pos(inode_id);
                     let inode = MemInode::new(
                         block_id as usize,
                         block_offset,
