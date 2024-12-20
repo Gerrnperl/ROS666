@@ -277,7 +277,7 @@ impl DiskInode {
         }
         let mut offset_block = offset / BLOCK_SIZE;
         loop {
-            let current_block_end = ((offset_block / BLOCK_SIZE + 1) * BLOCK_SIZE).min(end);
+            let current_block_end = ((offset / BLOCK_SIZE + 1) * BLOCK_SIZE).min(end);
             let size_to_read = current_block_end - offset;
             let dst = &mut buf[read..read + size_to_read];
             let cache = get_cache(
@@ -314,7 +314,7 @@ impl DiskInode {
         // }
         let mut offset_block = offset / BLOCK_SIZE;
         loop {
-            let current_block_end = ((offset_block / BLOCK_SIZE + 1) * BLOCK_SIZE).min(end);
+            let current_block_end = ((offset / BLOCK_SIZE + 1) * BLOCK_SIZE).min(end);
             let size_to_write = current_block_end - offset;
             let src = &buf[written..written + size_to_write];
             let cache = get_cache(
