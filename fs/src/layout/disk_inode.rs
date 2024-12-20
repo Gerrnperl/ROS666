@@ -18,8 +18,8 @@ pub enum InodeType {
     Dir,
 }
 
-type IndirectBlock = [u32; INODE_INDIRECT_BLOCKS];
-type DataBlock = [u8; BLOCK_SIZE];
+pub type IndirectBlock = [u32; INODE_INDIRECT_BLOCKS];
+pub type DataBlock = [u8; BLOCK_SIZE];
 
 #[repr(C)]
 pub struct DiskInode {

@@ -11,14 +11,15 @@ pub struct SuperBlock {
 const SUPER_BLOCK_MAGIC: u32 = 0x78887C6A;
 
 impl SuperBlock {
-    pub fn new(
+    pub fn init_with(
+        &mut self,
         total_blocks: u32,
         inode_bitmap: u32,
         inode_blocks: u32,
         data_bitmap: u32,
         data_blocks: u32,
-    ) -> Self {
-        Self {
+    ) {
+        *self = Self {
             magic: SUPER_BLOCK_MAGIC,
             total_blocks,
             inode_bitmap,

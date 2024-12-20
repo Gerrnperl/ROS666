@@ -55,7 +55,7 @@ impl Bitmap {
         (block, pos, bit)
     }
 
-    pub fn dealloc(&self, dev: &Arc<dyn BlockDevice>, bit: usize) {
+    pub fn free(&self, dev: &Arc<dyn BlockDevice>, bit: usize) {
         let (block, pos, bit) = Self::extract_bit_position(bit);
         let cache = get_cache((block + self.start_block) as usize, Arc::clone(dev))
             .expect("cannot get cache");
@@ -66,5 +66,9 @@ impl Bitmap {
                 bitmap_block[pos] &= !(1 << bit);
             })
             .expect("cannot modify cache");
+    }
+
+    pub fn maximum(&self) -> usize {
+        self.blocks * BLOCK_BITS
     }
 }
