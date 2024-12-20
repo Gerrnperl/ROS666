@@ -27,4 +27,6 @@ members = [
     "user-build",
     "common",
     "slab_allocator",
+    "fs",
+    "fs-fuse"
 ]

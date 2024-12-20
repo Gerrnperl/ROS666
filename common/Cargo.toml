@@ -8,3 +8,4 @@ description = "common code like syscall enums for user and kernel"
 name = "common"
 
 [dependencies]
+bitflags = "2.6.0"

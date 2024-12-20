@@ -25,6 +25,14 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
     ret
 }
 
+pub fn sys_openat(path: &str, flags: usize) -> SyscallRet {
+    syscall(Syscall::OpenAt, [path.as_ptr() as usize, flags, 0])
+}
+
+pub fn sys_close(fd: usize) -> SyscallRet {
+    syscall(Syscall::Close, [fd, 0, 0])
+}
+
 pub fn sys_read(fd: usize, buffer: &mut [u8]) -> SyscallRet {
     syscall(Syscall::Read, [fd, buffer.as_ptr() as usize, buffer.len()])
 }
