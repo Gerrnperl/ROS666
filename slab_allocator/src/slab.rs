@@ -2,6 +2,12 @@ use core::{alloc::AllocError, ptr::NonNull};
 
 use crate::Address;
 
+/// `Slab` 结构体表示一个内存块分配器。
+///
+/// ## 字段
+/// - `block_size`：每个内存块的大小
+/// - `block_num`：内存块的数量
+/// - `free_list`：空闲内存块列表
 pub struct Slab {
     pub block_size: usize,
     pub block_num: usize,
@@ -43,10 +49,15 @@ impl Slab {
         }
     }
 
+    /// 扩展 `Slab` 实例的内存块。
+    ///
+    /// ## 参数
+    /// - `start`：新内存块的起始地址
+    /// - `slab_size`：新内存块的总大小
     pub fn grow(&mut self, start: Address, slab_size: usize) {
         let block_num = slab_size / self.block_size;
         self.block_num += block_num;
-        // add to self.free_list
+        // 添加到 self.free_list
         for i in 0..block_num {
             let block = (start + i * self.block_size) as *mut FreeBlock;
             let block = unsafe { &mut *block };
@@ -79,14 +90,19 @@ impl Slab {
 
 /// 内存块空闲列表
 struct FreeList {
+    /// 空闲列表的长度
     len: usize,
+    /// 空闲列表的头部节点
     head: Option<&'static mut FreeBlock>,
 }
 
+/// 表示一个空闲的内存块
 struct FreeBlock {
+    /// 指向下一个空闲块的可选引用
     next: Option<&'static mut FreeBlock>,
 }
 
+/// 为 `FreeList` 实现 `Drop` 特性，以便在 `FreeList` 被销毁时释放所有节点。
 impl Drop for FreeList {
     fn drop(&mut self) {
         let mut current = self.head.take();
