@@ -5,7 +5,7 @@
 //! ## 使用方法
 //!
 //! ```text
-//! Usage: fs-fuse [OPTIONS] --target <TARGET> --output <OUTPUT>
+//! Usage: ros-fs-fuse [OPTIONS] --target <TARGET> --output <OUTPUT>
 //!
 //! Options:
 //!   -a, --app <APP>...     应用程序名称列表，以空格分隔
@@ -23,7 +23,7 @@ use std::{
 
 use block_file::BlockFile;
 use clap::Parser;
-use fs::{
+use ros_fs::{
     fs::{FileSystem, FileSystemRootInode},
     layout::disk_inode::InodeType,
 };

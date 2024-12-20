@@ -133,22 +133,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "361a90feb7004eca4019fb28352a9465666b24f840f5c3cddf0ff13920590b89"
 
 [[package]]
-name = "fs"
-version = "0.1.0"
-dependencies = [
- "lazy_static",
- "spin",
-]
-
-[[package]]
-name = "fs-fuse"
-version = "0.1.0"
-dependencies = [
- "clap",
- "fs",
-]
-
-[[package]]
 name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -251,6 +235,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8188909339ccc0c68cfb5a04648313f09621e8b87dc03095454f1a11f6c5d436"
 
 [[package]]
+name = "ros-fs"
+version = "0.1.0"
+dependencies = [
+ "lazy_static",
+ "spin",
+]
+
+[[package]]
+name = "ros-fs-fuse"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "ros-fs",
+]
+
+[[package]]
 name = "ros666"
 version = "0.1.0"
 dependencies = [
@@ -258,6 +258,7 @@ dependencies = [
  "common",
  "lazy_static",
  "riscv",
+ "ros-fs",
  "rustsbi",
  "slab_allocator",
  "xmas-elf",

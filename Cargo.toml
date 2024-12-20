@@ -12,6 +12,7 @@ riscv = "0.12.1"
 rustsbi = { version = "0.4.0", features = ["forward"] }
 common = { path = "./common" }
 slab_allocator = { path = "./slab_allocator" }
+ros-fs = { path = "./ros-fs" }
 bitflags = "2.6.0"
 xmas-elf = "0.9.1"
 
@@ -30,6 +31,6 @@ members = [
     "user-build",
     "common",
     "slab_allocator",
-    "fs",
-    "fs-fuse"
+    "ros-fs",
+    "ros-fs-fuse"
 ]

@@ -4,7 +4,7 @@ use std::{
     sync::Mutex,
 };
 
-use fs::block_dev::BlockDevice;
+use ros_fs::block_dev::BlockDevice;
 
 pub const BLOCK_SIZE: usize = 512;
 
