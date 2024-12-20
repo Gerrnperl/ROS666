@@ -44,7 +44,7 @@ impl FileSystem {
             inode_bitmap,
             data_bitmap,
             inode_area_start: 1 + inode_bitmap_blocks,
-            data_area_start: 1 + inode_total_blocks + inode_area_blocks,
+            data_area_start: 1 + inode_total_blocks + data_bitmap_blocks,
         };
         // write zero
         for i in 0..total_blocks {
