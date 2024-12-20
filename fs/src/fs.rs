@@ -9,6 +9,7 @@ use crate::{
         disk_inode::{DataBlock, DiskInode, InodeType},
         super_block::SuperBlock,
     },
+    virt_fs::MemInode,
 };
 
 pub struct FileSystem {
@@ -138,5 +139,22 @@ impl FileSystem {
             })
             .expect("read super block failed");
         Arc::new(Mutex::new(fs))
+    }
+}
+
+pub trait FileSystemRootInode {
+    fn root_inode(&self) -> MemInode;
+}
+
+impl FileSystemRootInode for Arc<Mutex<FileSystem>> {
+    fn root_inode(&self) -> MemInode {
+        let fs = self.lock();
+        let (root_inode_bid, root_inode_offset) = fs.get_disk_inode_pos(0);
+        MemInode::new(
+            root_inode_bid as usize,
+            root_inode_offset as usize,
+            self.clone(),
+            fs.dev.clone(),
+        )
     }
 }
