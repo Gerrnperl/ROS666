@@ -1,3 +1,5 @@
+//! 系统调用相关定义。
+
 use bitflags::bitflags;
 
 /// 系统调用号

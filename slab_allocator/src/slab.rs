@@ -1,3 +1,5 @@
+//! `slab` 模块包含 `Slab` 结构体，该结构体表示一个内存块分配器。
+
 use core::{alloc::AllocError, ptr::NonNull};
 
 use crate::Address;
