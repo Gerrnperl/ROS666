@@ -1,9 +1,11 @@
+# 项目名称、版本、编译器版本、构建脚本所在地址
 [package]
 name = "ros666"
 version = "0.1.0"
 edition = "2024"
 build = "build.rs"
 
+# 项目依赖
 [dependencies]
 lazy_static = { version = "1.5.0", features = ["spin_no_std"] }
 riscv = "0.12.1"
@@ -13,6 +15,7 @@ slab_allocator = { path = "./slab_allocator" }
 bitflags = "2.6.0"
 xmas-elf = "0.9.1"
 
+# 当程序出现panic时，直接结束程序(abort)
 [profile.dev]
 panic = "abort"
 
@@ -20,7 +23,7 @@ panic = "abort"
 panic = "abort"
 
 [workspace]
-
+# 工作空间的成员
 members = [
     "user",
     "user-lib",
