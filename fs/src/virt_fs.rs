@@ -119,7 +119,6 @@ impl MemInode {
                 &self.dev,
                 DirEntry::new(inode_id, name).as_bytes(),
             );
-            disk_inode.size += DIR_ENTRY_SIZE as u32;
         });
         Arc::new(inode)
     }
