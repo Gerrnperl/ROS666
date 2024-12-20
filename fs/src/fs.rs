@@ -111,4 +111,32 @@ impl FileSystem {
         self.data_bitmap
             .free(&self.dev, (data_block_id - self.data_area_start) as usize);
     }
+
+    pub fn open(dev: Arc<dyn BlockDevice>) -> Arc<Mutex<Self>> {
+        let cache = get_cache(0, dev.clone()).expect("get cache failed");
+        let fs = cache
+            .lock()
+            .read_at(0, |super_block: &SuperBlock| {
+                assert!(super_block.check(), "super block magic number error");
+
+                let inode_total_blocks =
+                    super_block.inode_bitmap_blocks + super_block.inode_area_blocks;
+
+                let inode_bitmap = Bitmap::new(1, super_block.inode_bitmap_blocks as usize);
+                let data_bitmap = Bitmap::new(
+                    (1 + inode_total_blocks) as usize,
+                    super_block.data_bitmap_blocks as usize,
+                );
+
+                Self {
+                    dev,
+                    inode_bitmap,
+                    data_bitmap,
+                    inode_area_start: 1 + super_block.inode_bitmap_blocks,
+                    data_area_start: 1 + inode_total_blocks + super_block.data_bitmap_blocks,
+                }
+            })
+            .expect("read super block failed");
+        Arc::new(Mutex::new(fs))
+    }
 }
