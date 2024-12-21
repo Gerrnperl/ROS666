@@ -15,6 +15,7 @@ use alloc::{
 /// - `crate::utils::safety::SyncRefCell`: 一个线程安全的 RefCell 类型。
 use crate::{
     app_loader::AppData,
+    fs::File,
     mm::{
         KERNEL_SPACE,
         address::{PAGE_SIZE_SV39, PhysicalPageNumber, VirtualAddress, VirtualPageNumber},
@@ -48,6 +49,26 @@ pub enum ProcessStatus {
     Stopped,
 }
 
+pub type FdTable = Vec<Option<Arc<dyn File + Send + Sync>>>;
+
+pub trait FdTableClone {
+    fn fd_clone(&self) -> Self;
+}
+
+impl FdTableClone for FdTable {
+    fn fd_clone(&self) -> Self {
+        let mut new_table = Vec::new();
+        for file in self.iter() {
+            new_table.push(if let Some(file) = file {
+                Some(Arc::clone(file))
+            } else {
+                None
+            });
+        }
+        new_table
+    }
+}
+
 /// 进程控制块结构体
 pub struct ProcessControlBlock {
     /// 进程ID
@@ -70,6 +91,8 @@ pub struct ProcessControlBlock {
     pub children: Vec<Arc<SyncRefCell<ProcessControlBlock>>>,
     /// 退出码
     pub exit_code: i32,
+
+    pub fd_table: FdTable,
 }
 
 /// 进程控制块（Process Control Block）实现
@@ -136,6 +159,7 @@ impl ProcessControlBlock {
             parent: None,
             children: Vec::new(),
             exit_code: 0,
+            fd_table: Vec::new(),
         };
         let ctx = pcb.get_trap_cx();
         *ctx = TrapCtx::init_app_context(
@@ -178,6 +202,7 @@ impl SyncRefCell<ProcessControlBlock> {
             parent: Some(Arc::downgrade(self)),
             children: Vec::new(),
             exit_code: 0,
+            fd_table: parent.fd_table.fd_clone(),
         }));
         parent.children.push(child.clone());
 

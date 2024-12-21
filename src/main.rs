@@ -21,6 +21,7 @@ mod utils;
 use core::{arch::global_asm, cell::RefCell};
 
 use app_loader::APP_NAMES;
+use fs::inode::ROOT_INODE;
 
 global_asm!(include_str!("entry.asm"));
 global_asm!(include_str!("app_loader.asm"));
@@ -35,11 +36,12 @@ pub extern "C" fn _kernel_entry() -> ! {
     mm::init::init();
     mm::memory_set::remap_test();
 
-    info!("Hi there, it's {}.", "ROS666");
-
-    APP_NAMES.iter().for_each(|(name, id)| {
-        info!("App: {} id: {}", name, id);
-    });
+    // APP_NAMES.iter().for_each(|(name, id)| {
+    //     info!("App: {} id: {}", name, id);
+    // });
+    for app in ROOT_INODE.ls() {
+        info!("App: {}", app);
+    }
 
     task::init();
 
