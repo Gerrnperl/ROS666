@@ -17,6 +17,9 @@ bitflags = "2.6.0"
 xmas-elf = "0.9.1"
 virtio-drivers = "=0.6.0"
 spin = "0.9.8"
+k210-pac = { git = "https://github.com/wyfcyx/k210-pac" }
+k210-hal = { git = "https://github.com/Gerrnperl/k210-hal" }
+k210-soc = { git = "https://github.com/Gerrnperl/k210-soc" }
 
 [features]
 default = ["qemu"]
