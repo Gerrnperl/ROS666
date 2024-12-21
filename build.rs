@@ -1,3 +1,10 @@
+//! 这个构建脚本用于生成应用程序加载器和设置链接参数。
+//!
+//! 主要功能包括：
+//! - 生成应用程序加载器。
+//! - 设置链接参数。
+//! - 设置重新运行条件。
+
 fn main() {
     gen_app_loader();
 
@@ -6,6 +13,9 @@ fn main() {
     println!("cargo:rerun-if-changed=src/app_loader.asm");
 }
 
+/// 生成应用程序加载器
+///
+/// 该函数会生成一个包含所有应用程序的加载器，并将其写入到目标目录。
 fn gen_app_loader() {
     let root_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let apps = get_apps();
@@ -95,6 +105,11 @@ __app_{id}_name:
     )
 }
 
+/// 获取应用程序列表
+///
+/// 该函数会从配置文件中读取应用程序列表。
+/// ## 返回值
+/// 返回应用程序列表
 fn get_apps() -> Vec<String> {
     let make_args = std::process::Command::new("make")
         .current_dir(std::env::var("CARGO_MANIFEST_DIR").unwrap())

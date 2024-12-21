@@ -1,17 +1,34 @@
+//! 这个模块包含设置链接器脚本的功能。
+//!
+//! 主要功能包括：
+//! - 获取链接器目录并清理该目录。
+//! - 获取当前编译配置（默认为 debug）。
+//! - 获取按顺序排列的应用程序列表。
+//! - 为每个编译配置和应用程序生成链接器脚本。
+//! - 为每个应用程序设置链接参数。
+//! - 设置重新运行条件。
+
 use core::include_str;
 
+/// 设置链接器脚本
 pub fn setup() {
+    // 获取链接器目录
     let linker_dir = get_linker_dir();
+    // 清理链接器目录
     clean_linkers(&linker_dir);
 
+    // 获取当前编译配置，默认为 debug
     let current_profile = std::env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
+    // 获取按顺序排列的应用程序列表
     let apps = get_apps_in_order();
+    // 为每个编译配置和应用程序生成链接器脚本
     for profile in &["debug", "release"] {
         for (app_id, app_name) in apps.iter().enumerate() {
             setup_linker(profile, app_name, app_id, &linker_dir);
         }
     }
 
+    // 为每个应用程序设置链接参数
     for (app_id, app_name) in apps.iter().enumerate() {
         println!(
             "cargo:rustc-link-arg-bin={app_name}=-T{linker_dir}/{linker_name}",
@@ -21,8 +38,9 @@ pub fn setup() {
         );
     }
 
-    println!("cargo:rergun-if-changed=user-build");
-    println!("cargo:rergun-if-changed=user/Cargo.toml");
+    // 设置重新运行条件
+    println!("cargo:rerun-if-changed=user-build");
+    println!("cargo:rerun-if-changed=user/Cargo.toml");
     println!("cargo:rustc-force-frame-pointers=yes");
 }
 
@@ -59,20 +77,37 @@ fn setup_linker(profile: &str, app_name: &str, app_id: usize, linker_dir: &str) 
     std::fs::write(&linker_path, linker).unwrap();
 }
 
+/// 获取链接器目录
 fn get_linker_dir() -> String {
     let out_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let linker_dir_path = std::path::Path::new(&out_dir).join(".linkers");
     linker_dir_path.to_str().unwrap().to_string()
 }
 
+/// 获取链接器名称
+///
+/// ## 参数
+/// - `app_name`：二进制目标的名称
+/// - `app_id`：二进制目标的 ID
+/// - `profile`：编译配置，`debug` 或 `release`
 fn get_linker_name(app_name: &str, app_id: usize, profile: &str) -> String {
     format!("linker-{app_id}-{app_name}-{profile}.ld")
 }
 
+/// 替换模板中的占位符
+///
+/// ## 参数
+/// - `template`：模板字符串
+/// - `key`：占位符键
+/// - `value`：替换值
 fn replace_template(template: String, key: &str, value: &str) -> String {
     template.replace(&format!("/*TEMPLATE {{{}}}*/", key), value)
 }
 
+/// 清理链接器目录
+///
+/// ## 参数
+/// - `linker_dir`：链接器目录路径
 fn clean_linkers(linker_dir: &str) {
     let linker_dir = std::path::Path::new(linker_dir);
     assert!(linker_dir.ends_with(".linkers"));
@@ -87,12 +122,13 @@ fn clean_linkers(linker_dir: &str) {
     }
 }
 
+/// 获取按顺序排列的应用程序列表
 pub fn get_apps_in_order() -> Vec<String> {
     // 应用程序顺序已在 user/Cargo.toml package.metadata.applications.order 中定义
     // Make 会获取该值
     let user_root = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let user_root = user_root.split("/").collect::<Vec<_>>();
-    // remove the last part of the path
+    // 移除路径的最后一部分
     let workspace_root = user_root[..user_root.len() - 1].join("/");
     let make_args = std::process::Command::new("make")
         .current_dir(workspace_root)
