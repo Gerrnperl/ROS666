@@ -11,7 +11,7 @@ USER_BINARY_NAMES := $(shell cargo metadata --no-deps --format-version 1 | jq -r
   . as $$root | \
   .packages[] | \
   select(.name == "user") | \
-  .metadata.applications.order[] \
+  .metadata.applications[] \
 ')
 
 TARGET_DIR := target/riscv64gc-unknown-none-elf
@@ -19,9 +19,12 @@ KERNEL_ELF := $(TARGET_DIR)/debug/$(KERNEL_BINARY_NAME)
 KERNEL_BIN := $(TARGET_DIR)/debug/$(KERNEL_BINARY_NAME).bin
 KERNEL_ELF_RELEASE := $(TARGET_DIR)/release/$(KERNEL_BINARY_NAME)
 KERNEL_BIN_RELEASE := $(TARGET_DIR)/release/$(KERNEL_BINARY_NAME).bin
+FS_IMG := $(TARGET_DIR)/debug/fs.img
+FS_IMG_RELEASE := $(TARGET_DIR)/release/fs.img
 KERNEL_GDB_PORT ?= 25666
 USER_GDB_PORT ?= 26666
 BOOTLOADER ?= bootloader/rustsbi-qemu-release
+BOARD ?= qemu
 
 # 指定当前构建的用户程序（例如通过 vscode task 传入当前活动文件路径以调试当前用户程序）
 ACTIVE_USER_APP?=$(shell echo $(ACTIVE_USER_APP_PATH) | sed -E 's/.*?\/?user\/src\///' | cut -d '/' -f 1)
@@ -49,36 +52,38 @@ echo-make-args:
 
 #region 构建
 # 构建内核 (开发模式)
-build-kernel.dev: build-users.dev
+build-kernel.dev: pack-users-fs-img.dev
 	cargo build
 	rust-objcopy --strip-all $(KERNEL_ELF) -O binary $(KERNEL_BIN)
 # 构建内核 (发布模式)
-build-kernel.release: build-users.release
+build-kernel.release: pack-users-fs-img.release
 	cargo build --release
 	rust-objcopy --strip-all $(KERNEL_ELF_RELEASE) -O binary $(KERNEL_BIN_RELEASE)
 
 # 构建所有用户程序 (开发模式)
 build-users.dev:
 	cargo build -p user
-	for user in $(USER_BINARY_NAMES); do \
-		rust-objcopy --strip-all $(TARGET_DIR)/debug/$$user -O binary $(TARGET_DIR)/debug/$$user.bin; \
-	done
+
 # 构建所有用户程序 (发布模式)
 build-users.release:
 	cargo build -p user --release
-	for user in $(USER_BINARY_NAMES); do \
-		rust-objcopy --strip-all $(TARGET_DIR)/release/$$user -O binary $(TARGET_DIR)/release/$$user.bin; \
-	done
 
 # 构建指定用户程序 (开发模式)
 build-active-user.dev:
 	cargo build -p user --bin $(ACTIVE_USER_APP)
-	rust-objcopy --strip-all $(TARGET_DIR)/debug/$(ACTIVE_USER_APP) -O binary $(TARGET_DIR)/debug/$(ACTIVE_USER_APP).bin
 
 # 构建指定用户程序 (发布模式)
 build-active-user.release:
 	cargo build -p user --bin $(ACTIVE_USER_APP) --release
-	rust-objcopy --strip-all $(TARGET_DIR)/release/$(ACTIVE_USER_APP) -O binary $(TARGET_DIR)/release/$(ACTIVE_USER_APP).bin
+
+# 打包用户程序文件系统 (开发模式)
+pack-users-fs-img.dev: build-users.dev
+	cargo run -p ros-fs-fuse -- --app $(USER_BINARY_NAMES) --target $(TARGET_DIR)/debug --output $(FS_IMG)
+
+# 打包用户程序文件系统 (发布模式)
+pack-users-fs-img.release: build-users.release
+	cargo run -p ros-fs-fuse -- --app $(USER_BINARY_NAMES) --target $(TARGET_DIR)/release --output $(FS_IMG_RELEASE)
+
 #endregion 构建
 
 #region 运行
@@ -98,6 +103,8 @@ launch-qemu-system.dev: build-kernel.dev __launch_qemu_startup_log
 		-device loader,file=$(KERNEL_BIN),addr=0x80200000 \
 		-S \
 		-gdb tcp::25666
+		-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
+        -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 	@echo "\033[30m[QEMU launcher] QEMU has exited\033[0m"
 
 # 启动 QEMU 调试内核 (发布模式)
@@ -108,6 +115,8 @@ launch-qemu-system.release: build-kernel.release __launch_qemu_startup_log
 		-bios $(BOOTLOADER) \
 		-device loader,file=$(KERNEL_BIN_RELEASE),addr=0x80200000 \
 		-gdb tcp::25666
+		-drive file=$(FS_IMG_RELEASE),if=none,format=raw,id=x0 \
+        -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 	@echo "\033[30m[QEMU launcher] QEMU has exited\033[0m"
 
 # 启动 QEMU 调试用户程序 (开发模式)
