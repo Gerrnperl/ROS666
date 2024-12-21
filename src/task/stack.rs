@@ -1,3 +1,5 @@
+//! 进程栈管理
+
 use crate::mm::{
     KERNEL_SPACE,
     address::{PAGE_SIZE_SV39, VirtualAddress, VirtualPageNumber},
@@ -9,17 +11,24 @@ use super::pid::PidHandler;
 pub const KERNEL_STACK_SIZE: usize = 4096 * 2;
 pub const USER_STACK_SIZE: usize = 4096 * 2;
 
+/// 计算内核栈的位置
+///
+/// 返回一个元组，包含栈底和栈顶的地址
 pub fn kernel_stack_position(pid: usize) -> (usize, usize) {
     let top = TRAMPOLINE - pid * (KERNEL_STACK_SIZE + PAGE_SIZE_SV39);
     let bottom = top - KERNEL_STACK_SIZE;
     (bottom, top)
 }
 
+/// 内核栈结构体
 pub struct KernelStack {
     pid: usize,
 }
 
 impl KernelStack {
+    /// 创建一个新的内核栈
+    ///
+    /// 参数 `pid` 是进程 ID 处理器
     pub fn new(pid: &PidHandler) -> Self {
         let (bottom, top) = kernel_stack_position(pid.0);
         KERNEL_SPACE.ref_cell.borrow_mut().insert(
@@ -29,6 +38,7 @@ impl KernelStack {
         Self { pid: pid.0 }
     }
 
+    /// 获取栈顶地址
     pub fn top(&self) -> usize {
         let (_bottom, top) = kernel_stack_position(self.pid);
         top
@@ -55,6 +65,7 @@ impl KernelStack {
 }
 
 impl Drop for KernelStack {
+    /// 在内核栈被销毁时，移除对应的内存区域
     fn drop(&mut self) {
         let (bottom, top) = kernel_stack_position(self.pid);
         KERNEL_SPACE
