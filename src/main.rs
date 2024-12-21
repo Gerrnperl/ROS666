@@ -6,6 +6,8 @@
 extern crate alloc;
 
 mod app_loader;
+mod drivers;
+mod fs;
 mod io;
 mod language_item;
 mod mm;

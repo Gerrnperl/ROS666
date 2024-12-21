@@ -269,6 +269,24 @@ impl From<&mut PageTableEntry> for PhysicalPageNumber {
     }
 }
 
+pub struct UserBuffer {
+    pub buffers: Vec<&'static mut [u8]>,
+}
+
+impl UserBuffer {
+    pub fn new(buffers: Vec<&'static mut [u8]>) -> Self {
+        Self { buffers }
+    }
+
+    pub fn len(&self) -> usize {
+        let mut total: usize = 0;
+        for buf in self.buffers.iter() {
+            total += buf.len();
+        }
+        total
+    }
+}
+
 /// 根据给定的页表 token、指针和长度，获取翻译后的切片。
 ///
 /// 用于将一个指针指向的用户地址空间区域翻译为内核地址空间的切片。内核可以通过切片引用到用户地址空间的数据。
