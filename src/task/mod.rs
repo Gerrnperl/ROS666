@@ -29,7 +29,7 @@ lazy_static! {
     };
 }
 
-// 初始化函数
+/// 初始化任务管理器函数
 pub fn init() {
     // 将 INIT_PROC 添加到任务管理器中
     TaskManager::put_task(INIT_PROC.clone());

@@ -76,7 +76,7 @@ pub struct ProcessControlBlock {
 impl ProcessControlBlock {
     /// 获取陷阱上下文的可变引用
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 返回陷阱上下文的可变引用
     pub fn get_trap_cx(&self) -> &'static mut TrapCtx {
         self.trap_ctx_ppn.get_mut()
@@ -84,7 +84,7 @@ impl ProcessControlBlock {
 
     /// 获取用户态的令牌
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 返回用户态的令牌
     pub fn get_user_token(&mut self) -> usize {
         let t = self.memory_set.token();
@@ -93,7 +93,7 @@ impl ProcessControlBlock {
 
     /// 获取进程状态
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 返回进程状态
     pub fn get_status(&self) -> ProcessStatus {
         self.status
@@ -101,7 +101,7 @@ impl ProcessControlBlock {
 
     /// 获取进程ID
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 返回进程ID
     pub fn get_pid(&self) -> usize {
         self.pid.0
@@ -109,9 +109,9 @@ impl ProcessControlBlock {
 
     /// 创建新的进程控制块
     ///
-    /// # 参数
+    /// ## 参数
     /// - `app_data`: 应用程序数据
-    /// # 返回值
+    /// ## 返回值
     /// 返回一个新的进程控制块实例
     pub fn new(app_data: AppData) -> Self {
         let app_id = app_data.app_id;
@@ -152,7 +152,7 @@ impl ProcessControlBlock {
 impl SyncRefCell<ProcessControlBlock> {
     /// 创建子进程
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 返回子进程的引用
     pub fn fork(
         self: &Arc<SyncRefCell<ProcessControlBlock>>,
@@ -189,7 +189,7 @@ impl SyncRefCell<ProcessControlBlock> {
 
     /// 执行新程序
     ///
-    /// # 参数
+    /// ## 参数
     /// - `app_data`: 应用程序数据
     pub fn exec(self: &Arc<SyncRefCell<ProcessControlBlock>>, app_data: AppData) {
         let (memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);

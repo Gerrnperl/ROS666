@@ -22,7 +22,7 @@ pub const VIRTUAL_PAGE_NUMBER_WIDTH_SV39: usize =
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// 物理地址结构体，包含一个 `usize` 类型的地址值。
 ///
-/// # 示例
+/// ## 示例
 /// ```
 /// let addr = PhysicalAddress(0x1000);
 /// ```
@@ -31,7 +31,7 @@ pub struct PhysicalAddress(pub usize);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// 虚拟地址结构体，包含一个 `usize` 类型的地址值。
 ///
-/// # 示例
+/// ## 示例
 /// ```
 /// let addr = VirtualAddress(0x1000);
 /// ```
@@ -40,7 +40,7 @@ pub struct VirtualAddress(pub usize);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// 物理页号结构体，包含一个 `usize` 类型的页号值。
 ///
-/// # 示例
+/// ## 示例
 /// ```
 /// let ppn = PhysicalPageNumber(0x100);
 /// ```
@@ -49,7 +49,7 @@ pub struct PhysicalPageNumber(pub usize);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// 虚拟页号结构体，包含一个 `usize` 类型的页号值。
 ///
-/// # 示例
+/// ## 示例
 /// ```
 /// let vpn = VirtualPageNumber(0x100);
 /// ```
@@ -84,7 +84,7 @@ impl PhysicalPageNumber {
 impl VirtualPageNumber {
     /// 取出三级页索引
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 返回一个包含三级页索引的数组。
     /// 数组中的每个元素分别对应三级页索引中的一个。
     pub fn indexes(&self) -> [usize; 3] {
@@ -95,9 +95,9 @@ impl VirtualPageNumber {
 
 /// 将 `usize` 转换为 `PhysicalAddress` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 一个 `usize` 类型的值。
-/// # 返回值
+/// ## 返回值
 /// 返回 `address` 的 `PhysicalAddress` 表示。
 impl From<usize> for PhysicalAddress {
     fn from(address: usize) -> Self {
@@ -108,9 +108,9 @@ impl From<usize> for PhysicalAddress {
 
 /// 将 `usize` 转换为 `VirtualAddress` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 一个 `usize` 类型的值。
-/// # 返回值
+/// ## 返回值
 /// 返回 `address` 的 `VirtualAddress` 表示。
 impl From<usize> for VirtualAddress {
     fn from(address: usize) -> Self {
@@ -121,9 +121,9 @@ impl From<usize> for VirtualAddress {
 
 /// 将 `usize` 转换为 `PhysicalPageNumber` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 一个 `usize` 类型的值。
-/// # 返回值
+/// ## 返回值
 /// 返回 `address` 的 `PhysicalPageNumber` 表示。
 impl From<usize> for PhysicalPageNumber {
     fn from(address: usize) -> Self {
@@ -134,9 +134,9 @@ impl From<usize> for PhysicalPageNumber {
 
 /// 将 `usize` 转换为 `VirtualPageNumber` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 一个 `usize` 类型的值。
-/// # 返回值
+/// ## 返回值
 /// 返回 `address` 的 `VirtualPageNumber` 表示。
 impl From<usize> for VirtualPageNumber {
     fn from(address: usize) -> Self {
@@ -147,9 +147,9 @@ impl From<usize> for VirtualPageNumber {
 
 /// 将 `PhysicalAddress` 转换为 `usize` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 一个 `PhysicalAddress` 类型的值。
-/// # 返回值
+/// ## 返回值
 /// 返回 `address` 的内部 `usize` 表示。
 impl From<PhysicalAddress> for usize {
     fn from(address: PhysicalAddress) -> Self {
@@ -159,9 +159,9 @@ impl From<PhysicalAddress> for usize {
 
 /// 将 `VirtualAddress` 转换为 `usize` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 一个 `VirtualAddress` 类型的值。
-/// # 返回值
+/// ## 返回值
 /// 返回 `address` 的内部 `usize` 表示。
 impl From<VirtualAddress> for usize {
     fn from(address: VirtualAddress) -> Self {
@@ -171,9 +171,9 @@ impl From<VirtualAddress> for usize {
 
 /// 将 `PhysicalPageNumber` 转换为 `usize` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 要转换的 `PhysicalPageNumber` 实例。
-/// # 返回值
+/// ## 返回值
 /// 返回 `PhysicalPageNumber` 的内部值，类型为 `usize`。
 impl From<PhysicalPageNumber> for usize {
     fn from(address: PhysicalPageNumber) -> Self {
@@ -183,9 +183,9 @@ impl From<PhysicalPageNumber> for usize {
 
 /// 将 `VirtualPageNumber` 转换为 `usize` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 要转换的 `VirtualPageNumber` 实例。
-/// # 返回值
+/// ## 返回值
 /// 返回 `VirtualPageNumber` 的内部值，类型为 `usize`。
 impl From<VirtualPageNumber> for usize {
     fn from(address: VirtualPageNumber) -> Self {
@@ -195,9 +195,9 @@ impl From<VirtualPageNumber> for usize {
 
 /// 为 `VirtualPageNumber` 实现加法运算。
 ///
-/// # 参数
+/// ## 参数
 /// * `rhs` - 右操作数，类型为 `VirtualPageNumber`。
-/// # 返回值
+/// ## 返回值
 /// 返回两个 `VirtualPageNumber` 相加的结果。
 impl Add for VirtualPageNumber {
     type Output = Self;
@@ -236,9 +236,9 @@ impl PhysicalAddress {
 
 /// 将 `PhysicalAddress` 转换为 `PhysicalPageNumber` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 一个 `PhysicalAddress` 类型的值。
-/// # 返回值
+/// ## 返回值
 /// 返回 `address` 的 `PhysicalPageNumber` 表示。
 impl From<PhysicalAddress> for PhysicalPageNumber {
     fn from(address: PhysicalAddress) -> Self {
@@ -248,9 +248,9 @@ impl From<PhysicalAddress> for PhysicalPageNumber {
 
 /// 将 `PhysicalPageNumber` 转换为 `PhysicalAddress` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `page_number` - 一个 `PhysicalPageNumber` 类型的值。
-/// # 返回值
+/// ## 返回值
 /// 返回 `page_number` 的 `PhysicalAddress` 表示。
 impl From<PhysicalPageNumber> for PhysicalAddress {
     fn from(page_number: PhysicalPageNumber) -> Self {
@@ -295,9 +295,9 @@ impl VirtualAddress {
 
 /// 将 `VirtualAddress` 转换为 `VirtualPageNumber` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `address` - 一个 `VirtualAddress` 类型的值。
-/// # 返回值
+/// ## 返回值
 /// 返回 `address` 的 `VirtualPageNumber` 表示。
 impl From<VirtualAddress> for VirtualPageNumber {
     fn from(address: VirtualAddress) -> Self {
@@ -307,9 +307,9 @@ impl From<VirtualAddress> for VirtualPageNumber {
 
 /// 将 `VirtualPageNumber` 转换为 `VirtualAddress`。
 ///
-/// # 参数
+/// ## 参数
 /// * `page_number` - 虚拟页号。
-/// # 返回值
+/// ## 返回值
 /// 返回一个 `VirtualAddress`，其值为 `page_number` 左移 `PAGE_OFFSET_WIDTH_SV39` 位。
 impl From<VirtualPageNumber> for VirtualAddress {
     fn from(page_number: VirtualPageNumber) -> Self {
@@ -320,7 +320,7 @@ impl From<VirtualPageNumber> for VirtualAddress {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// 表示虚拟页号范围的结构体。
 ///
-/// # 字段
+/// ## 字段
 /// * `start` - 范围的起始虚拟页号。
 /// * `length` - 范围的长度，以页为单位。
 /// * `current` - 当前虚拟页号，用于内部跟踪。
@@ -333,9 +333,9 @@ pub struct VPNRange {
 /// 实现 `Iterator` trait 用于 `VPNRange`。
 ///
 /// `Item` 类型为 `VirtualPageNumber`。
-/// # 方法
+/// ## 方法
 /// * `next` - 返回下一个 `VirtualPageNumber`，如果范围内没有更多的页码则返回 `None`。
-/// # 示例
+/// ## 示例
 /// ```rust
 /// let mut range = VPNRange { start: ..., length: ..., current: ... };
 /// while let Some(vpn) = range.next() {
@@ -359,7 +359,7 @@ impl Iterator for VPNRange {
 impl VPNRange {
     /// 创建一个新的 VPNRange 实例
     ///
-    /// # 参数
+    /// ## 参数
     /// * `start` - 起始虚拟页号
     /// * `end` - 结束虚拟页号
     pub fn new(start: VirtualPageNumber, end: VirtualPageNumber) -> Self {
@@ -374,7 +374,7 @@ impl VPNRange {
 
     /// 从虚拟地址范围创建一个新的 VPNRange 实例
     ///
-    /// # 参数
+    /// ## 参数
     /// * `start` - 起始虚拟地址
     /// * `end` - 结束虚拟地址
     pub fn from_addr(start: VirtualAddress, end: VirtualAddress) -> Self {
@@ -384,7 +384,7 @@ impl VPNRange {
 
     /// 获取范围的结束虚拟页号
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 返回结束虚拟页号
     pub fn end(&self) -> VirtualPageNumber {
         // 计算结束虚拟页号

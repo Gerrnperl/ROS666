@@ -17,19 +17,19 @@ pub const MEMORY_END: usize = 0x80800000;
 trait FrameAllocator {
     /// 创建一个新的帧分配器实例。
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 返回一个新的 `FrameAllocator` 实例。
     fn new() -> Self;
 
     /// 分配一个物理页帧。
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 如果成功，返回一个 `PhysicalPageNumber`，否则返回 `None`。
     fn alloc(&mut self) -> Option<PhysicalPageNumber>;
 
     /// 释放一个物理页帧。
     ///
-    /// # 参数
+    /// ## 参数
     /// * `frame` - 要释放的物理页帧。
     fn dealloc(&mut self, frame: PhysicalPageNumber);
 }
@@ -54,7 +54,7 @@ pub struct StackFrameAllocator {
 impl FrameAllocator for StackFrameAllocator {
     /// 创建一个新的栈帧分配器实例。
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 返回一个新的 `StackFrameAllocator` 实例。
     fn new() -> Self {
         Self {
@@ -65,7 +65,7 @@ impl FrameAllocator for StackFrameAllocator {
 
     /// 分配一个物理页帧。
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 如果成功，返回一个 `PhysicalPageNumber`，否则返回 `None`。
     fn alloc(&mut self) -> Option<PhysicalPageNumber> {
         // 如果有已释放的物理页帧，弹出并返回
@@ -84,7 +84,7 @@ impl FrameAllocator for StackFrameAllocator {
 
     /// 释放一个物理页帧。
     ///
-    /// # 参数
+    /// ## 参数
     /// * `frame` - 要释放的物理页帧。
     fn dealloc(&mut self, frame: PhysicalPageNumber) {
         // 检查要释放的物理页帧是否在未使用范围内，如果是则抛出异常
@@ -120,7 +120,7 @@ impl StackFrameAllocator {
 
     /// 分配一个物理页帧，并返回一个 `FrameTracker` 实例。
     ///
-    /// # 返回值
+    /// ## 返回值
     /// 如果成功，返回一个 `FrameTracker`，否则返回 `None`。
     pub fn alloc_frame() -> Option<FrameTracker> {
         FRAME_ALLOCATOR
@@ -132,7 +132,7 @@ impl StackFrameAllocator {
 
     /// 释放一个物理页帧。
     ///
-    /// # 参数
+    /// ## 参数
     /// * `frame` - 要释放的物理页帧。
     pub fn dealloc_frame(frame: PhysicalPageNumber) {
         FRAME_ALLOCATOR.ref_cell.borrow_mut().dealloc(frame);
@@ -150,16 +150,16 @@ pub struct FrameTracker {
 impl FrameTracker {
     /// 创建一个新的 FrameTracker 实例
     ///
-    /// # 参数
+    /// ## 参数
     /// * `frame` - 一个 PhysicalPageNumber 类型的帧
-    /// # 返回值
+    /// ## 返回值
     /// 返回一个新的 FrameTracker 实例
-    /// # 示例
+    /// ## 示例
     /// ```
     /// let frame = PhysicalPageNumber::new(0);
     /// let tracker = FrameTracker::new(frame);
     /// ```
-    /// # 注意
+    /// ## 注意
     /// 在创建新的 FrameTracker 实例时，会将帧中的所有字节清零
     pub fn new(frame: PhysicalPageNumber) -> Self {
         // 清零帧中的所有字节

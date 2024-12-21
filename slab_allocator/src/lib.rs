@@ -1,7 +1,7 @@
 //! 基于 Slab Allocator 的堆内存分配器
 //! 使用 Linked List Allocator 作为备选分配器，分配大于 4096 字节的内存
 //!
-//! # Example
+//! ## Example
 //! ```no_run
 //! use slab_allocator::LockedHeap;
 //!
@@ -295,7 +295,7 @@ impl core::fmt::Debug for Heap {
 
 /// 一个锁定版本的 `Heap`
 ///
-/// # 用法
+/// ## 用法
 /// 创建一个锁定的堆并添加一个内存区域:
 /// ```no_run
 /// use buddy_system_allocator::*;
@@ -344,15 +344,15 @@ impl core::ops::Deref for LockedHeap {
 }
 
 #[cfg(feature = "use_spin")]
-/// # Safety
+/// ## Safety
 /// 这个实现是 `GlobalAlloc` trait 的一个不安全实现，
 /// 需要确保在使用过程中不会违反 Rust 的内存安全规则。
 ///
-/// # 注意事项
+/// ## 注意事项
 /// 由于这些方法都是不安全的（`unsafe`），调用者必须确保传入的参数是有效的，
 /// 并且在调用这些方法时不会导致未定义行为。
 unsafe impl alloc::GlobalAlloc for LockedHeap {
-    /// # 分配器
+    /// ## 分配器
     /// `alloc` 方法用于分配内存，根据传入的 `layout` 参数返回一个指向分配内存的指针。
     /// 如果分配失败，返回一个空指针。
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
@@ -363,7 +363,7 @@ unsafe impl alloc::GlobalAlloc for LockedHeap {
             .map_or(core::ptr::null_mut(), |allocation| allocation.as_ptr())
     }
 
-    /// # 释放器
+    /// ## 释放器
     /// `dealloc` 方法用于释放内存，根据传入的指针 `ptr` 和 `layout` 参数释放对应的内存。
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
         self.0

@@ -63,9 +63,9 @@ impl core::fmt::Display for Syscall {
 
 /// 将 `Syscall` 枚举转换为 `usize` 类型。
 ///
-/// # 参数
+/// ## 参数
 /// * `syscall` - 要转换的 `Syscall` 枚举值。
-/// # 返回值
+/// ## 返回值
 /// 返回对应的 `usize` 类型值。
 impl From<Syscall> for usize {
     fn from(syscall: Syscall) -> usize {
@@ -75,9 +75,9 @@ impl From<Syscall> for usize {
 
 /// 将 `usize` 类型转换为 `Syscall` 枚举。
 ///
-/// # 参数
+/// ## 参数
 /// * `syscall` - 要转换的 `usize` 类型值。
-/// # 返回值
+/// ## 返回值
 /// 返回对应的 `Syscall` 枚举值。
 impl From<usize> for Syscall {
     fn from(syscall: usize) -> Syscall {
@@ -96,7 +96,7 @@ impl From<usize> for Syscall {
     }
 }
 
-/// # 系统调用参数
+/// ## 系统调用参数
 /// 系统调用参数是一个长度为 3 的数组，用于传递系统调用的参数。
 ///
 /// 通常的参数是：fd：文件描述符，buffer：缓冲区，len：字节数。
