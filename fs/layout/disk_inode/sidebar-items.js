@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["INODE_DIRECT_BLOCKS","INODE_DOUBLE_INDIRECT_START","INODE_INDIRECT_BLOCKS"],"enum":["InodeType"],"struct":["DiskInode"],"type":["DataBlock","IndirectBlock"]};

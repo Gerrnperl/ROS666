@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["DIR_ENTRY_SIZE","NAME_LEN_MAX","NAME_SIZE_MAX"],"struct":["DirEntry"]};

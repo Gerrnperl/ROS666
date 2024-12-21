@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["Syscall"],"mod":["time"],"type":["SyscallArgs","SyscallRet"]};
+window.SIDEBAR_ITEMS = {"enum":["Syscall"],"mod":["time"],"struct":["OpenFlags"],"type":["SyscallArgs","SyscallRet"]};
