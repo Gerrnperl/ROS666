@@ -115,7 +115,6 @@ pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
 }
 
 pub fn sys_exit(code: i32) {
-    printk!("Process exited with code {}\n", code);
     task::manager::TaskManager::replace_to_next(code);
 }
 
