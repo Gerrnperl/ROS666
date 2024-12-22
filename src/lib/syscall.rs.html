@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `user-lib/src/syscall.rs`."><title>syscall.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="lib" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5f23ef7d3 2024-12-20)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">lib/</div>syscall.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `user-lib/src/syscall.rs`."><title>syscall.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="lib" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">lib/</div>syscall.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -66,7 +66,83 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::arch::asm;
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a>
+<a href="#107" id="107">107</a>
+<a href="#108" id="108">108</a>
+<a href="#109" id="109">109</a>
+<a href="#110" id="110">110</a>
+<a href="#111" id="111">111</a>
+<a href="#112" id="112">112</a>
+<a href="#113" id="113">113</a>
+<a href="#114" id="114">114</a>
+<a href="#115" id="115">115</a>
+<a href="#116" id="116">116</a>
+<a href="#117" id="117">117</a>
+<a href="#118" id="118">118</a>
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a></pre></div><pre class="rust"><code><span class="doccomment">//! 这个模块包含系统调用的实现。
+//!
+//! 主要功能包括：
+//! - 调用系统调用。
+//! - 读写文件描述符。
+//! - 退出当前进程。
+//! - 让出 CPU。
+//! - 获取当前时间。
+//! - 创建新进程。
+//! - 执行新程序。
+//! - 等待子进程退出。
+
+</span><span class="kw">use </span>core::arch::asm;
 
 <span class="kw">use </span>common::syscall::{Syscall, SyscallArgs, SyscallRet};
 
@@ -75,6 +151,12 @@
 <span class="doccomment">/// 调用系统调用
 ///
 /// 通过 ecall 指令触发 Trap，进入 M 态
+///
+/// ## 参数
+/// - `call`: 系统调用号
+/// - `args`: 系统调用参数
+/// ## 返回值
+/// 返回系统调用的结果
 </span><span class="kw">pub fn </span>syscall(call: Syscall, args: SyscallArgs) -&gt; SyscallRet {
     <span class="kw">let </span><span class="kw-2">mut </span>ret: SyscallRet;
     <span class="kw">let </span>callid: usize = call.into();
@@ -101,37 +183,83 @@
     syscall(Syscall::Close, [fd, <span class="number">0</span>, <span class="number">0</span>])
 }
 
-<span class="kw">pub fn </span>sys_read(fd: usize, buffer: <span class="kw-2">&amp;mut </span>[u8]) -&gt; SyscallRet {
+<span class="doccomment">/// 读取文件描述符
+///
+/// ## 参数
+/// - `fd`: 文件描述符
+/// - `buffer`: 用于存储读取数据的缓冲区
+/// ## 返回值
+/// 返回系统调用的结果
+</span><span class="kw">pub fn </span>sys_read(fd: usize, buffer: <span class="kw-2">&amp;mut </span>[u8]) -&gt; SyscallRet {
     syscall(Syscall::Read, [fd, buffer.as_ptr() <span class="kw">as </span>usize, buffer.len()])
 }
 
-<span class="kw">pub fn </span>sys_write(fd: usize, buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; SyscallRet {
+<span class="doccomment">/// 写入文件描述符
+///
+/// ## 参数
+/// - `fd`: 文件描述符
+/// - `buffer`: 要写入的数据
+/// ## 返回值
+/// 返回系统调用的结果
+</span><span class="kw">pub fn </span>sys_write(fd: usize, buffer: <span class="kw-2">&amp;</span>[u8]) -&gt; SyscallRet {
     syscall(Syscall::Write, [fd, buffer.as_ptr() <span class="kw">as </span>usize, buffer.len()])
 }
 
 <span class="doccomment">/// 退出当前进程, 报告返回值
+///
+/// ## 参数
+/// - `code`: 退出码
+/// 该函数不会返回，直接退出程序
 </span><span class="kw">pub fn </span>sys_exit(code: usize) -&gt; ! {
     syscall(Syscall::Exit, [code, <span class="number">0</span>, <span class="number">0</span>]);
     <span class="macro">unreachable!</span>(<span class="string">"Unreachable after sys_exit"</span>);
 }
 
-<span class="kw">pub fn </span>sys_sched_yield() -&gt; SyscallRet {
+<span class="doccomment">/// 让出 CPU
+///
+/// ## 返回值
+/// 返回系统调用的结果
+</span><span class="kw">pub fn </span>sys_sched_yield() -&gt; SyscallRet {
     syscall(Syscall::SchedYield, [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>])
 }
 
-<span class="kw">pub fn </span>sys_get_time_of_day(ts: <span class="kw-2">*mut </span>TimeVal, tz: <span class="kw-2">*mut </span>TimeZone) -&gt; SyscallRet {
+<span class="doccomment">/// 获取当前时间
+///
+/// ## 参数
+/// - `ts`: 指向 `TimeVal` 结构体的指针，用于存储当前时间
+/// - `tz`: 指向 `TimeZone` 结构体的指针，用于存储时区信息
+/// ## 返回值
+/// 返回系统调用的结果
+</span><span class="kw">pub fn </span>sys_get_time_of_day(ts: <span class="kw-2">*mut </span>TimeVal, tz: <span class="kw-2">*mut </span>TimeZone) -&gt; SyscallRet {
     syscall(Syscall::GetTimeOfDay, [ts <span class="kw">as </span>usize, tz <span class="kw">as </span>usize, <span class="number">0</span>])
 }
 
-<span class="kw">pub fn </span>sys_clone() -&gt; SyscallRet {
+<span class="doccomment">/// 创建新进程
+///
+/// ## 返回值
+/// 返回系统调用的结果
+</span><span class="kw">pub fn </span>sys_clone() -&gt; SyscallRet {
     syscall(Syscall::Clone, [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>])
 }
 
-<span class="kw">pub fn </span>sys_execve(path: <span class="kw-2">&amp;</span>str) -&gt; SyscallRet {
+<span class="doccomment">/// 执行新程序
+///
+/// ## 参数
+/// - `path`: 程序路径
+/// ## 返回值
+/// 返回系统调用的结果
+</span><span class="kw">pub fn </span>sys_execve(path: <span class="kw-2">&amp;</span>str) -&gt; SyscallRet {
     syscall(Syscall::Execve, [path.as_ptr() <span class="kw">as </span>usize, <span class="number">0</span>, <span class="number">0</span>])
 }
 
-<span class="kw">pub fn </span>sys_wait4(pid: isize, exit_code: <span class="kw-2">*mut </span>i32) -&gt; SyscallRet {
+<span class="doccomment">/// 等待子进程退出
+///
+/// ## 参数
+/// - `pid`: 子进程的进程 ID
+/// - `exit_code`: 指向 `i32` 类型的指针，用于存储子进程的退出码
+/// ## 返回值
+/// 返回系统调用的结果
+</span><span class="kw">pub fn </span>sys_wait4(pid: isize, exit_code: <span class="kw-2">*mut </span>i32) -&gt; SyscallRet {
     syscall(Syscall::Wait4, [pid <span class="kw">as </span>usize, exit_code <span class="kw">as </span>usize, <span class="number">0</span>])
 }
 </code></pre></div></section></main></body></html>

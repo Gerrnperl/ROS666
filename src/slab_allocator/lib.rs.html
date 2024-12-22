@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `slab_allocator/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="slab_allocator" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5f23ef7d3 2024-12-20)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">slab_allocator/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `slab_allocator/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="slab_allocator" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">slab_allocator/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -296,11 +296,85 @@
 <a href="#295" id="295">295</a>
 <a href="#296" id="296">296</a>
 <a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a></pre></div><pre class="rust"><code><span class="doccomment">//! 基于 Slab Allocator 的堆内存分配器
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a></pre></div><pre class="rust"><code><span class="doccomment">//! 基于 Slab Allocator 的堆内存分配器
 //! 使用 Linked List Allocator 作为备选分配器，分配大于 4096 字节的内存
 //!
-//! # Example
-//!
+//! ## Example
 //! ```no_run
 //! use slab_allocator::LockedHeap;
 //!
@@ -309,25 +383,32 @@
 //!    heap.lock().init(begin, size);
 //! }
 //! ```
-//!
 //! Credits:
 //! - 接口参考 [buddy_system_allocator - A buddy system allocator in pure Rust.](https://github.com/rcore-os/buddy_system_allocator) (MIT License)
 //! - 实现参考 [slab_allocator - Slab allocator for no_std systems. ](https://github.com/weclaw1/slab_allocator/tree/master) (MIT License)
 
 </span><span class="attr">#![no_std]
 #![feature(allocator_api)]
+
+</span><span class="comment">// 引入核心库中的分配器模块、分配错误和布局
 </span><span class="kw">use </span>core::{
     alloc::{<span class="self">self</span>, AllocError, Layout},
     ptr::NonNull,
 };
-<span class="kw">use </span>linked_list_allocator;
+
+<span class="comment">// 引入链表分配器和 Slab 模块
+</span><span class="kw">use </span>linked_list_allocator;
 <span class="kw">use </span>slab::Slab;
 
-<span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
+<span class="comment">// 如果启用了 "use_spin" 功能，则引入 spin::Mutex
+</span><span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
 </span><span class="kw">use </span>spin::Mutex;
-<span class="kw">mod </span>slab;
 
-<span class="kw">pub type </span>Address = usize;
+<span class="comment">// 引入 slab 模块
+</span><span class="kw">mod </span>slab;
+
+<span class="doccomment">/// 地址类型
+</span><span class="kw">pub type </span>Address = usize;
 
 <span class="kw">pub const </span>MIN_ALLOC_SIZE: usize = <span class="number">64</span>;
 <span class="kw">pub const </span>MAX_SLAB_SIZE: usize = <span class="number">4096</span>;
@@ -335,36 +416,52 @@
 </span><span class="kw">pub const </span>ALLOCATORS_NUM: usize = <span class="number">8</span>;
 <span class="kw">pub const </span>SLABS_NUM: usize = ALLOCATORS_NUM - <span class="number">1</span>;
 
-<span class="kw">pub fn </span>get_slab_index(<span class="kw-2">mut </span>size: usize) -&gt; usize {
+<span class="doccomment">/// 根据大小获取对应的 Slab 索引
+///
+/// ## 参数
+/// - `size`: 要分配的内存大小
+/// ## 返回
+/// 返回对应的 Slab 索引，如果大小超过最大 Slab 大小，则返回 Fallback 分配器的索引
+</span><span class="kw">pub fn </span>get_slab_index(<span class="kw-2">mut </span>size: usize) -&gt; usize {
     <span class="kw">if </span>size &lt;= MIN_ALLOC_SIZE {
         <span class="kw">return </span><span class="number">0</span>;
     }
     <span class="kw">if </span>size &gt; MAX_SLAB_SIZE {
-        <span class="kw">return </span>ALLOCATORS_NUM - <span class="number">1</span>; <span class="comment">// fallback to the linked list allocator
+        <span class="kw">return </span>ALLOCATORS_NUM - <span class="number">1</span>; <span class="comment">// 回退到链表分配器
     </span>}
     <span class="comment">// 64 -&gt; 0, 65-128 -&gt; 1, 129-256 -&gt; 2, ...
     </span>size = size.next_power_of_two();
     size.trailing_zeros() <span class="kw">as </span>usize - <span class="number">6
 </span>}
 
-<span class="kw">pub struct </span>Heap {
-    slabs: [slab::Slab; SLABS_NUM],
-    fallback: linked_list_allocator::Heap,
-    user: usize,
-    allocated: usize,
-    total: usize,
+<span class="doccomment">/// 堆内存分配器
+</span><span class="kw">pub struct </span>Heap {
+    <span class="doccomment">/// Slab 分配器数组
+    </span>slabs: [slab::Slab; SLABS_NUM],
+    <span class="doccomment">/// 回退分配器 (链表分配器)
+    </span>fallback: linked_list_allocator::Heap,
+    <span class="doccomment">/// 用户请求的字节数
+    </span>user: usize,
+    <span class="doccomment">/// 实际分配的字节数
+    </span>allocated: usize,
+    <span class="doccomment">/// 堆中的总字节数
+    </span>total: usize,
 }
 
-<span class="kw">enum </span>AllocType {
-    Slab(usize),
-    Fallback,
+<span class="doccomment">/// 分配器类型
+</span><span class="kw">enum </span>AllocType {
+    <span class="doccomment">/// Slab 分配器，包含索引
+    </span>Slab(usize),
+    <span class="doccomment">/// 回退分配器
+    </span>Fallback,
 }
 
 <span class="kw">impl </span>Heap {
-    <span class="doccomment">/// Create an empty heap
+    <span class="doccomment">/// 创建一个空的堆内存分配器
     </span><span class="kw">pub const fn </span>new() -&gt; <span class="self">Self </span>{
         Heap {
-            slabs: [
+            <span class="comment">// 初始化 Slab 分配器数组，每个 Slab 分配器的块大小分别为 64, 128, 256, 512, 1024, 2048, 4096 字节
+            </span>slabs: [
                 Slab::empty(<span class="number">64</span>),
                 Slab::empty(<span class="number">128</span>),
                 Slab::empty(<span class="number">256</span>),
@@ -373,19 +470,30 @@
                 Slab::empty(<span class="number">2048</span>),
                 Slab::empty(<span class="number">4096</span>),
             ],
-            fallback: linked_list_allocator::Heap::empty(),
-            user: <span class="number">0</span>,
-            allocated: <span class="number">0</span>,
-            total: <span class="number">0</span>,
+            <span class="comment">// 初始化回退分配器（链表分配器）
+            </span>fallback: linked_list_allocator::Heap::empty(),
+            <span class="comment">// 初始化用户请求的字节数为 0
+            </span>user: <span class="number">0</span>,
+            <span class="comment">// 初始化实际分配的字节数为 0
+            </span>allocated: <span class="number">0</span>,
+            <span class="comment">// 初始化堆中的总字节数为 0
+            </span>total: <span class="number">0</span>,
         }
     }
 
-    <span class="doccomment">/// Create an empty heap
+    <span class="doccomment">/// 创建一个空的堆内存分配器
     </span><span class="kw">pub fn </span>empty() -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::new()
     }
 
-    <span class="kw">fn </span>get_inner(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; AllocType {
+    <span class="doccomment">/// 根据索引获取分配器类型
+    ///
+    /// ## 参数
+    /// - `index`: 分配器索引
+    /// ## 返回
+    /// 返回对应的分配器类型，如果索引小于 ALLOCATORS_NUM - 1，则返回 Slab 分配器，
+    /// 否则返回 Fallback 分配器
+    </span><span class="kw">fn </span>get_inner(<span class="kw-2">&amp;</span><span class="self">self</span>, index: usize) -&gt; AllocType {
         <span class="kw">if </span>index &lt; ALLOCATORS_NUM - <span class="number">1 </span>{
             AllocType::Slab(index)
         } <span class="kw">else </span>{
@@ -398,7 +506,7 @@
     /// 由于 Linked List Allocator 需要一个连续的内存块，
     /// 所以不会在此被扩展
     </span><span class="kw">pub unsafe fn </span>add_to_heap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>start: usize, <span class="kw-2">mut </span>end: usize) {
-        <span class="comment">// avoid unaligned access on some platforms
+        <span class="comment">// 避免在有些平台上出现未对齐的访问
         </span>start = (start + size_of::&lt;usize&gt;() - <span class="number">1</span>) &amp; (!size_of::&lt;usize&gt;() + <span class="number">1</span>);
         end &amp;= !size_of::&lt;usize&gt;() + <span class="number">1</span>;
         <span class="macro">assert!</span>(start &lt;= end);
@@ -423,11 +531,14 @@
     ///
     /// 只能被调用一次
     </span><span class="kw">unsafe fn </span>init_fallback(<span class="kw-2">&amp;mut </span><span class="self">self</span>, <span class="kw-2">mut </span>start: usize, size: usize) {
-        start = (start + size_of::&lt;usize&gt;() - <span class="number">1</span>) &amp; (!size_of::&lt;usize&gt;() + <span class="number">1</span>);
+        <span class="comment">// 避免在有些平台上出现未对齐的访问
+        </span>start = (start + size_of::&lt;usize&gt;() - <span class="number">1</span>) &amp; (!size_of::&lt;usize&gt;() + <span class="number">1</span>);
         <span class="kw">unsafe </span>{
-            <span class="self">self</span>.fallback.init(start <span class="kw">as </span><span class="kw-2">*mut </span>u8, size);
+            <span class="comment">// 初始化链表分配器
+            </span><span class="self">self</span>.fallback.init(start <span class="kw">as </span><span class="kw-2">*mut </span>u8, size);
         }
-        <span class="self">self</span>.total += size;
+        <span class="comment">// 更新堆中的总字节数
+        </span><span class="self">self</span>.total += size;
     }
 
     <span class="doccomment">/// 扩展 Fallback Allocator (Linked List Allocator) 的内存
@@ -441,25 +552,47 @@
         <span class="self">self</span>.total += size;
     }
 
-    <span class="doccomment">/// 添加一段内存[start, end)到堆中
+    <span class="doccomment">/// 初始化堆内存分配器
+    ///
+    /// ## 参数
+    /// - `start`: 内存起始地址
+    /// - `size`: 内存大小
+    /// ## 说明
+    /// 将内存分配给 Slab 分配器和 Fallback 分配器
     </span><span class="kw">pub unsafe fn </span>init(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: usize, size: usize) {
-        <span class="comment">// self.add_to_heap(start, start + size);
+        <span class="comment">// 计算每个分配器的分配大小
         </span><span class="kw">let </span>alloc_size = size / ALLOCATORS_NUM;
-        <span class="kw">let </span>total_slab_size = alloc_size * SLABS_NUM;
-        <span class="kw">let </span>fallback_size = alloc_size;
+        <span class="comment">// 计算所有 Slab 分配器的总大小
+        </span><span class="kw">let </span>total_slab_size = alloc_size * SLABS_NUM;
+        <span class="comment">// 计算 Fallback 分配器的大小
+        </span><span class="kw">let </span>fallback_size = alloc_size;
         <span class="kw">unsafe </span>{
-            <span class="self">self</span>.add_to_heap(start, start + total_slab_size);
-            <span class="self">self</span>.init_fallback(start + total_slab_size, fallback_size);
+            <span class="comment">// 添加内存到 Slab 分配器
+            </span><span class="self">self</span>.add_to_heap(start, start + total_slab_size);
+            <span class="comment">// 初始化 Fallback 分配器
+            </span><span class="self">self</span>.init_fallback(start + total_slab_size, fallback_size);
         }
     }
 
-    <span class="kw">fn </span>select_allocator(<span class="kw-2">&amp;</span><span class="self">self</span>, layout: <span class="kw-2">&amp;</span>Layout) -&gt; AllocType {
+    <span class="doccomment">/// 根据内存布局选择合适的分配器
+    ///
+    /// ## 参数
+    /// - `layout`: 内存布局
+    /// ## 返回
+    /// 返回对应的分配器类型，如果大小小于等于最大 Slab 大小，则返回 Slab 分配器，
+    /// 否则返回 Fallback 分配器
+    </span><span class="kw">fn </span>select_allocator(<span class="kw-2">&amp;</span><span class="self">self</span>, layout: <span class="kw-2">&amp;</span>Layout) -&gt; AllocType {
         <span class="kw">let </span>size = layout.size();
         <span class="kw">let </span>index = get_slab_index(size);
         <span class="self">self</span>.get_inner(index)
     }
 
     <span class="doccomment">/// 从堆中分配一段满足 `layout` 要求的内存
+    ///
+    /// ## 参数
+    /// - `layout`: 内存布局
+    /// ## 返回
+    /// 返回一个指向分配内存的指针，如果分配失败，则返回错误
     </span><span class="kw">pub fn </span>alloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, layout: Layout) -&gt; <span class="prelude-ty">Result</span>&lt;NonNull&lt;u8&gt;, AllocError&gt; {
         <span class="kw">let </span>size = layout.size();
         <span class="kw">match </span><span class="self">self</span>.select_allocator(<span class="kw-2">&amp;</span>layout) {
@@ -518,22 +651,25 @@
 }
 
 <span class="kw">impl </span>core::fmt::Debug <span class="kw">for </span>Heap {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; core::fmt::Result {
+    <span class="doccomment">/// 用于格式化输出 Heap 结构体的信息
+    </span><span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; core::fmt::Result {
         <span class="macro">write!</span>(
             f,
             <span class="string">"Heap {{ user: {}, allocated: {}, total: {} }}"</span>,
-            <span class="self">self</span>.stats_alloc_user(),
-            <span class="self">self</span>.stats_alloc_actual(),
-            <span class="self">self</span>.stats_total_bytes()
+            <span class="comment">// 获取用户分配的内存
+            </span><span class="self">self</span>.stats_alloc_user(),
+            <span class="comment">// 获取实际分配的内存
+            </span><span class="self">self</span>.stats_alloc_actual(),
+            <span class="comment">// 获取总内存
+            </span><span class="self">self</span>.stats_total_bytes()
         )
     }
 }
 
-<span class="doccomment">/// A locked version of `Heap`
+<span class="doccomment">/// 一个锁定版本的 `Heap`
 ///
-/// # Usage
-///
-/// Create a locked heap and add a memory region to it:
+/// ## 用法
+/// 创建一个锁定的堆并添加一个内存区域:
 /// ```no_run
 /// use buddy_system_allocator::*;
 /// # use core::mem::size_of;
@@ -544,26 +680,27 @@
 /// # let size: usize = 100 * size_of::&lt;usize&gt;();
 /// unsafe {
 ///     heap.lock().init(begin, size);
-///     // or
+///     // 或者添加到堆中
 ///     heap.lock().add_to_heap(begin, end);
 /// }
 /// ```
 </span><span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
+</span><span class="doccomment">/// 一个锁定版本的 `Heap`
 </span><span class="kw">pub struct </span>LockedHeap(Mutex&lt;Heap&gt;);
 
 <span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
 </span><span class="kw">impl </span>LockedHeap {
-    <span class="doccomment">/// Create a new `LockedHeap`
+    <span class="doccomment">/// 创建一个新的 `LockedHeap`
     </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         LockedHeap(Mutex::new(Heap::new()))
     }
 
-    <span class="doccomment">/// Lock the heap and get a mutable reference to the inner `Heap`
+    <span class="doccomment">/// 锁定堆并获取内部 `Heap` 的可变引用
     </span><span class="kw">pub fn </span>lock(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; spin::MutexGuard&lt;Heap&gt; {
         <span class="self">self</span>.<span class="number">0</span>.lock()
     }
 
-    <span class="doccomment">/// Creates an empty heap
+    <span class="doccomment">/// 创建一个空的堆
     </span><span class="kw">pub const fn </span>empty() -&gt; <span class="self">Self </span>{
         LockedHeap(Mutex::new(Heap::new()))
     }
@@ -573,14 +710,25 @@
 </span><span class="kw">impl </span>core::ops::Deref <span class="kw">for </span>LockedHeap {
     <span class="kw">type </span>Target = Mutex&lt;Heap&gt;;
 
-    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
+    <span class="doccomment">/// 实现 Deref trait，使 LockedHeap 可以像引用 Mutex&lt;Heap&gt; 一样使用
+    </span><span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
     </span>}
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
+</span><span class="doccomment">/// ## Safety
+/// 这个实现是 `GlobalAlloc` trait 的一个不安全实现，
+/// 需要确保在使用过程中不会违反 Rust 的内存安全规则。
+///
+/// ## 注意事项
+/// 由于这些方法都是不安全的（`unsafe`），调用者必须确保传入的参数是有效的，
+/// 并且在调用这些方法时不会导致未定义行为。
 </span><span class="kw">unsafe impl </span>alloc::GlobalAlloc <span class="kw">for </span>LockedHeap {
-    <span class="kw">unsafe fn </span>alloc(<span class="kw-2">&amp;</span><span class="self">self</span>, layout: Layout) -&gt; <span class="kw-2">*mut </span>u8 {
+    <span class="doccomment">/// ## 分配器
+    /// `alloc` 方法用于分配内存，根据传入的 `layout` 参数返回一个指向分配内存的指针。
+    /// 如果分配失败，返回一个空指针。
+    </span><span class="kw">unsafe fn </span>alloc(<span class="kw-2">&amp;</span><span class="self">self</span>, layout: Layout) -&gt; <span class="kw-2">*mut </span>u8 {
         <span class="self">self</span>.<span class="number">0
             </span>.lock()
             .alloc(layout)
@@ -588,7 +736,9 @@
             .map_or(core::ptr::null_mut(), |allocation| allocation.as_ptr())
     }
 
-    <span class="kw">unsafe fn </span>dealloc(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: <span class="kw-2">*mut </span>u8, layout: Layout) {
+    <span class="doccomment">/// ## 释放器
+    /// `dealloc` 方法用于释放内存，根据传入的指针 `ptr` 和 `layout` 参数释放对应的内存。
+    </span><span class="kw">unsafe fn </span>dealloc(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: <span class="kw-2">*mut </span>u8, layout: Layout) {
         <span class="self">self</span>.<span class="number">0
             </span>.lock()
             .dealloc(<span class="kw">unsafe </span>{ NonNull::new_unchecked(ptr) }, layout)

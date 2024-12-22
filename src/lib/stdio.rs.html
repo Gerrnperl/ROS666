@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `user-lib/src/stdio.rs`."><title>stdio.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="lib" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5f23ef7d3 2024-12-20)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">lib/</div>stdio.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `user-lib/src/stdio.rs`."><title>stdio.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="lib" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">lib/</div>stdio.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -51,14 +51,48 @@
 <a href="#50" id="50">50</a>
 <a href="#51" id="51">51</a>
 <a href="#52" id="52">52</a>
-<a href="#53" id="53">53</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::fmt::Write;
+<a href="#53" id="53">53</a>
+<a href="#54" id="54">54</a>
+<a href="#55" id="55">55</a>
+<a href="#56" id="56">56</a>
+<a href="#57" id="57">57</a>
+<a href="#58" id="58">58</a>
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a></pre></div><pre class="rust"><code><span class="doccomment">//! 这个模块包含标准输入输出相关的功能。
+//!
+//! 主要功能包括：
+//! - 打印格式化字符串。
+//! - 从标准输入读取字符串。
+
+</span><span class="kw">use </span>core::fmt::Write;
 
 <span class="kw">use crate</span>::{read, write};
 
 <span class="kw">const </span>STDIN: usize = <span class="number">0</span>;
 
-<span class="kw">pub fn </span>getchar() -&gt; u8 {
-    <span class="kw">let </span><span class="kw-2">mut </span>c = [<span class="number">0u8</span>; <span class="number">1</span>];
+<span class="doccomment">/// 从标准输入读取一个字符
+///
+/// ## 返回值
+/// 返回读取到的字符
+</span><span class="kw">pub fn </span>getchar() -&gt; u8 {
+    <span class="doccomment">/// 一个长度为1的可变字节数组，用于存储单个字节的数据。
+    </span><span class="kw">let </span><span class="kw-2">mut </span>c = [<span class="number">0u8</span>; <span class="number">1</span>];
     read(STDIN, <span class="kw-2">&amp;mut </span>c);
     c[<span class="number">0</span>]
 }
@@ -66,8 +100,14 @@
 <span class="kw">const </span>STDOUT: usize = <span class="number">1</span>;
 <span class="kw">struct </span>Stdout {}
 
-<span class="kw">impl </span>Write <span class="kw">for </span>Stdout {
-    <span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; core::fmt::Result {
+<span class="doccomment">/// 实现 `Write` trait 用于 `Stdout`。
+</span><span class="kw">impl </span>Write <span class="kw">for </span>Stdout {
+    <span class="doccomment">/// * `write_str` - 将字符串写入标准输出。
+    /// # 参数
+    /// * `s` - 要写入的字符串切片。
+    /// # 返回值
+    /// 如果写入成功，返回 `Ok(())`，否则返回 `Err(core::fmt::Error)`。
+    </span><span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; core::fmt::Result {
         <span class="kw">let </span>ret = write(STDOUT, s.as_bytes());
         <span class="kw">if </span>ret &lt; <span class="number">0 </span>{
             <span class="kw">return </span><span class="prelude-val">Err</span>(core::fmt::Error);
@@ -76,7 +116,13 @@
     }
 }
 
-<span class="kw">pub fn </span>print(args: core::fmt::Arguments) {
+<span class="doccomment">/// 打印格式化字符串
+///
+/// ## 参数
+/// - `args`: 格式化字符串的参数
+/// ## 返回值
+/// 返回格式化结果
+</span><span class="kw">pub fn </span>print(args: core::fmt::Arguments) {
     <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = (Stdout {}.write_fmt(args)) {
         <span class="macro">panic!</span>(<span class="string">"Printing to stdout failed: {:?}"</span>, e);
     }

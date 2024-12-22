@@ -1,1 +1,1 @@
-searchState.loadedDescShard("initproc", 0, "")
+searchState.loadedDescShard("initproc", 0, "initproc")

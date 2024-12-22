@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/mm/address.rs`."><title>address.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5f23ef7d3 2024-12-20)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/mm/</div>address.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/mm/address.rs`."><title>address.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/mm/</div>address.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -222,7 +222,176 @@
 <a href="#221" id="221">221</a>
 <a href="#222" id="222">222</a>
 <a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::ops::Add;
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a>
+<a href="#234" id="234">234</a>
+<a href="#235" id="235">235</a>
+<a href="#236" id="236">236</a>
+<a href="#237" id="237">237</a>
+<a href="#238" id="238">238</a>
+<a href="#239" id="239">239</a>
+<a href="#240" id="240">240</a>
+<a href="#241" id="241">241</a>
+<a href="#242" id="242">242</a>
+<a href="#243" id="243">243</a>
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a>
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::ops::Add;
 
 <span class="kw">use </span><span class="kw">super</span>::page_table::PageTableEntry;
 
@@ -244,34 +413,62 @@
     VIRTUAL_ADDRESS_WIDTH_SV39 - PAGE_OFFSET_WIDTH_SV39;
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="doccomment">/// 物理地址结构体，包含一个 `usize` 类型的地址值。
+///
+/// ## 示例
+/// ```
+/// let addr = PhysicalAddress(0x1000);
+/// ```
 </span><span class="kw">pub struct </span>PhysicalAddress(<span class="kw">pub </span>usize);
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="doccomment">/// 虚拟地址结构体，包含一个 `usize` 类型的地址值。
+///
+/// ## 示例
+/// ```
+/// let addr = VirtualAddress(0x1000);
+/// ```
 </span><span class="kw">pub struct </span>VirtualAddress(<span class="kw">pub </span>usize);
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="doccomment">/// 物理页号结构体，包含一个 `usize` 类型的页号值。
+///
+/// ## 示例
+/// ```
+/// let ppn = PhysicalPageNumber(0x100);
+/// ```
 </span><span class="kw">pub struct </span>PhysicalPageNumber(<span class="kw">pub </span>usize);
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+</span><span class="doccomment">/// 虚拟页号结构体，包含一个 `usize` 类型的页号值。
+///
+/// ## 示例
+/// ```
+/// let vpn = VirtualPageNumber(0x100);
+/// ```
 </span><span class="kw">pub struct </span>VirtualPageNumber(<span class="kw">pub </span>usize);
 
 <span class="kw">impl </span>PhysicalPageNumber {
-    <span class="kw">pub fn </span>get_mut&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>T {
+    <span class="doccomment">/// 获取一个可变引用
+    </span><span class="kw">pub fn </span>get_mut&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>T {
         <span class="kw">let </span>addr: PhysicalAddress = (<span class="kw-2">*</span><span class="self">self</span>).into();
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(addr.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>T) }
     }
 
-    <span class="kw">pub fn </span>get_ref&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>T {
+    <span class="doccomment">/// 获取一个不可变引用
+    </span><span class="kw">pub fn </span>get_ref&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>T {
         <span class="kw">let </span>addr: PhysicalAddress = (<span class="kw-2">*</span><span class="self">self</span>).into();
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(addr.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span>T) }
     }
 
-    <span class="kw">pub fn </span>get_pte_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>[PageTableEntry] {
+    <span class="doccomment">/// 获取页表项数组的可变引用
+    </span><span class="kw">pub fn </span>get_pte_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>[PageTableEntry] {
         <span class="kw">let </span>addr: PhysicalAddress = (<span class="kw-2">*</span><span class="self">self</span>).into();
         <span class="kw">unsafe </span>{ core::slice::from_raw_parts_mut(addr.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>PageTableEntry, <span class="number">512</span>) }
     }
 
-    <span class="kw">pub fn </span>get_bytes_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>[u8] {
+    <span class="doccomment">/// 获取字节数组的可变引用
+    </span><span class="kw">pub fn </span>get_bytes_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>[u8] {
         <span class="kw">let </span>addr: PhysicalAddress = (<span class="kw-2">*</span><span class="self">self</span>).into();
         <span class="kw">unsafe </span>{ core::slice::from_raw_parts_mut(addr.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>u8, <span class="number">4096</span>) }
     }
@@ -279,65 +476,123 @@
 
 <span class="kw">impl </span>VirtualPageNumber {
     <span class="doccomment">/// 取出三级页索引
+    ///
+    /// ## 返回值
+    /// 返回一个包含三级页索引的数组。
+    /// 数组中的每个元素分别对应三级页索引中的一个。
     </span><span class="kw">pub fn </span>indexes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [usize; <span class="number">3</span>] {
         <span class="kw">let </span>vpn = <span class="self">self</span>.<span class="number">0</span>;
         [vpn &gt;&gt; <span class="number">18 </span>&amp; <span class="number">0x1ff</span>, vpn &gt;&gt; <span class="number">9 </span>&amp; <span class="number">0x1ff</span>, vpn &amp; <span class="number">0x1ff</span>]
     }
 }
 
-<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>PhysicalAddress {
+<span class="doccomment">/// 将 `usize` 转换为 `PhysicalAddress` 类型。
+///
+/// ## 参数
+/// * `address` - 一个 `usize` 类型的值。
+/// ## 返回值
+/// 返回 `address` 的 `PhysicalAddress` 表示。
+</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>PhysicalAddress {
     <span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
         <span class="comment">// 只保留低 56 位
         </span><span class="self">Self</span>(address &amp; ((<span class="number">1 </span>&lt;&lt; PHYSICAL_ADDRESS_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
 
-<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>VirtualAddress {
+<span class="doccomment">/// 将 `usize` 转换为 `VirtualAddress` 类型。
+///
+/// ## 参数
+/// * `address` - 一个 `usize` 类型的值。
+/// ## 返回值
+/// 返回 `address` 的 `VirtualAddress` 表示。
+</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>VirtualAddress {
     <span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
         <span class="comment">// 只保留低 39 位
         </span><span class="self">Self</span>(address &amp; ((<span class="number">1 </span>&lt;&lt; VIRTUAL_ADDRESS_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
 
-<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>PhysicalPageNumber {
+<span class="doccomment">/// 将 `usize` 转换为 `PhysicalPageNumber` 类型。
+///
+/// ## 参数
+/// * `address` - 一个 `usize` 类型的值。
+/// ## 返回值
+/// 返回 `address` 的 `PhysicalPageNumber` 表示。
+</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>PhysicalPageNumber {
     <span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
         <span class="comment">// 只保留低 44 位
         </span><span class="self">Self</span>(address &amp; ((<span class="number">1 </span>&lt;&lt; PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
 
-<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>VirtualPageNumber {
+<span class="doccomment">/// 将 `usize` 转换为 `VirtualPageNumber` 类型。
+///
+/// ## 参数
+/// * `address` - 一个 `usize` 类型的值。
+/// ## 返回值
+/// 返回 `address` 的 `VirtualPageNumber` 表示。
+</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>VirtualPageNumber {
     <span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
         <span class="comment">// 只保留低 27 位
         </span><span class="self">Self</span>(address &amp; ((<span class="number">1 </span>&lt;&lt; VIRTUAL_PAGE_NUMBER_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
 
-<span class="kw">impl </span>From&lt;PhysicalAddress&gt; <span class="kw">for </span>usize {
+<span class="doccomment">/// 将 `PhysicalAddress` 转换为 `usize` 类型。
+///
+/// ## 参数
+/// * `address` - 一个 `PhysicalAddress` 类型的值。
+/// ## 返回值
+/// 返回 `address` 的内部 `usize` 表示。
+</span><span class="kw">impl </span>From&lt;PhysicalAddress&gt; <span class="kw">for </span>usize {
     <span class="kw">fn </span>from(address: PhysicalAddress) -&gt; <span class="self">Self </span>{
         address.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>From&lt;VirtualAddress&gt; <span class="kw">for </span>usize {
+<span class="doccomment">/// 将 `VirtualAddress` 转换为 `usize` 类型。
+///
+/// ## 参数
+/// * `address` - 一个 `VirtualAddress` 类型的值。
+/// ## 返回值
+/// 返回 `address` 的内部 `usize` 表示。
+</span><span class="kw">impl </span>From&lt;VirtualAddress&gt; <span class="kw">for </span>usize {
     <span class="kw">fn </span>from(address: VirtualAddress) -&gt; <span class="self">Self </span>{
         address.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>From&lt;PhysicalPageNumber&gt; <span class="kw">for </span>usize {
+<span class="doccomment">/// 将 `PhysicalPageNumber` 转换为 `usize` 类型。
+///
+/// ## 参数
+/// * `address` - 要转换的 `PhysicalPageNumber` 实例。
+/// ## 返回值
+/// 返回 `PhysicalPageNumber` 的内部值，类型为 `usize`。
+</span><span class="kw">impl </span>From&lt;PhysicalPageNumber&gt; <span class="kw">for </span>usize {
     <span class="kw">fn </span>from(address: PhysicalPageNumber) -&gt; <span class="self">Self </span>{
         address.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>From&lt;VirtualPageNumber&gt; <span class="kw">for </span>usize {
+<span class="doccomment">/// 将 `VirtualPageNumber` 转换为 `usize` 类型。
+///
+/// ## 参数
+/// * `address` - 要转换的 `VirtualPageNumber` 实例。
+/// ## 返回值
+/// 返回 `VirtualPageNumber` 的内部值，类型为 `usize`。
+</span><span class="kw">impl </span>From&lt;VirtualPageNumber&gt; <span class="kw">for </span>usize {
     <span class="kw">fn </span>from(address: VirtualPageNumber) -&gt; <span class="self">Self </span>{
         address.<span class="number">0
     </span>}
 }
 
-<span class="kw">impl </span>Add <span class="kw">for </span>VirtualPageNumber {
+<span class="doccomment">/// 为 `VirtualPageNumber` 实现加法运算。
+///
+/// ## 参数
+/// * `rhs` - 右操作数，类型为 `VirtualPageNumber`。
+/// ## 返回值
+/// 返回两个 `VirtualPageNumber` 相加的结果。
+</span><span class="kw">impl </span>Add <span class="kw">for </span>VirtualPageNumber {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
     <span class="kw">fn </span>add(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
@@ -346,77 +601,141 @@
 }
 
 <span class="kw">impl </span>PhysicalAddress {
-    <span class="kw">pub fn </span>page_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.<span class="number">0 </span>&amp; (PAGE_SIZE_SV39 - <span class="number">1</span>)
+    <span class="doccomment">/// 计算页内偏移量，通过对地址进行按位与操作
+    </span><span class="kw">pub fn </span>page_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="comment">// PAGE_SIZE_SV39 - 1 用于获取页大小减一的值，这样可以确保只保留页内偏移部分
+        </span><span class="self">self</span>.<span class="number">0 </span>&amp; (PAGE_SIZE_SV39 - <span class="number">1</span>)
     }
 
-    <span class="kw">pub fn </span>floor_page(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PhysicalAddress {
-        PhysicalAddress(<span class="self">self</span>.<span class="number">0 </span>&amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
+    <span class="doccomment">/// 计算对齐到页边界的物理地址，通过对地址进行按位与操作
+    </span><span class="kw">pub fn </span>floor_page(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PhysicalAddress {
+        <span class="comment">// !(PAGE_SIZE_SV39 - 1) 用于获取页大小减一的补码，这样可以清除页内偏移部分
+        </span>PhysicalAddress(<span class="self">self</span>.<span class="number">0 </span>&amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
     }
 
-    <span class="kw">pub fn </span>ceil_page(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PhysicalAddress {
-        PhysicalAddress(<span class="self">self</span>.<span class="number">0 </span>+ PAGE_SIZE_SV39 - <span class="number">1 </span>&amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
+    <span class="doccomment">/// 计算向上对齐到页边界的物理地址
+    </span><span class="kw">pub fn </span>ceil_page(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PhysicalAddress {
+        <span class="comment">// self.0 + PAGE_SIZE_SV39 - 1 用于确保地址向上对齐到下一个页边界
+        // !(PAGE_SIZE_SV39 - 1) 用于获取页大小减一的补码，这样可以清除页内偏移部分
+        </span>PhysicalAddress((<span class="self">self</span>.<span class="number">0 </span>+ PAGE_SIZE_SV39 - <span class="number">1</span>) &amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
     }
 
-    <span class="kw">pub fn </span>get_mut&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>T {
-        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>T) }
+    <span class="doccomment">/// 计算页号
+    </span><span class="kw">pub fn </span>get_mut&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>T {
+        <span class="comment">// 使用 unsafe 块将地址转换为指向类型 T 的可变指针，并返回可变引用
+        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>T) }
     }
 }
 
-<span class="kw">impl </span>From&lt;PhysicalAddress&gt; <span class="kw">for </span>PhysicalPageNumber {
+<span class="doccomment">/// 将 `PhysicalAddress` 转换为 `PhysicalPageNumber` 类型。
+///
+/// ## 参数
+/// * `address` - 一个 `PhysicalAddress` 类型的值。
+/// ## 返回值
+/// 返回 `address` 的 `PhysicalPageNumber` 表示。
+</span><span class="kw">impl </span>From&lt;PhysicalAddress&gt; <span class="kw">for </span>PhysicalPageNumber {
     <span class="kw">fn </span>from(address: PhysicalAddress) -&gt; <span class="self">Self </span>{
         PhysicalPageNumber(address.<span class="number">0 </span>&gt;&gt; PAGE_OFFSET_WIDTH_SV39)
     }
 }
 
-<span class="kw">impl </span>From&lt;PhysicalPageNumber&gt; <span class="kw">for </span>PhysicalAddress {
+<span class="doccomment">/// 将 `PhysicalPageNumber` 转换为 `PhysicalAddress` 类型。
+///
+/// ## 参数
+/// * `page_number` - 一个 `PhysicalPageNumber` 类型的值。
+/// ## 返回值
+/// 返回 `page_number` 的 `PhysicalAddress` 表示。
+</span><span class="kw">impl </span>From&lt;PhysicalPageNumber&gt; <span class="kw">for </span>PhysicalAddress {
     <span class="kw">fn </span>from(page_number: PhysicalPageNumber) -&gt; <span class="self">Self </span>{
         PhysicalAddress(page_number.<span class="number">0 </span>&lt;&lt; PAGE_OFFSET_WIDTH_SV39)
     }
 }
 
 <span class="kw">impl </span>VirtualAddress {
-    <span class="kw">pub fn </span>page_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
-        <span class="self">self</span>.<span class="number">0 </span>&amp; (PAGE_SIZE_SV39 - <span class="number">1</span>)
+    <span class="doccomment">/// 计算页内偏移量，通过对地址进行按位与操作
+    </span><span class="kw">pub fn </span>page_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+        <span class="comment">// PAGE_SIZE_SV39 - 1 用于获取页大小减一的值，这样可以确保只保留页内偏移部分
+        </span><span class="self">self</span>.<span class="number">0 </span>&amp; (PAGE_SIZE_SV39 - <span class="number">1</span>)
     }
 
-    <span class="kw">pub fn </span>floor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualAddress {
-        VirtualAddress(<span class="self">self</span>.<span class="number">0 </span>&amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
+    <span class="doccomment">/// 计算对齐到页边界的虚拟地址，通过对地址进行按位与操作
+    </span><span class="kw">pub fn </span>floor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualAddress {
+        <span class="comment">// !(PAGE_SIZE_SV39 - 1) 用于获取页大小减一的补码，这样可以清除页内偏移部分
+        </span>VirtualAddress(<span class="self">self</span>.<span class="number">0 </span>&amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
     }
 
-    <span class="kw">pub fn </span>ceil(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualAddress {
-        VirtualAddress(<span class="self">self</span>.<span class="number">0 </span>+ PAGE_SIZE_SV39 - <span class="number">1 </span>&amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
+    <span class="doccomment">/// 计算向上对齐到页边界的虚拟地址
+    </span><span class="kw">pub fn </span>ceil(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualAddress {
+        <span class="comment">// self.0 + PAGE_SIZE_SV39 - 1 用于确保地址向上对齐到下一个页边界
+        // !(PAGE_SIZE_SV39 - 1) 用于获取页大小减一的补码，这样可以清除页内偏移部分
+        </span>VirtualAddress((<span class="self">self</span>.<span class="number">0 </span>+ PAGE_SIZE_SV39 - <span class="number">1</span>) &amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
     }
 
-    <span class="kw">pub fn </span>floor_page(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualPageNumber {
-        VirtualPageNumber::from(<span class="self">self</span>.floor())
+    <span class="doccomment">/// 计算对齐到页边界的虚拟页号
+    </span><span class="kw">pub fn </span>floor_page(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualPageNumber {
+        <span class="comment">// 调用 floor() 方法获取对齐到页边界的虚拟地址
+        // 然后将其转换为 VirtualPageNumber
+        </span>VirtualPageNumber::from(<span class="self">self</span>.floor())
     }
 
-    <span class="kw">pub fn </span>ceil_page(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualPageNumber {
-        VirtualPageNumber::from(<span class="self">self</span>.ceil())
+    <span class="doccomment">/// 计算向上对齐到页边界的虚拟页号
+    </span><span class="kw">pub fn </span>ceil_page(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualPageNumber {
+        <span class="comment">// 调用 ceil() 方法获取向上对齐到页边界的虚拟地址
+        // 然后将其转换为 VirtualPageNumber
+        </span>VirtualPageNumber::from(<span class="self">self</span>.ceil())
     }
 }
 
-<span class="kw">impl </span>From&lt;VirtualAddress&gt; <span class="kw">for </span>VirtualPageNumber {
+<span class="doccomment">/// 将 `VirtualAddress` 转换为 `VirtualPageNumber` 类型。
+///
+/// ## 参数
+/// * `address` - 一个 `VirtualAddress` 类型的值。
+/// ## 返回值
+/// 返回 `address` 的 `VirtualPageNumber` 表示。
+</span><span class="kw">impl </span>From&lt;VirtualAddress&gt; <span class="kw">for </span>VirtualPageNumber {
     <span class="kw">fn </span>from(address: VirtualAddress) -&gt; <span class="self">Self </span>{
         VirtualPageNumber(address.<span class="number">0 </span>&gt;&gt; PAGE_OFFSET_WIDTH_SV39)
     }
 }
 
-<span class="kw">impl </span>From&lt;VirtualPageNumber&gt; <span class="kw">for </span>VirtualAddress {
+<span class="doccomment">/// 将 `VirtualPageNumber` 转换为 `VirtualAddress`。
+///
+/// ## 参数
+/// * `page_number` - 虚拟页号。
+/// ## 返回值
+/// 返回一个 `VirtualAddress`，其值为 `page_number` 左移 `PAGE_OFFSET_WIDTH_SV39` 位。
+</span><span class="kw">impl </span>From&lt;VirtualPageNumber&gt; <span class="kw">for </span>VirtualAddress {
     <span class="kw">fn </span>from(page_number: VirtualPageNumber) -&gt; <span class="self">Self </span>{
         VirtualAddress(page_number.<span class="number">0 </span>&lt;&lt; PAGE_OFFSET_WIDTH_SV39)
     }
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+</span><span class="doccomment">/// 表示虚拟页号范围的结构体。
+///
+/// ## 字段
+/// * `start` - 范围的起始虚拟页号。
+/// * `length` - 范围的长度，以页为单位。
+/// * `current` - 当前虚拟页号，用于内部跟踪。
 </span><span class="kw">pub struct </span>VPNRange {
     <span class="kw">pub </span>start: VirtualPageNumber,
     <span class="kw">pub </span>length: usize,
     current: VirtualPageNumber,
 }
 
-<span class="kw">impl </span>Iterator <span class="kw">for </span>VPNRange {
+<span class="doccomment">/// 实现 `Iterator` trait 用于 `VPNRange`。
+///
+/// `Item` 类型为 `VirtualPageNumber`。
+/// ## 方法
+/// * `next` - 返回下一个 `VirtualPageNumber`，如果范围内没有更多的页码则返回 `None`。
+/// ## 示例
+/// ```rust
+/// let mut range = VPNRange { start: ..., length: ..., current: ... };
+/// while let Some(vpn) = range.next() {
+///     // 处理 `vpn`
+/// }
+/// ```
+</span><span class="kw">impl </span>Iterator <span class="kw">for </span>VPNRange {
     <span class="kw">type </span>Item = VirtualPageNumber;
 
     <span class="kw">fn </span>next(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="self">Self</span>::Item&gt; {
@@ -431,19 +750,38 @@
 }
 
 <span class="kw">impl </span>VPNRange {
-    <span class="kw">pub fn </span>new(start: VirtualPageNumber, end: VirtualPageNumber) -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>length = end.<span class="number">0 </span>- start.<span class="number">0</span>;
+    <span class="doccomment">/// 创建一个新的 VPNRange 实例
+    ///
+    /// ## 参数
+    /// * `start` - 起始虚拟页号
+    /// * `end` - 结束虚拟页号
+    </span><span class="kw">pub fn </span>new(start: VirtualPageNumber, end: VirtualPageNumber) -&gt; <span class="self">Self </span>{
+        <span class="comment">// 计算范围内的页数
+        </span><span class="kw">let </span>length = end.<span class="number">0 </span>- start.<span class="number">0</span>;
         <span class="self">Self </span>{
             start,
             length,
             current: start,
         }
     }
-    <span class="kw">pub fn </span>from_addr(start: VirtualAddress, end: VirtualAddress) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::new(start.into(), end.into())
+
+    <span class="doccomment">/// 从虚拟地址范围创建一个新的 VPNRange 实例
+    ///
+    /// ## 参数
+    /// * `start` - 起始虚拟地址
+    /// * `end` - 结束虚拟地址
+    </span><span class="kw">pub fn </span>from_addr(start: VirtualAddress, end: VirtualAddress) -&gt; <span class="self">Self </span>{
+        <span class="comment">// 将虚拟地址转换为虚拟页号，并调用 new 方法
+        </span><span class="self">Self</span>::new(start.into(), end.into())
     }
-    <span class="kw">pub fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualPageNumber {
-        VirtualPageNumber(<span class="self">self</span>.start.<span class="number">0 </span>+ <span class="self">self</span>.length)
+
+    <span class="doccomment">/// 获取范围的结束虚拟页号
+    ///
+    /// ## 返回值
+    /// 返回结束虚拟页号
+    </span><span class="kw">pub fn </span>end(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualPageNumber {
+        <span class="comment">// 计算结束虚拟页号
+        </span>VirtualPageNumber(<span class="self">self</span>.start.<span class="number">0 </span>+ <span class="self">self</span>.length)
     }
 }
 </code></pre></div></section></main></body></html>

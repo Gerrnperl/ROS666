@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `slab_allocator/src/slab.rs`."><title>slab.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="slab_allocator" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5f23ef7d3 2024-12-20)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">slab_allocator/</div>slab.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `slab_allocator/src/slab.rs`."><title>slab.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="slab_allocator" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">slab_allocator/</div>slab.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -145,11 +145,29 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::{alloc::AllocError, ptr::NonNull};
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a></pre></div><pre class="rust"><code><span class="doccomment">//! `slab` 模块包含 `Slab` 结构体，该结构体表示一个内存块分配器。
+
+</span><span class="kw">use </span>core::{alloc::AllocError, ptr::NonNull};
 
 <span class="kw">use </span><span class="kw">crate</span>::Address;
 
-<span class="kw">pub struct </span>Slab {
+<span class="doccomment">/// `Slab` 结构体表示一个内存块分配器。
+///
+/// ## 字段
+/// - `block_size`：每个内存块的大小
+/// - `block_num`：内存块的数量
+/// - `free_list`：空闲内存块列表
+</span><span class="kw">pub struct </span>Slab {
     <span class="kw">pub </span>block_size: usize,
     <span class="kw">pub </span>block_num: usize,
     free_list: FreeList,
@@ -160,9 +178,7 @@
     ///
     /// ## 参数
     /// - `block_size`：每个内存块的大小
-    ///
     /// ## 返回
-    ///
     /// 具有指定块大小的新 `Slab` 空实例，其中没有内存块。
     </span><span class="kw">pub const fn </span>empty(block_size: usize) -&gt; <span class="self">Self </span>{
         Slab {
@@ -178,9 +194,7 @@
     /// - `start`：内存块的起始地址
     /// - `block_size`：每个内存块的大小
     /// - `block_num`：内存块的数量
-    ///
     /// ## 返回
-    ///
     /// 具有指定参数的新 `Slab` 实例。
     </span><span class="kw">pub fn </span>new(start: Address, block_size: usize, block_num: usize) -&gt; <span class="self">Self </span>{
         Slab {
@@ -190,10 +204,15 @@
         }
     }
 
-    <span class="kw">pub fn </span>grow(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: Address, slab_size: usize) {
+    <span class="doccomment">/// 扩展 `Slab` 实例的内存块。
+    ///
+    /// ## 参数
+    /// - `start`：新内存块的起始地址
+    /// - `slab_size`：新内存块的总大小
+    </span><span class="kw">pub fn </span>grow(<span class="kw-2">&amp;mut </span><span class="self">self</span>, start: Address, slab_size: usize) {
         <span class="kw">let </span>block_num = slab_size / <span class="self">self</span>.block_size;
         <span class="self">self</span>.block_num += block_num;
-        <span class="comment">// add to self.free_list
+        <span class="comment">// 添加到 self.free_list
         </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..block_num {
             <span class="kw">let </span>block = (start + i * <span class="self">self</span>.block_size) <span class="kw">as </span><span class="kw-2">*mut </span>FreeBlock;
             <span class="kw">let </span>block = <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>block };
@@ -204,7 +223,6 @@
     <span class="doccomment">/// 从 `Slab` 实例中分配一个内存块。
     ///
     /// ## 返回
-    ///
     /// 如果成功分配内存块，则返回内存块的地址；否则返回 `None`。
     </span><span class="kw">pub fn </span>alloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;NonNull&lt;u8&gt;, AllocError&gt; {
         <span class="self">self</span>.free_list
@@ -226,15 +244,20 @@
 
 <span class="doccomment">/// 内存块空闲列表
 </span><span class="kw">struct </span>FreeList {
-    len: usize,
-    head: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>FreeBlock&gt;,
+    <span class="doccomment">/// 空闲列表的长度
+    </span>len: usize,
+    <span class="doccomment">/// 空闲列表的头部节点
+    </span>head: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>FreeBlock&gt;,
 }
 
-<span class="kw">struct </span>FreeBlock {
-    next: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>FreeBlock&gt;,
+<span class="doccomment">/// 表示一个空闲的内存块
+</span><span class="kw">struct </span>FreeBlock {
+    <span class="doccomment">/// 指向下一个空闲块的可选引用
+    </span>next: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>FreeBlock&gt;,
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>FreeList {
+<span class="doccomment">/// 为 `FreeList` 实现 `Drop` 特性，以便在 `FreeList` 被销毁时释放所有节点。
+</span><span class="kw">impl </span>Drop <span class="kw">for </span>FreeList {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">let </span><span class="kw-2">mut </span>current = <span class="self">self</span>.head.take();
         <span class="kw">while let </span><span class="prelude-val">Some</span>(node) = current {
@@ -255,9 +278,7 @@
     /// - `start`：内存块的起始地址
     /// - `block_size`：每个内存块的大小
     /// - `block_num`：内存块的数量
-    ///
     /// ## 返回
-    ///
     /// 具有指定参数的新 `FreeList` 实例。
     </span><span class="kw">pub fn </span>new(start: Address, block_size: usize, block_num: usize) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>list = FreeList { len: <span class="number">0</span>, head: <span class="prelude-val">None </span>};
@@ -282,7 +303,6 @@
     <span class="doccomment">/// 从空闲列表中弹出一个空闲块。
     ///
     /// ## 返回
-    ///
     /// 如果列表不为空，则包含对空闲块的可变引用的 `Option`，如果列表为空，则返回 `None`。
     </span><span class="kw">pub fn </span>pop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>FreeBlock&gt; {
         <span class="self">self</span>.head.take().map(|free_block| {

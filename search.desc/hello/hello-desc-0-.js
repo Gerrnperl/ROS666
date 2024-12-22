@@ -1,1 +1,1 @@
-searchState.loadedDescShard("hello", 0, "")
+searchState.loadedDescShard("hello", 0, "Hello World")

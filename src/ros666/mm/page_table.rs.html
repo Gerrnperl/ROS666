@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/mm/page_table.rs`."><title>page_table.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5f23ef7d3 2024-12-20)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/mm/</div>page_table.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/mm/page_table.rs`."><title>page_table.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/mm/</div>page_table.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -299,25 +299,138 @@
 <a href="#298" id="298">298</a>
 <a href="#299" id="299">299</a>
 <a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a></pre></div><pre class="rust"><code><span class="kw">use </span>alloc::{string::String, vec::Vec};
+<a href="#301" id="301">301</a>
+<a href="#302" id="302">302</a>
+<a href="#303" id="303">303</a>
+<a href="#304" id="304">304</a>
+<a href="#305" id="305">305</a>
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a>
+<a href="#323" id="323">323</a>
+<a href="#324" id="324">324</a>
+<a href="#325" id="325">325</a>
+<a href="#326" id="326">326</a>
+<a href="#327" id="327">327</a>
+<a href="#328" id="328">328</a>
+<a href="#329" id="329">329</a>
+<a href="#330" id="330">330</a>
+<a href="#331" id="331">331</a>
+<a href="#332" id="332">332</a>
+<a href="#333" id="333">333</a>
+<a href="#334" id="334">334</a>
+<a href="#335" id="335">335</a>
+<a href="#336" id="336">336</a>
+<a href="#337" id="337">337</a>
+<a href="#338" id="338">338</a>
+<a href="#339" id="339">339</a>
+<a href="#340" id="340">340</a>
+<a href="#341" id="341">341</a>
+<a href="#342" id="342">342</a>
+<a href="#343" id="343">343</a>
+<a href="#344" id="344">344</a>
+<a href="#345" id="345">345</a>
+<a href="#346" id="346">346</a>
+<a href="#347" id="347">347</a>
+<a href="#348" id="348">348</a>
+<a href="#349" id="349">349</a>
+<a href="#350" id="350">350</a>
+<a href="#351" id="351">351</a>
+<a href="#352" id="352">352</a>
+<a href="#353" id="353">353</a>
+<a href="#354" id="354">354</a>
+<a href="#355" id="355">355</a>
+<a href="#356" id="356">356</a>
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a>
+<a href="#360" id="360">360</a>
+<a href="#361" id="361">361</a>
+<a href="#362" id="362">362</a>
+<a href="#363" id="363">363</a>
+<a href="#364" id="364">364</a>
+<a href="#365" id="365">365</a>
+<a href="#366" id="366">366</a>
+<a href="#367" id="367">367</a>
+<a href="#368" id="368">368</a>
+<a href="#369" id="369">369</a>
+<a href="#370" id="370">370</a>
+<a href="#371" id="371">371</a>
+<a href="#372" id="372">372</a>
+<a href="#373" id="373">373</a>
+<a href="#374" id="374">374</a>
+<a href="#375" id="375">375</a>
+<a href="#376" id="376">376</a>
+<a href="#377" id="377">377</a>
+<a href="#378" id="378">378</a>
+<a href="#379" id="379">379</a>
+<a href="#380" id="380">380</a>
+<a href="#381" id="381">381</a>
+<a href="#382" id="382">382</a>
+<a href="#383" id="383">383</a>
+<a href="#384" id="384">384</a>
+<a href="#385" id="385">385</a>
+<a href="#386" id="386">386</a>
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a>
+<a href="#395" id="395">395</a>
+<a href="#396" id="396">396</a>
+<a href="#397" id="397">397</a>
+<a href="#398" id="398">398</a>
+<a href="#399" id="399">399</a>
+<a href="#400" id="400">400</a></pre></div><pre class="rust"><code><span class="doccomment">//! 页表模块
 
-<span class="kw">use </span><span class="kw">crate</span>::printkln;
+</span><span class="comment">// 引入分配器模块中的 String 和 Vec 类型
+</span><span class="kw">use </span>alloc::{string::String, vec::Vec};
 
-<span class="kw">use super</span>::{
+<span class="comment">// 引入打印宏
+</span><span class="kw">use </span><span class="kw">crate</span>::printkln;
+
+<span class="comment">// 引入地址模块中的相关类型
+</span><span class="kw">use super</span>::{
     address::{
         PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalAddress, PhysicalPageNumber, VirtualAddress,
         VirtualPageNumber,
     },
-    frame_allocator::{FrameTracker, StackFrameAllocator},
+    <span class="comment">// 引入帧分配器模块中的相关类型
+    </span>frame_allocator::{FrameTracker, StackFrameAllocator},
 };
 
-<span class="kw">pub struct </span>PageTable {
-    <span class="kw">pub </span>root: PhysicalPageNumber,
-    <span class="kw">pub </span>frames: Vec&lt;FrameTracker&gt;,
+<span class="doccomment">/// 页表结构体
+///
+/// 包含根页表的物理页号和帧跟踪器的向量
+</span><span class="kw">pub struct </span>PageTable {
+    <span class="doccomment">/// 根页表的物理页号
+    </span><span class="kw">pub </span>root: PhysicalPageNumber,
+    <span class="doccomment">/// 帧跟踪器的向量
+    </span><span class="kw">pub </span>frames: Vec&lt;FrameTracker&gt;,
 }
 
 <span class="kw">impl </span>PageTable {
-    <span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 创建一个新的页表
+    ///
+    /// 分配一个根页表帧，并初始化页表结构体
+    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>root = StackFrameAllocator::alloc_frame().unwrap();
         <span class="self">Self </span>{
             root: root.frame,
@@ -325,11 +438,17 @@
         }
     }
 
-    <span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    <span class="doccomment">/// 获取页表的 token
+    ///
+    /// 将根页表的物理页号与模式位组合，生成页表的 token
+    </span><span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.root.<span class="number">0 </span>| (<span class="number">8 </span>&lt;&lt; <span class="number">60</span>)
     }
 
-    <span class="kw">pub fn </span>map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber, ppn: PhysicalPageNumber, flags: PTEFlags) {
+    <span class="doccomment">/// 映射虚拟页号到物理页号
+    ///
+    /// 根据虚拟页号查找页表项，并将其映射到给定的物理页号和标志位
+    </span><span class="kw">pub fn </span>map(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber, ppn: PhysicalPageNumber, flags: PTEFlags) {
         <span class="kw">let </span>entry = <span class="self">self</span>.find_pte_mut(vpn).unwrap();
         <span class="kw">if </span>(<span class="kw-2">*</span>entry).valid() {
             <span class="macro">panic!</span>(<span class="string">"map: {:?} has been mapped"</span>, vpn);
@@ -337,7 +456,10 @@
         <span class="kw-2">*</span>entry = PageTableEntry::new(ppn, flags | PTEFlags::Valid);
     }
 
-    <span class="kw">pub fn </span>unmap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber) {
+    <span class="doccomment">/// 取消映射虚拟页号
+    ///
+    /// 根据虚拟页号查找页表项，并将其设置为默认值，取消映射
+    </span><span class="kw">pub fn </span>unmap(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber) {
         <span class="kw">let </span>entry = <span class="self">self</span>.find_pte(vpn).unwrap();
         <span class="kw">if </span>!(<span class="kw-2">*</span>entry).valid() {
             <span class="macro">panic!</span>(<span class="string">"unmap: {:?} has not been mapped"</span>, vpn);
@@ -345,7 +467,10 @@
         <span class="kw-2">*</span>entry = PageTableEntry::default();
     }
 
-    <span class="kw">pub fn </span>find_pte_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PageTableEntry&gt; {
+    <span class="doccomment">/// 查找并返回可变的页表项
+    ///
+    /// 根据虚拟页号查找页表项，如果不存在则分配新的页表项
+    </span><span class="kw">pub fn </span>find_pte_mut(<span class="kw-2">&amp;mut </span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PageTableEntry&gt; {
         <span class="kw">let </span>indexes = vpn.indexes();
         <span class="kw">let </span><span class="kw-2">mut </span>ppn = <span class="self">self</span>.root;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">3 </span>{
@@ -363,7 +488,10 @@
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">pub fn </span>find_pte(<span class="kw-2">&amp;</span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PageTableEntry&gt; {
+    <span class="doccomment">/// 查找并返回不可变的页表项
+    ///
+    /// 根据虚拟页号查找页表项，如果不存在则返回 None
+    </span><span class="kw">pub fn </span>find_pte(<span class="kw-2">&amp;</span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>PageTableEntry&gt; {
         <span class="kw">let </span>indexes = vpn.indexes();
         <span class="kw">let </span><span class="kw-2">mut </span>ppn = <span class="self">self</span>.root;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">3 </span>{
@@ -379,11 +507,17 @@
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">pub fn </span>translate(<span class="kw-2">&amp;</span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;PageTableEntry&gt; {
+    <span class="doccomment">/// 翻译虚拟页号到页表项
+    ///
+    /// 根据虚拟页号查找页表项，并返回其副本
+    </span><span class="kw">pub fn </span>translate(<span class="kw-2">&amp;</span><span class="self">self</span>, vpn: VirtualPageNumber) -&gt; <span class="prelude-ty">Option</span>&lt;PageTableEntry&gt; {
         <span class="self">self</span>.find_pte(vpn).map(|entry| <span class="kw-2">*</span>entry)
     }
 
-    <span class="kw">pub fn </span>translate_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, va: VirtualAddress) -&gt; <span class="prelude-ty">Option</span>&lt;PhysicalAddress&gt; {
+    <span class="doccomment">/// 翻译虚拟地址到物理地址
+    ///
+    /// 根据虚拟地址查找页表项，并计算物理地址
+    </span><span class="kw">pub fn </span>translate_addr(<span class="kw-2">&amp;</span><span class="self">self</span>, va: VirtualAddress) -&gt; <span class="prelude-ty">Option</span>&lt;PhysicalAddress&gt; {
         <span class="self">self</span>.find_pte(VirtualPageNumber::from(va)).map(|entry| {
             <span class="kw">let </span>floor = PhysicalAddress::from(PhysicalPageNumber::from(entry));
             <span class="kw">let </span>offset = va.page_offset();
@@ -391,7 +525,10 @@
         })
     }
 
-    <span class="kw">pub fn </span>from_satp(satp: usize) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 从 SATP 寄存器创建页表
+    ///
+    /// 根据 SATP 寄存器中的值创建页表结构体
+    </span><span class="kw">pub fn </span>from_satp(satp: usize) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>root_ppn = PhysicalPageNumber::from(satp);
         <span class="self">Self </span>{
             root: root_ppn,
@@ -403,14 +540,22 @@
 <span class="macro">bitflags::bitflags!</span> {
     <span class="attr">#[derive(PartialEq)]
     </span><span class="kw">pub struct </span>PTEFlags: u8 {
-        <span class="kw">const </span>Valid = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
-        <span class="kw">const </span>Read = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>;
-        <span class="kw">const </span>Write = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>;
-        <span class="kw">const </span>Execute = <span class="number">1 </span>&lt;&lt; <span class="number">3</span>;
-        <span class="kw">const </span>User = <span class="number">1 </span>&lt;&lt; <span class="number">4</span>;
-        <span class="kw">const </span>Global = <span class="number">1 </span>&lt;&lt; <span class="number">5</span>;
-        <span class="kw">const </span>Accessed = <span class="number">1 </span>&lt;&lt; <span class="number">6</span>;
-        <span class="kw">const </span>Dirty = <span class="number">1 </span>&lt;&lt; <span class="number">7</span>;
+        <span class="doccomment">/// 有效位
+        </span><span class="kw">const </span>Valid = <span class="number">1 </span>&lt;&lt; <span class="number">0</span>;
+        <span class="doccomment">/// 可读位
+        </span><span class="kw">const </span>Read = <span class="number">1 </span>&lt;&lt; <span class="number">1</span>;
+        <span class="doccomment">/// 可写位
+        </span><span class="kw">const </span>Write = <span class="number">1 </span>&lt;&lt; <span class="number">2</span>;
+        <span class="doccomment">/// 可执行位
+        </span><span class="kw">const </span>Execute = <span class="number">1 </span>&lt;&lt; <span class="number">3</span>;
+        <span class="doccomment">/// 用户位
+        </span><span class="kw">const </span>User = <span class="number">1 </span>&lt;&lt; <span class="number">4</span>;
+        <span class="doccomment">/// 全局位
+        </span><span class="kw">const </span>Global = <span class="number">1 </span>&lt;&lt; <span class="number">5</span>;
+        <span class="doccomment">/// 访问位
+        </span><span class="kw">const </span>Accessed = <span class="number">1 </span>&lt;&lt; <span class="number">6</span>;
+        <span class="doccomment">/// 脏位
+        </span><span class="kw">const </span>Dirty = <span class="number">1 </span>&lt;&lt; <span class="number">7</span>;
     }
 }
 
@@ -425,64 +570,101 @@
 </span><span class="attr">#[derive(Clone, Copy, Debug)]
 #[repr(C)]
 </span><span class="kw">pub struct </span>PageTableEntry {
-    <span class="kw">pub </span>bits: usize,
-}
+    <span class="kw">pub </span>bits: usize, <span class="comment">// 页表项的位字段
+</span>}
 
 <span class="kw">impl </span>PageTableEntry {
-    <span class="kw">pub fn </span>new(phy_page: PhysicalPageNumber, flags: PTEFlags) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 创建一个新的页表项
+    ///
+    /// 根据给定的物理页号和标志位创建页表项
+    </span><span class="kw">pub fn </span>new(phy_page: PhysicalPageNumber, flags: PTEFlags) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             bits: (phy_page.<span class="number">0 </span>&lt;&lt; <span class="number">10</span>) | flags.bits() <span class="kw">as </span>usize,
         }
     }
 
-    <span class="kw">pub fn </span>valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// 判断页表项是否有效
+    ///
+    /// 检查页表项的有效位是否被设置
+    </span><span class="kw">pub fn </span>valid(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         (PTEFlags::Valid &amp; <span class="self">self</span>.into()) != PTEFlags::empty()
     }
 
-    <span class="kw">pub fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// 判断页表项是否可读
+    ///
+    /// 检查页表项的可读位是否被设置
+    </span><span class="kw">pub fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         (PTEFlags::Read &amp; <span class="self">self</span>.into()) != PTEFlags::empty()
     }
 
-    <span class="kw">pub fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// 判断页表项是否可写
+    ///
+    /// 检查页表项的可写位是否被设置
+    </span><span class="kw">pub fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         (PTEFlags::Write &amp; <span class="self">self</span>.into()) != PTEFlags::empty()
     }
 
-    <span class="kw">pub fn </span>executable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// 判断页表项是否可执行
+    ///
+    /// 检查页表项的可执行位是否被设置
+    </span><span class="kw">pub fn </span>executable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         (PTEFlags::Execute &amp; <span class="self">self</span>.into()) != PTEFlags::empty()
     }
 
-    <span class="kw">pub fn </span>user(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// 判断页表项是否为用户态
+    ///
+    /// 检查页表项的用户位是否被设置
+    </span><span class="kw">pub fn </span>user(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         (PTEFlags::User &amp; <span class="self">self</span>.into()) != PTEFlags::empty()
     }
 
-    <span class="kw">pub fn </span>accessed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// 判断页表项是否被访问
+    ///
+    /// 检查页表项的访问位是否被设置
+    </span><span class="kw">pub fn </span>accessed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         (PTEFlags::Accessed &amp; <span class="self">self</span>.into()) != PTEFlags::empty()
     }
 
-    <span class="kw">pub fn </span>dirty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// 判断页表项是否脏
+    ///
+    /// 检查页表项的脏位是否被设置
+    </span><span class="kw">pub fn </span>dirty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         (PTEFlags::Dirty &amp; <span class="self">self</span>.into()) != PTEFlags::empty()
     }
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>PageTableEntry {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 创建一个默认的页表项
+    ///
+    /// 默认页表项的位字段为 0
+    </span><span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{ bits: <span class="number">0 </span>}
     }
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>PageTableEntry&gt; <span class="kw">for </span>PTEFlags {
-    <span class="kw">fn </span>from(pte: <span class="kw-2">&amp;</span>PageTableEntry) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 从页表项创建标志位
+    ///
+    /// 根据页表项的位字段创建标志位
+    </span><span class="kw">fn </span>from(pte: <span class="kw-2">&amp;</span>PageTableEntry) -&gt; <span class="self">Self </span>{
         <span class="self">Self</span>::from_bits_truncate(pte.bits <span class="kw">as </span>u8)
     }
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>PageTableEntry&gt; <span class="kw">for </span>PhysicalPageNumber {
-    <span class="kw">fn </span>from(pte: <span class="kw-2">&amp;</span>PageTableEntry) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 从页表项创建物理页号
+    ///
+    /// 根据页表项的位字段创建物理页号
+    </span><span class="kw">fn </span>from(pte: <span class="kw-2">&amp;</span>PageTableEntry) -&gt; <span class="self">Self </span>{
         PhysicalPageNumber::from(pte.bits &gt;&gt; <span class="number">10 </span>&amp; ((<span class="number">1 </span>&lt;&lt; PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
+
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;mut </span>PageTableEntry&gt; <span class="kw">for </span>PhysicalPageNumber {
-    <span class="kw">fn </span>from(pte: <span class="kw-2">&amp;mut </span>PageTableEntry) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 从可变页表项创建物理页号
+    ///
+    /// 根据页表项的位字段创建物理页号
+    </span><span class="kw">fn </span>from(pte: <span class="kw-2">&amp;mut </span>PageTableEntry) -&gt; <span class="self">Self </span>{
         PhysicalPageNumber::from(pte.bits &gt;&gt; <span class="number">10 </span>&amp; ((<span class="number">1 </span>&lt;&lt; PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
@@ -575,7 +757,15 @@
     })
 }
 
-<span class="kw">pub fn </span>get_translated_string(token: usize, ptr: <span class="kw-2">*const </span>u8) -&gt; String {
+<span class="doccomment">/// 根据给定的页表 token 和指针，获取翻译后的字符串。
+///
+/// 用于将一个指针指向的用户地址空间区域翻译为内核地址空间的字符串。内核可以通过字符串引用到用户地址空间的数据。
+/// ## 参数
+/// - `token`: 页表的 token，用于从 SATP 寄存器中创建页表。
+/// - `ptr`: 指向内存区域的指针。
+/// ## 返回值
+/// 返回一个包含翻译后字符串的 String 对象。
+</span><span class="kw">pub fn </span>get_translated_string(token: usize, ptr: <span class="kw-2">*const </span>u8) -&gt; String {
     <span class="kw">let </span>page_table = PageTable::from_satp(token);
     <span class="kw">let </span><span class="kw-2">mut </span>string = String::new();
     <span class="kw">let </span><span class="kw-2">mut </span>start = ptr <span class="kw">as </span>usize;
@@ -593,7 +783,15 @@
     }
 }
 
-<span class="kw">pub fn </span>get_translated_refmut&lt;T&gt;(token: usize, ptr: <span class="kw-2">*mut </span>T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>T {
+<span class="doccomment">/// 根据给定的页表 token 和指针，获取翻译后的可变引用。
+///
+/// 用于将一个指针指向的用户地址空间区域翻译为内核地址空间的可变引用。内核可以通过可变引用访问用户地址空间的数据。
+/// ## 参数
+/// - `token`: 页表的 token，用于从 SATP 寄存器中创建页表。
+/// - `ptr`: 指向内存区域的指针。
+/// ## 返回值
+/// 返回一个包含翻译后可变引用的静态生命周期引用。
+</span><span class="kw">pub fn </span>get_translated_refmut&lt;T&gt;(token: usize, ptr: <span class="kw-2">*mut </span>T) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>T {
     <span class="kw">let </span>page_table = PageTable::from_satp(token);
     page_table
         .translate_addr(VirtualAddress::from(ptr <span class="kw">as </span>usize))

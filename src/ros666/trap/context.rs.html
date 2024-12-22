@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/trap/context.rs`."><title>context.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5f23ef7d3 2024-12-20)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/trap/</div>context.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/trap/context.rs`."><title>context.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/trap/</div>context.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -122,25 +122,74 @@
 <a href="#121" id="121">121</a>
 <a href="#122" id="122">122</a>
 <a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::arch::asm;
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a></pre></div><pre class="rust"><code><span class="doccomment">//! 陷阱上下文模块。
+
+</span><span class="kw">use </span>core::arch::asm;
 
 <span class="kw">use </span>riscv::register::sstatus::{<span class="self">self</span>, FS, SPP, Sstatus};
 
-<span class="kw">pub struct </span>TrapCtx {
-    <span class="kw">pub </span>x: [usize; <span class="number">32</span>],
-    <span class="kw">pub </span>sstatus: usize,
-    <span class="kw">pub </span>sepc: usize,
-    <span class="kw">pub </span>kernel_satp: usize,
-    <span class="kw">pub </span>kernel_virt_sp: usize,
-    <span class="kw">pub </span>kernel_virt_trap_handler: usize,
-}
+<span class="doccomment">/// 表示陷阱上下文的结构体。
+</span><span class="kw">pub struct </span>TrapCtx {
+    <span class="kw">pub </span>x: [usize; <span class="number">32</span>],                  <span class="comment">// 通用寄存器
+    </span><span class="kw">pub </span>sstatus: usize,                  <span class="comment">// 监管者状态寄存器
+    </span><span class="kw">pub </span>sepc: usize,                     <span class="comment">// 监管者异常程序计数器
+    </span><span class="kw">pub </span>kernel_satp: usize,              <span class="comment">// 内核页表基址寄存器
+    </span><span class="kw">pub </span>kernel_virt_sp: usize,           <span class="comment">// 内核虚拟栈指针
+    </span><span class="kw">pub </span>kernel_virt_trap_handler: usize, <span class="comment">// 内核虚拟陷阱处理程序地址
+</span>}
 
 <span class="kw">impl </span>TrapCtx {
-    <span class="kw">pub fn </span>set_sp(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sp: usize) {
+    <span class="doccomment">/// 设置栈指针寄存器的值。
+    </span><span class="kw">pub fn </span>set_sp(<span class="kw-2">&amp;mut </span><span class="self">self</span>, sp: usize) {
         <span class="kw-2">*</span><span class="self">self</span>.sp() = sp;
     }
 
     <span class="doccomment">/// 创建一个新的 TrapCtx，用于应用程序上下文。
+    ///
+    /// ## 参数
+    /// - `entry`：程序入口地址。
+    /// - `sp`：栈指针地址。
+    /// - `kernel_satp`：内核页表基址寄存器的值。
+    /// - `kernel_virt_sp`：内核虚拟栈指针的值。
+    /// - `kernel_virt_trap_handler`：内核虚拟陷阱处理程序的地址。
+    /// ## 返回值
+    /// 返回一个初始化的 TrapCtx 实例。
     </span><span class="kw">pub fn </span>init_app_context(
         entry: usize,
         sp: usize,
@@ -148,13 +197,13 @@
         kernel_virt_sp: usize,
         kernel_virt_trap_handler: usize,
     ) -&gt; <span class="self">Self </span>{
-        <span class="comment">// the riscv crate does not provide a way to get bits from sstatus
-        // so we have to use inline assembly
+        <span class="comment">// riscv crate 不提供从 sstatus 获取位的方法，所以我们必须使用内联汇编
         </span><span class="kw">let </span><span class="kw-2">mut </span>sstatus: usize;
         <span class="kw">unsafe </span>{
             <span class="macro">asm!</span>(<span class="string">"csrr {}, sstatus"</span>, out(reg) sstatus);
         }
-        sstatus &amp;= !(<span class="number">1 </span>&lt;&lt; <span class="number">8</span>);
+        <span class="comment">// 清除 FS 位
+        </span>sstatus &amp;= !(<span class="number">1 </span>&lt;&lt; <span class="number">8</span>);
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = <span class="self">Self </span>{
             x: [<span class="number">0</span>; <span class="number">32</span>],
             sstatus: sstatus,
@@ -214,35 +263,58 @@
     </span><span class="kw">fn </span>sstatus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize;
 }
 
-<span class="kw">impl </span>Riscv64RegAlias <span class="kw">for </span>TrapCtx {
-    <span class="kw">fn </span>zero(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+<span class="doccomment">/// 实现 `Riscv64RegAlias` 特性用于 `TrapCtx` 结构体。
+///
+/// 该特性提供了一组方法来访问和修改 RISC-V 64 位架构的寄存器。
+</span><span class="kw">impl </span>Riscv64RegAlias <span class="kw">for </span>TrapCtx {
+    <span class="doccomment">/// # zero:
+    ///   返回对 `x[0]` 寄存器的可变引用。
+    </span><span class="kw">fn </span>zero(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">0</span>]
     }
-    <span class="kw">fn </span>ra(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="doccomment">/// # ra:
+    ///   返回对 `x[1]` 寄存器的可变引用。
+    </span><span class="kw">fn </span>ra(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">1</span>]
     }
-    <span class="kw">fn </span>sp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="doccomment">/// # sp:
+    ///   返回对 `x[2]` 寄存器的可变引用。
+    </span><span class="kw">fn </span>sp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">2</span>]
     }
-    <span class="kw">fn </span>gp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="doccomment">/// # gp:
+    ///   返回对 `x[3]` 寄存器的可变引用。
+    </span><span class="kw">fn </span>gp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">3</span>]
     }
-    <span class="kw">fn </span>tp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="doccomment">/// # tp:
+    ///   返回对 `x[4]` 寄存器的可变引用。
+    </span><span class="kw">fn </span>tp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">4</span>]
     }
-    <span class="kw">fn </span>t(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="doccomment">/// # t:
+    ///   返回对 `x[5 + i]` 寄存器的可变引用。
+    </span><span class="kw">fn </span>t(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">5 </span>+ i]
     }
-    <span class="kw">fn </span>s(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="doccomment">/// # s:
+    ///   返回对 `x[13 + i]` 寄存器的可变引用。
+    </span><span class="kw">fn </span>s(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">13 </span>+ i]
     }
-    <span class="kw">fn </span>a(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="doccomment">/// # a:
+    ///   返回对 `x[10 + i]` 寄存器的可变引用。
+    </span><span class="kw">fn </span>a(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">10 </span>+ i]
     }
-    <span class="kw">fn </span>sepc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="doccomment">/// # sepc:
+    ///   返回对 `sepc` 寄存器的可变引用。
+    </span><span class="kw">fn </span>sepc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.sepc
     }
-    <span class="kw">fn </span>sstatus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="doccomment">/// # sstatus:
+    ///   返回对 `sstatus` 寄存器的可变引用。
+    </span><span class="kw">fn </span>sstatus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.sstatus
     }
 }

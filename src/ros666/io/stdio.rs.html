@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/io/stdio.rs`."><title>stdio.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5f23ef7d3 2024-12-20)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/io/</div>stdio.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/io/stdio.rs`."><title>stdio.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/io/</div>stdio.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -71,58 +71,114 @@
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::fmt::Write;
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a></pre></div><pre class="rust"><code><span class="doccomment">//! 标准输入输出模块
 
-<span class="kw">use crate</span>::{
+</span><span class="kw">use </span>core::fmt::Write;
+
+<span class="doccomment">/// 导入 `sbi` 模块及其 `sbi_console_getchar` 函数。
+/// 导入 `task::manager::TaskManager` 模块。
+</span><span class="kw">use crate</span>::{
     sbi::{<span class="self">self</span>, sbi_console_getchar},
     task::manager::TaskManager,
 };
 
-<span class="kw">struct </span>Stdout {}
+<span class="doccomment">/// 标准输出结构体
+</span><span class="kw">struct </span>Stdout {}
 
-<span class="kw">impl </span>Write <span class="kw">for </span>Stdout {
-    <span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; core::fmt::Result {
-        sbi::sbi_console_put(s).map_err(|<span class="kw">_</span>| core::fmt::Error)<span class="question-mark">?</span>;
-        <span class="comment">// for c in s.chars() {
+<span class="doccomment">/// 为 `Stdout` 实现 `Write` trait
+</span><span class="kw">impl </span>Write <span class="kw">for </span>Stdout {
+    <span class="doccomment">/// 实现 `write_str` 方法，将字符串写入标准输出
+    </span><span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; core::fmt::Result {
+        <span class="comment">// 使用 `sbi_console_put` 将字符串输出到控制台
+        </span>sbi::sbi_console_put(s).map_err(|<span class="kw">_</span>| core::fmt::Error)<span class="question-mark">?</span>;
+        <span class="comment">// 遍历字符串的每个字符并输出到控制台
+        // for c in s.chars() {
         //     let _ = sbi::sbi_console_putchar(c as usize);
         // }
         </span><span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">pub fn </span>read_str(buf: <span class="kw-2">&amp;mut </span>[u8], len: usize) {
-    <span class="comment">// for i in 0..len {
-    //     match sbi_console_getchar() {
-    //         Ok(c) =&gt; buf[i] = c,
-    //         Err(_) =&gt; break,
-    //     }
-    // }
+<span class="doccomment">/// 从标准输入读取字符串
+///
+/// ## 参数
+/// * `buf` - 存储读取到的字符串的缓冲区
+/// * `len` - 要读取的字符串的长度
+</span><span class="kw">pub fn </span>read_str(buf: <span class="kw-2">&amp;mut </span>[u8], len: usize) {
+    <span class="comment">// 初始化索引
     </span><span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
-    <span class="kw">loop </span>{
+    <span class="comment">// 循环读取字符
+    </span><span class="kw">loop </span>{
         <span class="kw">match </span>sbi_console_getchar() {
-            <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
+            <span class="comment">// 如果读取到空字符，则切换到下一个任务
+            </span><span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
                 TaskManager::cycle_to_next();
                 <span class="kw">continue</span>;
             }
-            <span class="prelude-val">Ok</span>(c) =&gt; {
+            <span class="comment">// 如果读取到有效字符，则存储到缓冲区
+            </span><span class="prelude-val">Ok</span>(c) =&gt; {
                 buf[i] = c;
                 i += <span class="number">1</span>;
-                <span class="kw">if </span>i == len {
+                <span class="comment">// 如果读取到的字符数达到指定长度，则退出循环
+                </span><span class="kw">if </span>i == len {
                     <span class="kw">break</span>;
                 }
             }
-            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
+            <span class="comment">// 如果读取失败，则退出循环
+            </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
         }
     }
 }
 
-<span class="kw">pub fn </span>printk(args: core::fmt::Arguments) {
-    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = (Stdout {}.write_fmt(args)) {
-        <span class="macro">panic!</span>(<span class="string">"Printing to stdout failed: {:?}"</span>, e);
+<span class="doccomment">/// 打印格式化的字符串到标准输出
+</span><span class="kw">pub fn </span>printk(args: core::fmt::Arguments) {
+    <span class="comment">// 尝试将格式化的字符串写入标准输出
+    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = (Stdout {}.write_fmt(args)) {
+        <span class="comment">// 如果写入失败，则触发恐慌并打印错误信息
+        </span><span class="macro">panic!</span>(<span class="string">"Printing to stdout failed: {:?}"</span>, e);
     }
 }
 
-<span class="attr">#[macro_export]
+<span class="doccomment">/// 打印格式化字符串到标准输出的宏
+///
+/// ## 示例
+/// ```rust
+/// printk!("Hello, world!");
+/// printk!("Hello, {}!", "world");
+/// ```
+</span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules!</span> printk {
     (<span class="macro-nonterminal">$fmt</span>:expr) =&gt; {
         <span class="macro-nonterminal">$crate::io::stdio::printk</span>(<span class="macro">format_args!</span>(<span class="macro-nonterminal">$fmt</span>))
@@ -132,7 +188,15 @@
     };
 }
 
-<span class="attr">#[macro_export]
+<span class="doccomment">/// 打印格式化字符串并换行到标准输出的宏
+///
+/// ## 示例
+/// ```rust
+/// printkln!();
+/// printkln!("Hello, world!");
+/// printkln!("Hello, {}!", "world");
+/// ```
+</span><span class="attr">#[macro_export]
 </span><span class="macro">macro_rules!</span> printkln {
     () =&gt; {
         <span class="macro-nonterminal">$</span><span class="macro">crate::printk!</span>(<span class="string">"\n"</span>)

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/mm/frame_allocator.rs`."><title>frame_allocator.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (5f23ef7d3 2024-12-20)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/mm/</div>frame_allocator.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/mm/frame_allocator.rs`."><title>frame_allocator.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/mm/</div>frame_allocator.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -124,27 +124,120 @@
 <a href="#123" id="123">123</a>
 <a href="#124" id="124">124</a>
 <a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">super</span>::address::{PhysicalAddress, PhysicalPageNumber};
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a></pre></div><pre class="rust"><code><span class="comment">// 导入相关模块和库
+</span><span class="kw">use </span><span class="kw">super</span>::address::{PhysicalAddress, PhysicalPageNumber};
 <span class="kw">use crate</span>::{extern_global, printkln, utils::safety::SyncRefCell};
 <span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>core::{cell::RefCell, ops::Range};
 <span class="kw">use </span>lazy_static::lazy_static;
 
-<span class="comment">// debug: 0x84800000;
-// release: 0x80800000;
+<span class="comment">// 在调试模式下，内存结束地址为 0x84800000
+// 在发布模式下，内存结束地址为 0x80800000
 // pub const MEMORY_END: usize = 0x80800000;
 </span><span class="attr">#[cfg(debug_assertions)]
 </span><span class="kw">pub const </span>MEMORY_END: usize = <span class="number">0x84800000</span>;
 <span class="attr">#[cfg(not(debug_assertions))]
 </span><span class="kw">pub const </span>MEMORY_END: usize = <span class="number">0x80800000</span>;
 
-<span class="kw">trait </span>FrameAllocator {
-    <span class="kw">fn </span>new() -&gt; <span class="self">Self</span>;
-    <span class="kw">fn </span>alloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PhysicalPageNumber&gt;;
-    <span class="kw">fn </span>dealloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: PhysicalPageNumber);
+<span class="doccomment">/// 帧分配器接口，定义了帧分配器的基本操作。
+</span><span class="kw">trait </span>FrameAllocator {
+    <span class="doccomment">/// 创建一个新的帧分配器实例。
+    ///
+    /// ## 返回值
+    /// 返回一个新的 `FrameAllocator` 实例。
+    </span><span class="kw">fn </span>new() -&gt; <span class="self">Self</span>;
+
+    <span class="doccomment">/// 分配一个物理页帧。
+    ///
+    /// ## 返回值
+    /// 如果成功，返回一个 `PhysicalPageNumber`，否则返回 `None`。
+    </span><span class="kw">fn </span>alloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PhysicalPageNumber&gt;;
+
+    <span class="doccomment">/// 释放一个物理页帧。
+    ///
+    /// ## 参数
+    /// * `frame` - 要释放的物理页帧。
+    </span><span class="kw">fn </span>dealloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: PhysicalPageNumber);
 }
 
-<span class="macro">lazy_static!</span> {
+<span class="comment">// 使用 lazy_static 宏定义一个全局的帧分配器实例
+</span><span class="macro">lazy_static!</span> {
     <span class="kw">pub static </span><span class="kw-2">ref </span>FRAME_ALLOCATOR: SyncRefCell&lt;StackFrameAllocator&gt; = {
         SyncRefCell {
             ref_cell: RefCell::new(StackFrameAllocator::new()),
@@ -152,56 +245,86 @@
     };
 }
 
-<span class="kw">pub struct </span>StackFrameAllocator {
-    unused: Range&lt;PhysicalPageNumber&gt;,
-    freed: Vec&lt;PhysicalPageNumber&gt;,
+<span class="doccomment">/// 栈帧分配器结构体，包含未使用的物理页帧范围和已释放的物理页帧列表。
+</span><span class="kw">pub struct </span>StackFrameAllocator {
+    <span class="doccomment">/// 未使用的物理页帧范围。
+    </span>unused: Range&lt;PhysicalPageNumber&gt;,
+    <span class="doccomment">/// 已释放的物理页帧列表。
+    </span>freed: Vec&lt;PhysicalPageNumber&gt;,
 }
 
 <span class="kw">impl </span>FrameAllocator <span class="kw">for </span>StackFrameAllocator {
-    <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 创建一个新的栈帧分配器实例。
+    ///
+    /// ## 返回值
+    /// 返回一个新的 `StackFrameAllocator` 实例。
+    </span><span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             unused: PhysicalPageNumber(<span class="number">0</span>)..PhysicalPageNumber(<span class="number">0</span>),
             freed: Vec::new(),
         }
     }
 
-    <span class="kw">fn </span>alloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PhysicalPageNumber&gt; {
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(frame) = <span class="self">self</span>.freed.pop() {
+    <span class="doccomment">/// 分配一个物理页帧。
+    ///
+    /// ## 返回值
+    /// 如果成功，返回一个 `PhysicalPageNumber`，否则返回 `None`。
+    </span><span class="kw">fn </span>alloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;PhysicalPageNumber&gt; {
+        <span class="comment">// 如果有已释放的物理页帧，弹出并返回
+        </span><span class="kw">if let </span><span class="prelude-val">Some</span>(frame) = <span class="self">self</span>.freed.pop() {
             <span class="kw">return </span><span class="prelude-val">Some</span>(frame);
         }
-        <span class="kw">if </span><span class="self">self</span>.unused.start &lt; <span class="self">self</span>.unused.end {
+        <span class="comment">// 如果还有未使用的物理页帧，分配并返回
+        </span><span class="kw">if </span><span class="self">self</span>.unused.start &lt; <span class="self">self</span>.unused.end {
             <span class="kw">let </span>frame = <span class="self">self</span>.unused.start;
             <span class="self">self</span>.unused.start.<span class="number">0 </span>+= <span class="number">1</span>;
             <span class="kw">return </span><span class="prelude-val">Some</span>(frame);
         }
-        <span class="prelude-val">None
+        <span class="comment">// 没有可用的物理页帧，返回 None
+        </span><span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>dealloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: PhysicalPageNumber) {
-        <span class="kw">if </span>frame.<span class="number">0 </span>&gt;= <span class="self">self</span>.unused.start.<span class="number">0 </span>{
+    <span class="doccomment">/// 释放一个物理页帧。
+    ///
+    /// ## 参数
+    /// * `frame` - 要释放的物理页帧。
+    </span><span class="kw">fn </span>dealloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, frame: PhysicalPageNumber) {
+        <span class="comment">// 检查要释放的物理页帧是否在未使用范围内，如果是则抛出异常
+        </span><span class="kw">if </span>frame.<span class="number">0 </span>&gt;= <span class="self">self</span>.unused.start.<span class="number">0 </span>{
             <span class="macro">panic!</span>(<span class="string">"trying to free free page: {:?}"</span>, frame);
         }
-        <span class="kw">if </span><span class="self">self</span>.freed.iter().any(|<span class="kw-2">&amp;</span>f| f == frame) {
+        <span class="comment">// 检查要释放的物理页帧是否已经在已释放列表中，如果是则抛出异常
+        </span><span class="kw">if </span><span class="self">self</span>.freed.iter().any(|<span class="kw-2">&amp;</span>f| f == frame) {
             <span class="macro">panic!</span>(<span class="string">"trying to free free page: {:?}"</span>, frame);
         }
-        <span class="self">self</span>.freed.push(frame);
+        <span class="comment">// 将物理页帧添加到已释放列表中
+        </span><span class="self">self</span>.freed.push(frame);
     }
 }
 
 <span class="kw">impl </span>StackFrameAllocator {
-    <span class="kw">pub fn </span>init(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: Range&lt;PhysicalPageNumber&gt;) {
+    <span class="doccomment">/// 初始化帧分配器，将未使用的物理页号范围设置为传入的范围
+    </span><span class="kw">pub fn </span>init(<span class="kw-2">&amp;mut </span><span class="self">self</span>, range: Range&lt;PhysicalPageNumber&gt;) {
         <span class="self">self</span>.unused = range;
     }
 
-    <span class="kw">pub fn </span>init_frame_allocator() {
-        <span class="kw">let </span>start = PhysicalAddress::from(<span class="macro">extern_global!</span>(__kernel_end) <span class="kw">as </span>usize)
+    <span class="doccomment">/// 初始化帧分配器，将未使用的物理页号范围设置为从内核结束地址到内存结束地址的范围
+    </span><span class="kw">pub fn </span>init_frame_allocator() {
+        <span class="comment">// 获取内核结束地址，并向上取整到页边界
+        </span><span class="kw">let </span>start = PhysicalAddress::from(<span class="macro">extern_global!</span>(__kernel_end) <span class="kw">as </span>usize)
             .ceil_page()
             .into();
-        <span class="kw">let </span>end = PhysicalAddress::from(MEMORY_END).floor_page().into();
-        FRAME_ALLOCATOR.ref_cell.borrow_mut().init(start..end);
+        <span class="comment">// 获取内存结束地址，并向下取整到页边界
+        </span><span class="kw">let </span>end = PhysicalAddress::from(MEMORY_END).floor_page().into();
+        <span class="comment">// 初始化帧分配器
+        </span>FRAME_ALLOCATOR.ref_cell.borrow_mut().init(start..end);
     }
 
-    <span class="kw">pub fn </span>alloc_frame() -&gt; <span class="prelude-ty">Option</span>&lt;FrameTracker&gt; {
+    <span class="doccomment">/// 分配一个物理页帧，并返回一个 `FrameTracker` 实例。
+    ///
+    /// ## 返回值
+    /// 如果成功，返回一个 `FrameTracker`，否则返回 `None`。
+    </span><span class="kw">pub fn </span>alloc_frame() -&gt; <span class="prelude-ty">Option</span>&lt;FrameTracker&gt; {
         FRAME_ALLOCATOR
             .ref_cell
             .borrow_mut()
@@ -209,45 +332,74 @@
             .map(|frame| FrameTracker::new(frame))
     }
 
-    <span class="kw">pub fn </span>dealloc_frame(frame: PhysicalPageNumber) {
+    <span class="doccomment">/// 释放一个物理页帧。
+    ///
+    /// ## 参数
+    /// * `frame` - 要释放的物理页帧。
+    </span><span class="kw">pub fn </span>dealloc_frame(frame: PhysicalPageNumber) {
         FRAME_ALLOCATOR.ref_cell.borrow_mut().dealloc(frame);
     }
 }
 
-<span class="attr">#[derive(Debug)]
+<span class="doccomment">/// 帧跟踪器结构体，用于跟踪已分配的物理页帧。
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>FrameTracker {
-    <span class="kw">pub </span>frame: PhysicalPageNumber,
+    <span class="doccomment">/// 已分配的物理页帧。
+    </span><span class="kw">pub </span>frame: PhysicalPageNumber,
 }
 
-<span class="kw">impl </span>FrameTracker {
-    <span class="kw">pub fn </span>new(frame: PhysicalPageNumber) -&gt; <span class="self">Self </span>{
-        <span class="comment">// clean
+<span class="doccomment">/// FrameTracker 结构体的实现
+</span><span class="kw">impl </span>FrameTracker {
+    <span class="doccomment">/// 创建一个新的 FrameTracker 实例
+    ///
+    /// ## 参数
+    /// * `frame` - 一个 PhysicalPageNumber 类型的帧
+    /// ## 返回值
+    /// 返回一个新的 FrameTracker 实例
+    /// ## 示例
+    /// ```
+    /// let frame = PhysicalPageNumber::new(0);
+    /// let tracker = FrameTracker::new(frame);
+    /// ```
+    /// ## 注意
+    /// 在创建新的 FrameTracker 实例时，会将帧中的所有字节清零
+    </span><span class="kw">pub fn </span>new(frame: PhysicalPageNumber) -&gt; <span class="self">Self </span>{
+        <span class="comment">// 清零帧中的所有字节
         </span>frame.get_bytes_array().iter_mut().for_each(|x| <span class="kw-2">*</span>x = <span class="number">0</span>);
         <span class="self">Self </span>{ frame }
     }
 }
 
-<span class="kw">impl </span>Drop <span class="kw">for </span>FrameTracker {
+<span class="doccomment">/// 为 FrameTracker 实现 Drop trait
+/// 当 FrameTracker 实例被销毁时，自动释放物理页帧
+</span><span class="kw">impl </span>Drop <span class="kw">for </span>FrameTracker {
     <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         StackFrameAllocator::dealloc_frame(<span class="self">self</span>.frame);
     }
 }
 
-<span class="attr">#[allow(unused)]
+<span class="doccomment">/// 测试帧分配器的功能
+</span><span class="attr">#[allow(unused)]
 </span><span class="kw">pub fn </span>frame_allocator_test() {
-    <span class="kw">let </span><span class="kw-2">mut </span>v: Vec&lt;FrameTracker&gt; = Vec::new();
-    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">5 </span>{
+    <span class="comment">// 创建一个空的 FrameTracker 向量
+    </span><span class="kw">let </span><span class="kw-2">mut </span>v: Vec&lt;FrameTracker&gt; = Vec::new();
+    <span class="comment">// 分配 5 个物理页帧，并将其添加到向量中
+    </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">5 </span>{
         <span class="kw">let </span>frame = StackFrameAllocator::alloc_frame().unwrap();
         <span class="macro">printkln!</span>(<span class="string">"{:?}"</span>, frame);
         v.push(frame);
     }
-    v.clear();
-    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">5 </span>{
+    <span class="comment">// 清空向量，释放所有帧
+    </span>v.clear();
+    <span class="comment">// 再次分配 5 个物理页帧，并将其添加到向量中
+    </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">5 </span>{
         <span class="kw">let </span>frame = StackFrameAllocator::alloc_frame().unwrap();
         <span class="macro">printkln!</span>(<span class="string">"{:?}"</span>, frame);
         v.push(frame);
     }
-    drop(v);
-    <span class="macro">printkln!</span>(<span class="string">"frame_allocator_test passed!"</span>);
+    <span class="comment">// 显式销毁向量，释放所有帧
+    </span>drop(v);
+    <span class="comment">// 打印测试通过信息
+    </span><span class="macro">printkln!</span>(<span class="string">"frame_allocator_test passed!"</span>);
 }
 </code></pre></div></section></main></body></html>

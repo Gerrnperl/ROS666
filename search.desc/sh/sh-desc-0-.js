@@ -1,1 +1,1 @@
-searchState.loadedDescShard("sh", 0, "")
+searchState.loadedDescShard("sh", 0, "Shell")
