@@ -20,8 +20,10 @@ use virtio_drivers::{
 
 use crate::{
     mm::{
-        address::{PhysicalAddress, PhysicalPageNumber},
+        KERNEL_SPACE,
+        address::{PhysicalAddress, PhysicalPageNumber, VirtualAddress},
         frame_allocator::{FrameTracker, StackFrameAllocator},
+        page_table::PageTable,
     },
     trace,
 };
@@ -79,6 +81,7 @@ unsafe impl Hal for HalImpl {
         }
         // ppn_base.into()
         let paddr = PhysicalAddress::from(ppn_base).0;
+
         let vaddr = NonNull::new(paddr as _).unwrap();
         (paddr, vaddr)
     }
@@ -94,13 +97,21 @@ unsafe impl Hal for HalImpl {
     }
 
     unsafe fn mmio_phys_to_virt(paddr: PhysAddr, _size: usize) -> NonNull<u8> {
-        NonNull::new(paddr as _).unwrap()
+        let token = KERNEL_SPACE.inner_borrow_mut().token();
+        let va = PageTable::from_satp(token)
+            .translate_addr(VirtualAddress::from(paddr))
+            .unwrap()
+            .0;
+        NonNull::new(va as *mut u8).unwrap()
     }
 
     unsafe fn share(buffer: NonNull<[u8]>, _direction: BufferDirection) -> PhysAddr {
-        let vaddr = buffer.as_ptr() as *mut u8 as usize;
-        // Nothing to do, as the host already has access to all memory.
-        vaddr
+        let token = KERNEL_SPACE.inner_borrow_mut().token();
+        let va = PageTable::from_satp(token)
+            .translate_addr(VirtualAddress::from(buffer.as_ptr() as *mut u8 as usize))
+            .unwrap()
+            .0;
+        va
     }
 
     unsafe fn unshare(_paddr: PhysAddr, _buffer: NonNull<[u8]>, _direction: BufferDirection) {
