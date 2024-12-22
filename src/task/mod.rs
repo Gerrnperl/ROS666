@@ -2,12 +2,12 @@
 
 // 引入所需的库和模块
 use alloc::sync::Arc;
+use common::syscall::OpenFlags;
 use lazy_static::lazy_static;
 use manager::TaskManager;
 use task::ProcessControlBlock;
 
-// 引入应用程序加载器和安全工具
-use crate::{app_loader::load_app_data_by_name, utils::safety::SyncRefCell};
+use crate::{fs::inode::open_file, utils::safety::SyncRefCell};
 
 // 声明子模块
 pub mod context;
@@ -22,10 +22,11 @@ pub mod task;
 lazy_static! {
     // INIT_PROC 是一个 Arc 包装的 SyncRefCell，内部存储了一个 ProcessControlBlock 实例
     pub static ref INIT_PROC: Arc<SyncRefCell<ProcessControlBlock>> = {
-        Arc::new(SyncRefCell::new(ProcessControlBlock::new(
-            // 通过名称 "initproc" 加载应用程序数据，并创建一个新的 ProcessControlBlock 实例
-            load_app_data_by_name("initproc").unwrap(),
-        )))
+        Arc::new(SyncRefCell::new({
+            let inode = open_file("initproc", OpenFlags::READONLY).unwrap();
+            let data = inode.read_all();
+            ProcessControlBlock::new(data.as_slice())
+        }))
     };
 }
 

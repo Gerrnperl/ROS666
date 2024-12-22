@@ -135,3 +135,10 @@ impl Drop for BlockCache {
         self.sync();
     }
 }
+
+pub fn block_cache_sync_all() {
+    let manager = BLOCK_CACHE_MANAGER.lock();
+    for (_, cache) in manager.queue.iter() {
+        cache.lock().sync();
+    }
+}

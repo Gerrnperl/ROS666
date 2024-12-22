@@ -5,7 +5,7 @@
 //! ## 使用方法
 //!
 //! ```text
-//! Usage: fs-fuse [OPTIONS] --target <TARGET> --output <OUTPUT>
+//! Usage: ros-fs-fuse [OPTIONS] --target <TARGET> --output <OUTPUT>
 //!
 //! Options:
 //!   -a, --app <APP>...     应用程序名称列表，以空格分隔
@@ -23,7 +23,7 @@ use std::{
 
 use block_file::BlockFile;
 use clap::Parser;
-use fs::{
+use ros_fs::{
     fs::{FileSystem, FileSystemRootInode},
     layout::disk_inode::InodeType,
 };
@@ -74,11 +74,11 @@ fn fs_pack(args: Args) -> std::io::Result<()> {
             .read(true)
             .write(true)
             .create(true)
-            .open(fsimg_path)?;
+            .open(fsimg_path.clone())?;
         f.set_len(16 * 2048 * 512).unwrap();
         f
     })));
-    let fs = FileSystem::new(block_file, 16 * 2048, 1);
+    let fs = FileSystem::new(block_file.clone(), 16 * 2048, 1);
     let root_inode = Arc::new(fs.root_inode());
 
     for (app, path) in app_paths.iter() {
@@ -93,6 +93,17 @@ fn fs_pack(args: Args) -> std::io::Result<()> {
     }
 
     println!("\x1b[1;32m[INFO]\x1b[0m 正在校验应用程序");
+
+    let block_file = Arc::new(BlockFile(Mutex::new({
+        let f = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .open(fsimg_path.clone())?;
+        f.set_len(16 * 2048 * 512).unwrap();
+        f
+    })));
+    let fs = FileSystem::open(block_file.clone());
+    let root_inode = Arc::new(fs.root_inode());
 
     let ls = root_inode.ls();
     assert_eq!(ls.len(), app_paths.len());

@@ -5,7 +5,8 @@
 
 extern crate alloc;
 
-mod app_loader;
+mod drivers;
+mod fs;
 mod io;
 mod language_item;
 mod mm;
@@ -18,10 +19,9 @@ mod utils;
 
 use core::{arch::global_asm, cell::RefCell};
 
-use app_loader::APP_NAMES;
+use fs::inode::ROOT_INODE;
 
 global_asm!(include_str!("entry.asm"));
-global_asm!(include_str!("app_loader.asm"));
 
 /// 内核入口函数
 #[unsafe(no_mangle)]
@@ -33,11 +33,9 @@ pub extern "C" fn _kernel_entry() -> ! {
     mm::init::init();
     mm::memory_set::remap_test();
 
-    info!("Hi there, it's {}.", "ROS666");
-
-    APP_NAMES.iter().for_each(|(name, id)| {
-        info!("App: {} id: {}", name, id);
-    });
+    for app in ROOT_INODE.ls() {
+        info!("App: {}", app);
+    }
 
     task::init();
 

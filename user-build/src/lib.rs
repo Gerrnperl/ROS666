@@ -19,9 +19,7 @@ pub fn setup() {
 
     // 获取当前编译配置，默认为 debug
     let current_profile = std::env::var("PROFILE").unwrap_or_else(|_| "debug".to_string());
-    // 获取按顺序排列的应用程序列表
-    let apps = get_apps_in_order();
-    // 为每个编译配置和应用程序生成链接器脚本
+    let apps = get_apps();
     for profile in &["debug", "release"] {
         for (app_id, app_name) in apps.iter().enumerate() {
             setup_linker(profile, app_name, app_id, &linker_dir);
@@ -50,7 +48,7 @@ pub fn setup() {
 /// ## 参数
 /// - `profile`：编译配置，`debug` 或 `release`
 /// - `app_name`：二进制目标的名称
-/// - `app_id`：二进制目标的 ID, 由 manifest 中的 `package.metadata.applications.order` 定义
+/// - `app_id`：二进制目标的 ID, 由 manifest 中的 `package.metadata.applications` 定义
 fn setup_linker(profile: &str, app_name: &str, app_id: usize, linker_dir: &str) {
     let mut linker = format!(
         r#"/**************************************************************************
@@ -122,9 +120,9 @@ fn clean_linkers(linker_dir: &str) {
     }
 }
 
-/// 获取按顺序排列的应用程序列表
-pub fn get_apps_in_order() -> Vec<String> {
-    // 应用程序顺序已在 user/Cargo.toml package.metadata.applications.order 中定义
+/// 获取应用程序列表
+pub fn get_apps() -> Vec<String> {
+    // 应用程序已在 user/Cargo.toml package.metadata.applications 中定义
     // Make 会获取该值
     let user_root = std::env::var("CARGO_MANIFEST_DIR").unwrap();
     let user_root = user_root.split("/").collect::<Vec<_>>();

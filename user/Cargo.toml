@@ -30,6 +30,5 @@ lib = { path = "../user-lib" }
 [build-dependencies]
 build = { path = "../user-build" }
 
-[package.metadata.applications]
-# 应用程序顺序
-order = ["initproc", "sh", "hello", "bye", "fstest"]
+[package.metadata]
+applications = ["initproc", "sh", "hello", "bye", "fstest"]

@@ -83,6 +83,8 @@ impl From<usize> for Syscall {
     fn from(syscall: usize) -> Syscall {
         // 使用 `match` 表达式匹配 `syscall` 的值
         match syscall {
+            56 => Syscall::OpenAt,
+            57 => Syscall::Close,
             63 => Syscall::Read,
             64 => Syscall::Write,
             93 => Syscall::Exit,
@@ -132,5 +134,14 @@ bitflags! {
         const READWRITE = 0b00000000010;
         const CREATE    = 0b01000000000;
         const TRUNCATE  = 0b10000000000;
+    }
+}
+
+impl OpenFlags {
+    pub fn readable(&self) -> bool {
+        !self.contains(OpenFlags::WRITEONLY)
+    }
+    pub fn writable(&self) -> bool {
+        !self.is_empty()
     }
 }

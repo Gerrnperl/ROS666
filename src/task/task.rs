@@ -2,11 +2,13 @@
 
 use core::borrow::Borrow;
 
+use alloc::vec;
 use alloc::{
     sync::{Arc, Weak},
     vec::Vec,
 };
 
+use crate::fs::stdio::{Stdin, Stdout};
 /// 导入所需的模块和类型:
 ///
 /// - `crate::app_loader::AppData`: 应用加载器相关的数据类型。
@@ -14,7 +16,7 @@ use alloc::{
 /// - `crate::trap::{self, context::TrapCtx, handler::trap_handler}`: 中断和陷阱处理相关的模块和类型。
 /// - `crate::utils::safety::SyncRefCell`: 一个线程安全的 RefCell 类型。
 use crate::{
-    app_loader::AppData,
+    fs::File,
     mm::{
         KERNEL_SPACE,
         address::{PAGE_SIZE_SV39, PhysicalPageNumber, VirtualAddress, VirtualPageNumber},
@@ -48,6 +50,26 @@ pub enum ProcessStatus {
     Stopped,
 }
 
+pub type FdTable = Vec<Option<Arc<dyn File + Send + Sync>>>;
+
+pub trait FdTableClone {
+    fn fd_clone(&self) -> Self;
+}
+
+impl FdTableClone for FdTable {
+    fn fd_clone(&self) -> Self {
+        let mut new_table = Vec::new();
+        for file in self.iter() {
+            new_table.push(if let Some(file) = file {
+                Some(Arc::clone(file))
+            } else {
+                None
+            });
+        }
+        new_table
+    }
+}
+
 /// 进程控制块结构体
 pub struct ProcessControlBlock {
     /// 进程ID
@@ -70,6 +92,8 @@ pub struct ProcessControlBlock {
     pub children: Vec<Arc<SyncRefCell<ProcessControlBlock>>>,
     /// 退出码
     pub exit_code: i32,
+
+    pub fd_table: FdTable,
 }
 
 /// 进程控制块（Process Control Block）实现
@@ -113,8 +137,7 @@ impl ProcessControlBlock {
     /// - `app_data`: 应用程序数据
     /// ## 返回值
     /// 返回一个新的进程控制块实例
-    pub fn new(app_data: AppData) -> Self {
-        let app_id = app_data.app_id;
+    pub fn new(app_data: &[u8]) -> Self {
         let (mut memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
         let trap_ctx_ppn = PhysicalPageNumber::from(
             &memory_set
@@ -136,6 +159,11 @@ impl ProcessControlBlock {
             parent: None,
             children: Vec::new(),
             exit_code: 0,
+            fd_table: vec![
+                Some(Arc::new(Stdin)),
+                Some(Arc::new(Stdout)),
+                Some(Arc::new(Stdout)),
+            ],
         };
         let ctx = pcb.get_trap_cx();
         *ctx = TrapCtx::init_app_context(
@@ -146,6 +174,16 @@ impl ProcessControlBlock {
             trap_handler as usize,
         );
         pcb
+    }
+
+    pub fn alloc_fd(&mut self) -> usize {
+        for (fd, file) in self.fd_table.iter().enumerate() {
+            if file.is_none() {
+                return fd;
+            }
+        }
+        self.fd_table.push(None);
+        self.fd_table.len() - 1
     }
 }
 
@@ -178,6 +216,7 @@ impl SyncRefCell<ProcessControlBlock> {
             parent: Some(Arc::downgrade(self)),
             children: Vec::new(),
             exit_code: 0,
+            fd_table: parent.fd_table.fd_clone(),
         }));
         parent.children.push(child.clone());
 
@@ -191,7 +230,7 @@ impl SyncRefCell<ProcessControlBlock> {
     ///
     /// ## 参数
     /// - `app_data`: 应用程序数据
-    pub fn exec(self: &Arc<SyncRefCell<ProcessControlBlock>>, app_data: AppData) {
+    pub fn exec(self: &Arc<SyncRefCell<ProcessControlBlock>>, app_data: &[u8]) {
         let (memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
         let trap_ctx_ppn = PhysicalPageNumber::from(
             &memory_set

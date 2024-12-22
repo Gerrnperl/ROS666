@@ -1,25 +1,28 @@
 #![no_std]
 #![no_main]
 
+use alloc::string::String;
 use lib::{
     fcntl::{OpenFlags, close, openat},
     read, write,
 };
-
+extern crate alloc;
 #[macro_use]
 extern crate lib;
 
 #[unsafe(no_mangle)]
 pub fn main() -> i32 {
     let content = "Hello fs";
-    let fd = openat("hello", OpenFlags::CREATE | OpenFlags::WRITEONLY);
-    assert!(fd > 0, "Failed to open file");
+    let file = "test.txt";
+    let fd = openat(file, OpenFlags::CREATE | OpenFlags::WRITEONLY);
+    print!("fd: {}", fd);
+    assert!(fd >= 0, "Failed to open file");
     let fd = fd as usize;
     write(fd, content.as_bytes());
     close(fd as i32);
 
-    let fd = openat("hello", OpenFlags::READONLY);
-    assert!(fd > 0, "Failed to open file");
+    let fd = openat(file, OpenFlags::READONLY);
+    assert!(fd >= 0, "Failed to open file");
     let fd = fd as usize;
     let mut buf = [0u8; 32];
     let size = read(fd, &mut buf);

@@ -1,15 +1,16 @@
 use alloc::sync::Arc;
 use common::syscall::{
-    Syscall, SyscallArgs, SyscallRet,
+    OpenFlags, Syscall, SyscallArgs, SyscallRet,
     time::{TimeVal, TimeZone},
 };
 
 use crate::{
-    app_loader::load_app_data_by_name,
+    fs::inode::open_file,
+    info,
     io::stdio::read_str,
     mm::page_table::{
-        get_mut_translated_byte_slices, get_translated_byte_slices, get_translated_refmut,
-        get_translated_string,
+        UserBuffer, get_mut_translated_byte_slices, get_translated_byte_slices,
+        get_translated_refmut, get_translated_string,
     },
     printk, printkln,
     task::{self, manager::TaskManager, pid, processor::Processor, task::ProcessStatus},
@@ -19,6 +20,8 @@ use crate::{
 
 pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
     match call {
+        Syscall::OpenAt => sys_openat(args[0] as *const u8, args[1] as usize),
+        Syscall::Close => sys_close(args[0]),
         Syscall::Read => sys_read(args[0], args[1] as *mut u8, args[2]),
         Syscall::Write => sys_write(args[0], args[1] as *const u8, args[2]),
         Syscall::Exit => {
@@ -41,35 +44,71 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
 const FD_STDIN: usize = 0;
 const FD_STDOUT: usize = 1;
 
+pub fn sys_openat(path: *const u8, flags: usize) -> SyscallRet {
+    let current = Processor::get_current().unwrap();
+    let path = get_translated_string(Processor::current_user_token().unwrap(), path as *const u8);
+    let inode = open_file(path.as_str(), OpenFlags::from_bits(flags).unwrap());
+    if let Some(inode) = inode {
+        let fd = current.inner_borrow_mut().alloc_fd();
+        current.inner_borrow_mut().fd_table[fd] = Some(inode);
+        fd as SyscallRet
+    } else {
+        -1
+    }
+}
+
+pub fn sys_close(fd: usize) -> SyscallRet {
+    let current = Processor::get_current().unwrap();
+    let mut pcb = current.inner_borrow_mut();
+    if fd >= pcb.fd_table.len() {
+        return -1;
+    }
+    if pcb.fd_table[fd].is_none() {
+        return -1;
+    }
+    pcb.fd_table[fd] = None;
+    0
+}
+
 pub fn sys_read(fd: usize, buffer: *mut u8, len: usize) -> SyscallRet {
-    match fd {
-        FD_STDIN => {
-            let buffers = get_mut_translated_byte_slices(
-                Processor::current_user_token().unwrap(),
-                buffer,
-                len,
-            );
-            for buffer in buffers {
-                read_str(buffer, buffer.len());
-            }
-            len as SyscallRet
+    let token = Processor::current_user_token().unwrap();
+    let task = Processor::get_current().unwrap();
+    let pcb = task.inner_borrow();
+    if fd >= pcb.fd_table.len() {
+        return -1;
+    }
+    if let Some(file) = &pcb.fd_table[fd] {
+        let file = file.clone();
+        if !(file.readable()) {
+            return -1;
         }
-        _ => panic!("Unsupported file descriptor: {}", fd),
+        drop(pcb);
+        file.read(UserBuffer::new(get_mut_translated_byte_slices(
+            token, buffer, len,
+        ))) as isize
+    } else {
+        -1
     }
 }
 
 pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
-    match fd {
-        FD_STDOUT => {
-            let buffers =
-                get_translated_byte_slices(Processor::current_user_token().unwrap(), buffer, len);
-            for buffer in buffers {
-                let s = core::str::from_utf8(buffer).unwrap();
-                printk!("{}", s);
-            }
-            len as SyscallRet
+    let token = Processor::current_user_token().unwrap();
+    let task = Processor::get_current().unwrap();
+    let pcb = task.inner_borrow();
+    if fd >= pcb.fd_table.len() {
+        return -1;
+    }
+    if let Some(file) = &pcb.fd_table[fd] {
+        let file = file.clone();
+        if !(file.writable()) {
+            return -1;
         }
-        _ => panic!("Unsupported file descriptor: {}", fd),
+        drop(pcb);
+        file.write(UserBuffer::new(get_mut_translated_byte_slices(
+            token, buffer, len,
+        ))) as isize
+    } else {
+        -1
     }
 }
 
@@ -116,7 +155,9 @@ pub fn sys_clone() -> SyscallRet {
 
 pub fn sys_execve(path: *const u8) -> SyscallRet {
     let path = get_translated_string(Processor::current_user_token().unwrap(), path as *const u8);
-    if let Some(data) = load_app_data_by_name(path.as_str()) {
+    if let Some(app_inode) = open_file(path.as_str(), OpenFlags::READONLY) {
+        let data = app_inode.read_all();
+        let data = data.as_slice();
         let current = Processor::get_current().unwrap();
         current.exec(data);
         0
