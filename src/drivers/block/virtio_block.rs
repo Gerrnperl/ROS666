@@ -1,31 +1,22 @@
 //! https://github.com/rcore-os/rCore-Tutorial-v3/blob/ch6/os/src/drivers/block/virtio_blk.rs
 //! https://github.com/rcore-os/virtio-drivers/blob/master/examples/riscv/src/virtio_impl.rs
-use core::{alloc::Layout, ptr::NonNull};
+use core::ptr::NonNull;
 
-use alloc::{
-    alloc::{alloc_zeroed, dealloc, handle_alloc_error},
-    vec::Vec,
-};
+use alloc::vec::Vec;
 use lazy_static::lazy_static;
 use ros_fs::block_dev::BlockDevice;
 use spin::Mutex;
 use virtio_drivers::{
-    BufferDirection, Hal, PAGE_SIZE, PhysAddr,
+    BufferDirection, Hal, PhysAddr,
     device::blk::VirtIOBlk,
-    transport::{
-        Transport,
-        mmio::{MmioTransport, VirtIOHeader},
-    },
+    transport::mmio::{MmioTransport, VirtIOHeader},
 };
 
-use crate::{
-    mm::{
-        KERNEL_SPACE,
-        address::{PhysicalAddress, PhysicalPageNumber, VirtualAddress},
-        frame_allocator::{FrameTracker, StackFrameAllocator},
-        page_table::PageTable,
-    },
-    trace,
+use crate::mm::{
+    KERNEL_SPACE,
+    address::{PhysicalAddress, PhysicalPageNumber, VirtualAddress},
+    frame_allocator::{FrameTracker, StackFrameAllocator},
+    page_table::PageTable,
 };
 
 #[cfg(feature = "qemu")]

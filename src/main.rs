@@ -2,7 +2,7 @@
 #![no_main]
 #![feature(inline_const_pat)]
 #![feature(alloc_error_handler)]
-
+#![allow(dead_code)]
 extern crate alloc;
 
 mod drivers;
@@ -17,7 +17,7 @@ mod timer;
 mod trap;
 mod utils;
 
-use core::{arch::global_asm, cell::RefCell};
+use core::arch::global_asm;
 
 use fs::inode::ROOT_INODE;
 

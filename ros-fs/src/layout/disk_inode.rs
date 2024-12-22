@@ -1,7 +1,4 @@
-use alloc::{
-    sync::Arc,
-    vec::{self, Vec},
-};
+use alloc::{sync::Arc, vec::Vec};
 
 use crate::{
     block_cache::{BLOCK_SIZE, get_cache},

@@ -15,7 +15,6 @@ const STDIN: usize = 0;
 /// ## 返回值
 /// 返回读取到的字符
 pub fn getchar() -> u8 {
-    /// 一个长度为1的可变字节数组，用于存储单个字节的数据。
     let mut c = [0u8; 1];
     read(STDIN, &mut c);
     c[0]

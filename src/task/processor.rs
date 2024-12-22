@@ -1,7 +1,5 @@
 //! 处理器模块
 
-// 引入核心库中的 Borrow trait 和 RefCell 结构体
-use core::borrow::Borrow;
 use core::cell::RefCell;
 
 // 引入分配库中的 Arc（原子引用计数）

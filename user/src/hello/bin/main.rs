@@ -3,7 +3,7 @@
 #![no_std]
 #![no_main]
 
-use lib::{TimeVal, sched_yield, sleep, sys::time::get_time_of_day};
+use lib::{TimeVal, sleep, sys::time::get_time_of_day};
 
 #[macro_use]
 extern crate lib;

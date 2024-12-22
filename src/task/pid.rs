@@ -5,7 +5,7 @@ use core::{cell::RefCell, ops::Range};
 use alloc::vec::Vec;
 use lazy_static::lazy_static;
 
-use crate::utils::safety::{self, SyncRefCell};
+use crate::utils::safety::SyncRefCell;
 
 lazy_static! {
     /// 全局 PID 分配器

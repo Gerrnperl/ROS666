@@ -11,7 +11,7 @@ use crate::{
     fs::FileSystem,
     layout::{
         dir_entry::{DIR_ENTRY_SIZE, DirEntry},
-        disk_inode::{self, DiskInode, InodeType},
+        disk_inode::{DiskInode, InodeType},
     },
 };
 
@@ -127,7 +127,7 @@ impl MemInode {
     pub fn clear(&self) {
         let fs = self.fs.lock();
         self.modify_disk_inode(|disk_inode| {
-            let size = disk_inode.size;
+            let _size = disk_inode.size;
             let dealloced = disk_inode.clear_size(&self.dev);
             dealloced.into_iter().for_each(|block_id| {
                 fs.free_data_block(block_id);

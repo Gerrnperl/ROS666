@@ -1,7 +1,5 @@
 //! 进程管理模块
 
-use core::borrow::Borrow;
-
 use alloc::vec;
 use alloc::{
     sync::{Arc, Weak},
@@ -20,16 +18,16 @@ use crate::{
     mm::{
         KERNEL_SPACE,
         address::{PAGE_SIZE_SV39, PhysicalPageNumber, VirtualAddress, VirtualPageNumber},
-        memory_set::{self, MapPermission, MemorySet, TRAMPOLINE},
+        memory_set::{MemorySet, TRAMPOLINE},
     },
-    trap::{self, context::TrapCtx, handler::trap_handler},
+    trap::{context::TrapCtx, handler::trap_handler},
     utils::safety::SyncRefCell,
 };
 
 use super::{
     context::TaskCtx,
-    pid::{PID_ALLOCATOR, PidAllocator, PidHandler},
-    stack::{KernelStack, kernel_stack_position},
+    pid::{PidAllocator, PidHandler},
+    stack::KernelStack,
 };
 
 /// 定义陷阱上下文的地址常量
@@ -138,7 +136,7 @@ impl ProcessControlBlock {
     /// ## 返回值
     /// 返回一个新的进程控制块实例
     pub fn new(app_data: &[u8]) -> Self {
-        let (mut memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
+        let (memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
         let trap_ctx_ppn = PhysicalPageNumber::from(
             &memory_set
                 .translate(VirtualPageNumber::from(VirtualAddress::from(TRAP_CONTEXT)))

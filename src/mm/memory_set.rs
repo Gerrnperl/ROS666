@@ -1,11 +1,10 @@
 /// 导入核心库中的一些模块
-use core::{arch::asm, borrow::BorrowMut, cell::RefCell, ops::Range};
+use core::{arch::asm, cell::RefCell, ops::Range};
 
 /// 导入项目中的一些模块
 use crate::{
-    extern_global, info,
+    extern_global,
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
-    printkln,
     task::{stack::USER_STACK_SIZE, task::TRAP_CONTEXT},
     trace,
     utils::safety::SyncRefCell,
@@ -298,7 +297,7 @@ impl MemorySet {
 
     /// 创建内核 MemorySet
     pub fn new_kernel() -> Self {
-        let kernel_start = extern_global!(__kernel_start) as usize;
+        let _kernel_start = extern_global!(__kernel_start) as usize;
         let kernel_end = extern_global!(__kernel_end) as usize;
         let text_start = extern_global!(__text_start) as usize;
         let text_end = extern_global!(__text_end) as usize;

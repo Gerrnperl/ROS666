@@ -6,15 +6,13 @@ use common::syscall::{
 
 use crate::{
     fs::inode::open_file,
-    info,
-    io::stdio::read_str,
     mm::page_table::{
         UserBuffer, get_mut_translated_byte_slices, get_translated_byte_slices,
         get_translated_refmut, get_translated_string,
     },
-    printk, printkln,
-    task::{self, manager::TaskManager, pid, processor::Processor, task::ProcessStatus},
-    timer::{get_time, get_time_us},
+    printkln,
+    task::{self, manager::TaskManager, processor::Processor, task::ProcessStatus},
+    timer::get_time_us,
     trap::context::Riscv64RegAlias,
     warn,
 };

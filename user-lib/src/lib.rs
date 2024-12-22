@@ -28,8 +28,6 @@ pub mod unistd;
 
 /// 使用堆分配器初始化函数
 use heap_allocator::init_heap;
-/// 使用语言项模块中的所有内容
-pub use language_item::*;
 /// 使用调度模块中的所有内容
 pub use sched::*;
 /// 使用标准输入输出模块中的所有内容
@@ -41,9 +39,6 @@ pub use unistd::*;
 
 /// 堆分配器模块
 mod heap_allocator;
-
-/// 使用核心架构中的汇编和全局汇编
-use core::arch::{asm, global_asm};
 
 /// 程序入口点
 ///
@@ -67,6 +62,7 @@ fn main() -> i32 {
 /// 清空 BSS 段
 ///
 /// 该函数将 BSS 段的所有字节设置为 0。
+#[allow(dead_code)]
 fn clear_bss() {
     unsafe extern "C" {
         fn __bss_start();

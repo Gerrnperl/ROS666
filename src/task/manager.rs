@@ -1,25 +1,18 @@
 //! 任务管理器模块，用于管理任务的调度和切换
 
-// 引入核心库中的汇编模块
-use core::arch::asm;
 // 引入核心库中的Ref和RefCell模块，用于实现内部可变性
-use core::cell::{Ref, RefCell};
+use core::cell::RefCell;
 
 // 引入alloc库中的VecDeque，用于实现任务队列
 use alloc::collections::vec_deque::VecDeque;
 // 引入alloc库中的Arc，用于实现引用计数的智能指针
 use alloc::sync::Arc;
-// 引入alloc库中的Vec，用于动态数组
-use alloc::vec::Vec;
 // 引入lazy_static库，用于定义静态变量
 use lazy_static::lazy_static;
 
 use crate::task::context::TaskCtx;
-use crate::task::switch::__switch;
 use crate::task::task::{ProcessControlBlock, ProcessStatus};
-use crate::trap::context::TrapCtx;
 use crate::utils::safety::SyncRefCell;
-use crate::{info, printkln, sbi::sbi_shutdown};
 
 // 引入当前模块中的INIT_PROC和Processor
 use super::INIT_PROC;

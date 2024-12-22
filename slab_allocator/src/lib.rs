@@ -16,7 +16,7 @@
 
 #![no_std]
 #![feature(allocator_api)]
-
+#![allow(dead_code)]
 // 引入核心库中的分配器模块、分配错误和布局
 use core::{
     alloc::{self, AllocError, Layout},

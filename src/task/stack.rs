@@ -67,7 +67,7 @@ impl KernelStack {
 impl Drop for KernelStack {
     /// 在内核栈被销毁时，移除对应的内存区域
     fn drop(&mut self) {
-        let (bottom, top) = kernel_stack_position(self.pid);
+        let (bottom, _top) = kernel_stack_position(self.pid);
         KERNEL_SPACE
             .ref_cell
             .borrow_mut()

@@ -3,9 +3,6 @@
 // 引入分配器模块中的 String 和 Vec 类型
 use alloc::{string::String, vec::Vec};
 
-// 引入打印宏
-use crate::printkln;
-
 // 引入地址模块中的相关类型
 use super::{
     address::{
@@ -312,7 +309,7 @@ fn get_translated_slices<T>(
     len: usize,
     get_slice: impl Fn(&PhysicalPageNumber, usize, usize) -> T,
 ) -> Vec<T> {
-    let mut page_table = PageTable::from_satp(token);
+    let page_table = PageTable::from_satp(token);
     let mut start = ptr as usize;
     let end = start + len;
     let mut slices = Vec::new();

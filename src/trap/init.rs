@@ -4,8 +4,6 @@ use core::arch::global_asm;
 
 use riscv::register::stvec::{self, TrapMode};
 
-use crate::extern_global;
-
 use super::handler::trap_from_kernel;
 
 // 包含汇编代码

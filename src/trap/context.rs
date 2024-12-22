@@ -2,8 +2,6 @@
 
 use core::arch::asm;
 
-use riscv::register::sstatus::{self, FS, SPP, Sstatus};
-
 /// 表示陷阱上下文的结构体。
 pub struct TrapCtx {
     pub x: [usize; 32],                  // 通用寄存器

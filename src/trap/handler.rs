@@ -14,18 +14,16 @@ use riscv::{
     },
 };
 
-// 导入当前 crate 中的模块
 use crate::{
-    extern_global,                                                          // 外部全局变量
-    mm::memory_set::TRAMPOLINE, // 内存设置中的 TRAMPOLINE 常量
-    printk,                     // 打印内核日志的宏
-    syscall::syscall,           // 系统调用处理函数
-    task::{manager::TaskManager, processor::Processor, task::TRAP_CONTEXT}, // 任务管理相关模块
-    timer::set_next_timeout,    // 设置下一个定时器中断的函数
+    extern_global,
+    mm::memory_set::TRAMPOLINE,
+    syscall::syscall,
+    task::{manager::TaskManager, processor::Processor, task::TRAP_CONTEXT},
+    timer::set_next_timeout,
 };
 
 // 导入上级模块中的上下文相关定义
-use super::context::{Riscv64RegAlias, TrapCtx};
+use super::context::Riscv64RegAlias;
 
 /// 定义定时器中断间隔时间（微秒）
 pub const TIMER_INTERVAL_USEC: usize = 10_000;
