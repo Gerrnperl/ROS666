@@ -1,3 +1,4 @@
+//! SBI 硬件调用封装
 use alloc::vec;
 use rustsbi::{Console, Physical, Reset, SbiRet, Timer};
 

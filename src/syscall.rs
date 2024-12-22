@@ -1,3 +1,4 @@
+//! 系统调用实现
 use alloc::sync::Arc;
 use common::syscall::{
     OpenFlags, Syscall, SyscallArgs, SyscallRet,
@@ -44,6 +45,7 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
 const FD_STDIN: usize = 0;
 const FD_STDOUT: usize = 1;
 
+/// [Syscall::OpenAt]
 pub fn sys_openat(path: *const u8, flags: usize) -> SyscallRet {
     let current = Processor::get_current().unwrap();
     let path = get_translated_string(Processor::current_user_token().unwrap(), path as *const u8);
@@ -57,6 +59,7 @@ pub fn sys_openat(path: *const u8, flags: usize) -> SyscallRet {
     }
 }
 
+/// [Syscall::Close]
 pub fn sys_close(fd: usize) -> SyscallRet {
     let current = Processor::get_current().unwrap();
     let mut pcb = current.inner_borrow_mut();
@@ -70,6 +73,7 @@ pub fn sys_close(fd: usize) -> SyscallRet {
     0
 }
 
+/// [Syscall::Read]
 pub fn sys_read(fd: usize, buffer: *mut u8, len: usize) -> SyscallRet {
     let token = Processor::current_user_token().unwrap();
     let task = Processor::get_current().unwrap();
@@ -91,6 +95,7 @@ pub fn sys_read(fd: usize, buffer: *mut u8, len: usize) -> SyscallRet {
     }
 }
 
+/// [Syscall::Write]
 pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
     let token = Processor::current_user_token().unwrap();
     let task = Processor::get_current().unwrap();
@@ -112,15 +117,18 @@ pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
     }
 }
 
+/// [Syscall::Exit]
 pub fn sys_exit(code: i32) {
     task::manager::TaskManager::replace_to_next(code);
 }
 
+/// [Syscall::SchedYield]
 pub fn sys_yield() -> SyscallRet {
     task::manager::TaskManager::cycle_to_next();
     0
 }
 
+/// [Syscall::GetTimeOfDay]
 pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
     let ts_buffer = get_translated_byte_slices(
         Processor::current_user_token().unwrap(),
@@ -142,11 +150,13 @@ pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
     0
 }
 
+/// [Syscall::Shutdown]
 pub fn sys_shutdown() -> ! {
     warn!("System shutdown");
     crate::sbi::sbi_shutdown(false);
 }
 
+/// [Syscall::Clone]
 pub fn sys_clone() -> SyscallRet {
     let current = Processor::get_current().unwrap();
     let new_task = current.fork();
@@ -157,6 +167,7 @@ pub fn sys_clone() -> SyscallRet {
     new_task_pid as SyscallRet
 }
 
+/// [Syscall::Execve]
 pub fn sys_execve(path: *const u8) -> SyscallRet {
     let path = get_translated_string(Processor::current_user_token().unwrap(), path as *const u8);
     if let Some(app_inode) = open_file(path.as_str(), OpenFlags::READONLY) {
@@ -171,6 +182,7 @@ pub fn sys_execve(path: *const u8) -> SyscallRet {
     }
 }
 
+/// [Syscall::Wait4]
 pub fn sys_wait4(pid: isize, exit_code_ptr: *mut i32) -> SyscallRet {
     let task = Processor::get_current().unwrap();
     let mut pcb = task.inner_borrow_mut();
