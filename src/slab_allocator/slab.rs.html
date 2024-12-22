@@ -155,13 +155,19 @@
 <a href="#154" id="154">154</a>
 <a href="#155" id="155">155</a>
 <a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a></pre></div><pre class="rust"><code><span class="doccomment">//! `slab` 模块包含 `Slab` 结构体，该结构体表示一个内存块分配器。
-
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a></pre></div><pre class="rust"><code><span class="doccomment">//! Slab Allocator
+//!
+//! Slab Allocator 是一种简单的内存分配器，它将内存分配为固定大小的块，并在需要时分配这些块。
+//!
+//! 在分配时，保持各个大小的 Slab 块数量的平衡，以适应不同大小的内存分配请求。
 </span><span class="kw">use </span>core::{alloc::AllocError, ptr::NonNull};
 
 <span class="kw">use </span><span class="kw">crate</span>::Address;
 
-<span class="doccomment">/// `Slab` 结构体表示一个内存块分配器。
+<span class="doccomment">/// Slab 内存块分配器。
 ///
 /// ## 字段
 /// - `block_size`：每个内存块的大小

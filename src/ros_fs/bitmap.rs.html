@@ -72,7 +72,44 @@
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a></pre></div><pre class="rust"><code><span class="kw">use </span>alloc::sync::Arc;
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a></pre></div><pre class="rust"><code><span class="doccomment">//! 位示图
+//!
+//! 用于管理块设备某一范围内的空闲块
+//!
+//! 位示图由多个块组成，每个块包含 64 个 u64 类型的位
+//!
+//! 位示图的每一位对应一个物理磁盘块，0 表示空闲，1 表示已分配
+</span><span class="kw">use </span>alloc::sync::Arc;
 
 <span class="kw">use crate</span>::{
     block_cache::{BLOCK_SIZE, get_cache},
@@ -83,7 +120,12 @@
 
 <span class="kw">const </span>BLOCK_BITS: usize = BLOCK_SIZE * <span class="number">8</span>;
 
-<span class="kw">pub struct </span>Bitmap {
+<span class="doccomment">/// 位示图
+///
+/// 用于管理块设备某一范围内的空闲块
+///
+/// 位示图的每一位对应一个块，0 表示空闲，1 表示已分配
+</span><span class="kw">pub struct </span>Bitmap {
     start_block: usize,
     blocks: usize,
 }
@@ -96,7 +138,16 @@
         }
     }
 
-    <span class="kw">pub fn </span>alloc(<span class="kw-2">&amp;</span><span class="self">self</span>, dev: <span class="kw-2">&amp;</span>Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
+    <span class="doccomment">/// 分配一个空闲块
+    ///
+    /// 从位示图中找到第一个空闲的块，并返回其在位示图中的偏移
+    ///
+    /// ## 参数
+    /// - `dev`：块设备
+    ///
+    /// ## 返回
+    /// 返回空闲块在位示图中的偏移，如果没有空闲块则返回 None
+    </span><span class="kw">pub fn </span>alloc(<span class="kw-2">&amp;</span><span class="self">self</span>, dev: <span class="kw-2">&amp;</span>Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt; {
         <span class="kw">for </span>id <span class="kw">in </span><span class="number">0</span>..<span class="self">self</span>.blocks {
             <span class="kw">let </span>cache = get_cache((id + <span class="self">self</span>.start_block) <span class="kw">as </span>usize, Arc::clone(dev))
                 .expect(<span class="string">"cannot get cache"</span>);
@@ -121,7 +172,8 @@
         <span class="prelude-val">None
     </span>}
 
-    <span class="kw">fn </span>extract_bit_position(<span class="kw-2">mut </span>bit: usize) -&gt; (usize, usize, usize) {
+    <span class="doccomment">/// 从位示图中提取块的位置
+    </span><span class="kw">fn </span>extract_bit_position(<span class="kw-2">mut </span>bit: usize) -&gt; (usize, usize, usize) {
         <span class="kw">let </span>block = bit / BLOCK_BITS;
         bit %= BLOCK_BITS;
         <span class="kw">let </span>pos = bit / <span class="number">64</span>;
@@ -129,7 +181,14 @@
         (block, pos, bit)
     }
 
-    <span class="kw">pub fn </span>free(<span class="kw-2">&amp;</span><span class="self">self</span>, dev: <span class="kw-2">&amp;</span>Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;, bit: usize) {
+    <span class="doccomment">/// 释放一个块
+    ///
+    /// 将指定块标记为空闲
+    ///
+    /// ## 参数
+    /// - `dev`：块设备
+    /// - `bit`：块在位示图内的偏移
+    </span><span class="kw">pub fn </span>free(<span class="kw-2">&amp;</span><span class="self">self</span>, dev: <span class="kw-2">&amp;</span>Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;, bit: usize) {
         <span class="kw">let </span>(block, pos, bit) = <span class="self">Self</span>::extract_bit_position(bit);
         <span class="kw">let </span>cache = get_cache((block + <span class="self">self</span>.start_block) <span class="kw">as </span>usize, Arc::clone(dev))
             .expect(<span class="string">"cannot get cache"</span>);
@@ -142,7 +201,8 @@
             .expect(<span class="string">"cannot modify cache"</span>);
     }
 
-    <span class="kw">pub fn </span>maximum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
+    <span class="doccomment">/// 获取位示图的最大块数
+    </span><span class="kw">pub fn </span>maximum(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.blocks * BLOCK_BITS
     }
 }

@@ -19,27 +19,15 @@
 <a href="#18" id="18">18</a>
 <a href="#19" id="19">19</a>
 <a href="#20" id="20">20</a>
-<a href="#21" id="21">21</a>
-<a href="#22" id="22">22</a>
-<a href="#23" id="23">23</a>
-<a href="#24" id="24">24</a>
-<a href="#25" id="25">25</a>
-<a href="#26" id="26">26</a>
-<a href="#27" id="27">27</a></pre></div><pre class="rust"><code><span class="doccomment">//! 这个模块包含语言项的实现。
-//!
-//! 主要功能包括：
-//! - 自定义 panic 处理函数。
+<a href="#21" id="21">21</a></pre></div><pre class="rust"><code><span class="doccomment">//! Rust 语言项
 
 </span><span class="kw">use </span>core::panic::PanicInfo;
 
 <span class="kw">use crate</span>::{exit, print, println};
 
-<span class="doccomment">/// 自定义 panic 处理函数
+<span class="doccomment">/// Rust 语言项 - panic 处理函数
 ///
-/// ## 参数
-/// - `info`: 包含 panic 信息的 `PanicInfo` 结构体
-/// ## 返回值
-/// 该函数不会返回，直接调用 `exit(1)` 退出程序
+/// 当 panic 时会调用该函数
 </span><span class="attr">#[panic_handler]
 </span><span class="kw">fn </span>panic(info: <span class="kw-2">&amp;</span>PanicInfo) -&gt; ! {
     <span class="kw">let </span>message = info.message();

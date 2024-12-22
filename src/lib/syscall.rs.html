@@ -128,19 +128,7 @@
 <a href="#127" id="127">127</a>
 <a href="#128" id="128">128</a>
 <a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a></pre></div><pre class="rust"><code><span class="doccomment">//! 这个模块包含系统调用的实现。
-//!
-//! 主要功能包括：
-//! - 调用系统调用。
-//! - 读写文件描述符。
-//! - 退出当前进程。
-//! - 让出 CPU。
-//! - 获取当前时间。
-//! - 创建新进程。
-//! - 执行新程序。
-//! - 等待子进程退出。
+<a href="#130" id="130">130</a></pre></div><pre class="rust"><code><span class="doccomment">//! 调用系统调用的封装
 
 </span><span class="kw">use </span>core::arch::asm;
 
@@ -232,6 +220,14 @@
 /// 返回系统调用的结果
 </span><span class="kw">pub fn </span>sys_get_time_of_day(ts: <span class="kw-2">*mut </span>TimeVal, tz: <span class="kw-2">*mut </span>TimeZone) -&gt; SyscallRet {
     syscall(Syscall::GetTimeOfDay, [ts <span class="kw">as </span>usize, tz <span class="kw">as </span>usize, <span class="number">0</span>])
+}
+
+<span class="doccomment">/// 关机
+///
+/// 该函数不会返回，直接关机
+</span><span class="kw">pub fn </span>sys_shutdown() -&gt; ! {
+    syscall(Syscall::Shutdown, [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]);
+    <span class="macro">unreachable!</span>(<span class="string">"Unreachable after sys_shutdown"</span>);
 }
 
 <span class="doccomment">/// 创建新进程

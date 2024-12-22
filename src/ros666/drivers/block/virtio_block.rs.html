@@ -119,44 +119,57 @@
 <a href="#118" id="118">118</a>
 <a href="#119" id="119">119</a>
 <a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a></pre></div><pre class="rust"><code><span class="doccomment">//! https://github.com/rcore-os/rCore-Tutorial-v3/blob/ch6/os/src/drivers/block/virtio_blk.rs
-//! https://github.com/rcore-os/virtio-drivers/blob/master/examples/riscv/src/virtio_impl.rs
-</span><span class="kw">use </span>core::{alloc::Layout, ptr::NonNull};
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a></pre></div><pre class="rust"><code><span class="doccomment">//! VirtIO 虚拟块设备驱动程序
+//!
+//! [virtio_drivers](https://github.com/rcore-os/virtio-drivers/tree/master) 是一个用于实现 VirtIO 设备的库，它提供了一个通用的 VirtIO 设备驱动程序框架，可以通过实现 Hal trait 来适配不同的 VirtIO 设备。
+//!
+//! 本模块基于 virtio_drivers 实现了 VirtIO 块设备驱动程序，用于访问 VirtIO 块设备。
+//!
+//! ## References
+//! 实现主要参考：
+//! - https://github.com/rcore-os/rCore-Tutorial-v3/blob/ch6/os/src/drivers/block/virtio_blk.rs
+//! - https://github.com/rcore-os/virtio-drivers/blob/master/examples/riscv/src/virtio_impl.rs
+</span><span class="kw">use </span>core::ptr::NonNull;
 
-<span class="kw">use </span>alloc::{
-    alloc::{alloc_zeroed, dealloc, handle_alloc_error},
-    vec::Vec,
-};
+<span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>ros_fs::block_dev::BlockDevice;
 <span class="kw">use </span>spin::Mutex;
 <span class="kw">use </span>virtio_drivers::{
-    BufferDirection, Hal, PAGE_SIZE, PhysAddr,
+    BufferDirection, Hal, PhysAddr,
     device::blk::VirtIOBlk,
-    transport::{
-        Transport,
-        mmio::{MmioTransport, VirtIOHeader},
-    },
+    transport::mmio::{MmioTransport, VirtIOHeader},
 };
 
-<span class="kw">use crate</span>::{
-    mm::{
-        KERNEL_SPACE,
-        address::{PhysicalAddress, PhysicalPageNumber, VirtualAddress},
-        frame_allocator::{FrameTracker, StackFrameAllocator},
-        page_table::PageTable,
-    },
-    trace,
+<span class="kw">use </span><span class="kw">crate</span>::mm::{
+    KERNEL_SPACE,
+    address::{PhysicalAddress, PhysicalPageNumber, VirtualAddress},
+    frame_allocator::{FrameTracker, StackFrameAllocator},
+    page_table::PageTable,
 };
 
 <span class="attr">#[cfg(feature = <span class="string">"qemu"</span>)]
 </span><span class="kw">pub const </span>MMIO: <span class="kw-2">&amp;</span>[(usize, usize)] = <span class="kw-2">&amp;</span>[(<span class="number">0x10001000</span>, <span class="number">0x1000</span>)];
 
 <span class="kw">const </span>VIRTIO_0: usize = <span class="number">0x10001000</span>;
-<span class="kw">pub struct </span>VirtIOBlock(Mutex&lt;VirtIOBlk&lt;HalImpl, MmioTransport&gt;&gt;);
+
+<span class="doccomment">/// VirtIO 块设备
+///
+/// 通过 virtio_drivers 实现的 VirtIO 块设备
+</span><span class="kw">pub struct </span>VirtIOBlock(Mutex&lt;VirtIOBlk&lt;HalImpl, MmioTransport&gt;&gt;);
 
 <span class="kw">impl </span>VirtIOBlock {
-    <span class="kw">pub unsafe fn </span>new() -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 创建一个新的 VirtIO 块设备
+    ///
+    /// Header 位于 MMIO[0]，通过 MmioTransport 进行通信
+    </span><span class="kw">pub unsafe fn </span>new() -&gt; <span class="self">Self </span>{
         <span class="kw">let </span>vaddr = MMIO[<span class="number">0</span>].<span class="number">0</span>;
         <span class="kw">let </span>header = NonNull::new(vaddr <span class="kw">as </span><span class="kw-2">*mut </span>VirtIOHeader).unwrap();
         <span class="kw">let </span>transport = <span class="kw">unsafe </span>{ MmioTransport::new(header) }.unwrap();
@@ -187,7 +200,12 @@
     <span class="kw">static </span><span class="kw-2">ref </span>QUEUE_FRAMES: Mutex&lt;Vec&lt;FrameTracker&gt;&gt; = Mutex::new(Vec::new());
 }
 
-<span class="kw">pub struct </span>HalImpl;
+<span class="doccomment">/// 实现 Hal trait 以适配 VirtIO 块设备
+///
+/// Hal trait 定义了一些底层的硬件操作，例如分配/释放 DMA 内存，将物理地址映射到虚拟地址等。
+///
+/// virtio_drivers 通过 Hal trait 与内核内存空间进行交互，以实现 DMA 内存的分配和释放，以及将物理地址映射到虚拟地址。
+</span><span class="kw">pub struct </span>HalImpl;
 
 <span class="kw">unsafe impl </span>Hal <span class="kw">for </span>HalImpl {
     <span class="kw">fn </span>dma_alloc(pages: usize, _direction: BufferDirection) -&gt; (PhysAddr, NonNull&lt;u8&gt;) {
@@ -200,8 +218,7 @@
             <span class="macro">assert_eq!</span>(frame.frame.<span class="number">0</span>, ppn_base.<span class="number">0 </span>+ i);
             QUEUE_FRAMES.lock().push(frame);
         }
-        <span class="comment">// ppn_base.into()
-        </span><span class="kw">let </span>paddr = PhysicalAddress::from(ppn_base).<span class="number">0</span>;
+        <span class="kw">let </span>paddr = PhysicalAddress::from(ppn_base).<span class="number">0</span>;
 
         <span class="kw">let </span>vaddr = NonNull::new(paddr <span class="kw">as _</span>).unwrap();
         (paddr, vaddr)
@@ -235,9 +252,6 @@
         va
     }
 
-    <span class="kw">unsafe fn </span>unshare(_paddr: PhysAddr, _buffer: NonNull&lt;[u8]&gt;, _direction: BufferDirection) {
-        <span class="comment">// Nothing to do, as the host already has access to all memory and we didn't copy the buffer
-        // anywhere else.
-    </span>}
+    <span class="kw">unsafe fn </span>unshare(_paddr: PhysAddr, _buffer: NonNull&lt;[u8]&gt;, _direction: BufferDirection) {}
 }
 </code></pre></div></section></main></body></html>

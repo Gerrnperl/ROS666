@@ -9,15 +9,57 @@
 <a href="#8" id="8">8</a>
 <a href="#9" id="9">9</a>
 <a href="#10" id="10">10</a>
-<a href="#11" id="11">11</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::mm::page_table::UserBuffer;
+<a href="#11" id="11">11</a>
+<a href="#12" id="12">12</a>
+<a href="#13" id="13">13</a>
+<a href="#14" id="14">14</a>
+<a href="#15" id="15">15</a>
+<a href="#16" id="16">16</a>
+<a href="#17" id="17">17</a>
+<a href="#18" id="18">18</a>
+<a href="#19" id="19">19</a>
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a>
+<a href="#27" id="27">27</a>
+<a href="#28" id="28">28</a>
+<a href="#29" id="29">29</a>
+<a href="#30" id="30">30</a>
+<a href="#31" id="31">31</a>
+<a href="#32" id="32">32</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::mm::page_table::UserBuffer;
 
 <span class="kw">pub mod </span>inode;
 <span class="kw">pub mod </span>stdio;
 
-<span class="kw">pub trait </span>File: Send + Sync {
-    <span class="kw">fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: UserBuffer) -&gt; usize;
-    <span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: UserBuffer) -&gt; usize;
-    <span class="kw">fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
-    <span class="kw">fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
+<span class="doccomment">/// 文件操作 trait
+///
+/// 用于实现文件的读写操作
+///
+/// 一个文件可以被多个进程共享，因此需要实现 Send 和 Sync trait
+</span><span class="kw">pub trait </span>File: Send + Sync {
+    <span class="doccomment">/// 从文件中读取数据到用户空间
+    ///
+    /// ## 参数
+    /// - `buf`: 用户空间的缓冲区
+    ///
+    /// ## 返回
+    /// 读取的字节数
+    </span><span class="kw">fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: UserBuffer) -&gt; usize;
+    <span class="doccomment">/// 将用户空间的数据写入文件
+    ///
+    /// ## 参数
+    /// - `buf`: 用户空间的缓冲区
+    ///
+    /// ## 返回
+    /// 写入的字节数
+    </span><span class="kw">fn </span>write(<span class="kw-2">&amp;</span><span class="self">self</span>, buf: UserBuffer) -&gt; usize;
+    <span class="doccomment">/// 根据打开文件的模式判断是否可读
+    </span><span class="kw">fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
+    <span class="doccomment">/// 根据打开文件的模式判断是否可写
+    </span><span class="kw">fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool;
 }
 </code></pre></div></section></main></body></html>

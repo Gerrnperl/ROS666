@@ -142,37 +142,27 @@
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a></pre></div><pre class="rust"><code><span class="doccomment">//! 陷阱上下文模块。
+<a href="#144" id="144">144</a></pre></div><pre class="rust"><code><span class="doccomment">//! 陷入上下文模块。
 
 </span><span class="kw">use </span>core::arch::asm;
 
-<span class="kw">use </span>riscv::register::sstatus::{<span class="self">self</span>, FS, SPP, Sstatus};
-
-<span class="doccomment">/// 表示陷阱上下文的结构体。
+<span class="doccomment">/// 陷入上下文
+///
+/// 用于保存和恢复陷入处理程序的上下文。
 </span><span class="kw">pub struct </span>TrapCtx {
-    <span class="kw">pub </span>x: [usize; <span class="number">32</span>],                  <span class="comment">// 通用寄存器
-    </span><span class="kw">pub </span>sstatus: usize,                  <span class="comment">// 监管者状态寄存器
-    </span><span class="kw">pub </span>sepc: usize,                     <span class="comment">// 监管者异常程序计数器
-    </span><span class="kw">pub </span>kernel_satp: usize,              <span class="comment">// 内核页表基址寄存器
-    </span><span class="kw">pub </span>kernel_virt_sp: usize,           <span class="comment">// 内核虚拟栈指针
-    </span><span class="kw">pub </span>kernel_virt_trap_handler: usize, <span class="comment">// 内核虚拟陷阱处理程序地址
-</span>}
+    <span class="doccomment">/// 通用寄存器
+    </span><span class="kw">pub </span>x: [usize; <span class="number">32</span>],
+    <span class="doccomment">/// Supervisor 状态寄存器
+    </span><span class="kw">pub </span>sstatus: usize,
+    <span class="doccomment">/// Supervisor 异常程序计数器                 
+    </span><span class="kw">pub </span>sepc: usize,
+    <span class="doccomment">/// 内核页表基址 (Supervisor Address Translation and Protection)
+    </span><span class="kw">pub </span>kernel_satp: usize,
+    <span class="doccomment">/// 内核虚拟栈指针
+    </span><span class="kw">pub </span>kernel_virt_sp: usize,
+    <span class="doccomment">/// 内核虚拟陷入处理程序入口地址
+    </span><span class="kw">pub </span>kernel_virt_trap_handler: usize,
+}
 
 <span class="kw">impl </span>TrapCtx {
     <span class="doccomment">/// 设置栈指针寄存器的值。
@@ -187,7 +177,7 @@
     /// - `sp`：栈指针地址。
     /// - `kernel_satp`：内核页表基址寄存器的值。
     /// - `kernel_virt_sp`：内核虚拟栈指针的值。
-    /// - `kernel_virt_trap_handler`：内核虚拟陷阱处理程序的地址。
+    /// - `kernel_virt_trap_handler`：内核虚拟陷入处理程序的地址。
     /// ## 返回值
     /// 返回一个初始化的 TrapCtx 实例。
     </span><span class="kw">pub fn </span>init_app_context(
@@ -197,7 +187,8 @@
         kernel_virt_sp: usize,
         kernel_virt_trap_handler: usize,
     ) -&gt; <span class="self">Self </span>{
-        <span class="comment">// riscv crate 不提供从 sstatus 获取位的方法，所以我们必须使用内联汇编
+        <span class="comment">// the riscv crate does not provide a way to get bits from sstatus
+        // so we have to use inline assembly
         </span><span class="kw">let </span><span class="kw-2">mut </span>sstatus: usize;
         <span class="kw">unsafe </span>{
             <span class="macro">asm!</span>(<span class="string">"csrr {}, sstatus"</span>, out(reg) sstatus);
@@ -263,58 +254,35 @@
     </span><span class="kw">fn </span>sstatus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize;
 }
 
-<span class="doccomment">/// 实现 `Riscv64RegAlias` 特性用于 `TrapCtx` 结构体。
-///
-/// 该特性提供了一组方法来访问和修改 RISC-V 64 位架构的寄存器。
-</span><span class="kw">impl </span>Riscv64RegAlias <span class="kw">for </span>TrapCtx {
-    <span class="doccomment">/// # zero:
-    ///   返回对 `x[0]` 寄存器的可变引用。
-    </span><span class="kw">fn </span>zero(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+<span class="kw">impl </span>Riscv64RegAlias <span class="kw">for </span>TrapCtx {
+    <span class="kw">fn </span>zero(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">0</span>]
     }
-    <span class="doccomment">/// # ra:
-    ///   返回对 `x[1]` 寄存器的可变引用。
-    </span><span class="kw">fn </span>ra(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="kw">fn </span>ra(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">1</span>]
     }
-    <span class="doccomment">/// # sp:
-    ///   返回对 `x[2]` 寄存器的可变引用。
-    </span><span class="kw">fn </span>sp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="kw">fn </span>sp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">2</span>]
     }
-    <span class="doccomment">/// # gp:
-    ///   返回对 `x[3]` 寄存器的可变引用。
-    </span><span class="kw">fn </span>gp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="kw">fn </span>gp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">3</span>]
     }
-    <span class="doccomment">/// # tp:
-    ///   返回对 `x[4]` 寄存器的可变引用。
-    </span><span class="kw">fn </span>tp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="kw">fn </span>tp(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">4</span>]
     }
-    <span class="doccomment">/// # t:
-    ///   返回对 `x[5 + i]` 寄存器的可变引用。
-    </span><span class="kw">fn </span>t(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="kw">fn </span>t(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">5 </span>+ i]
     }
-    <span class="doccomment">/// # s:
-    ///   返回对 `x[13 + i]` 寄存器的可变引用。
-    </span><span class="kw">fn </span>s(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="kw">fn </span>s(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">13 </span>+ i]
     }
-    <span class="doccomment">/// # a:
-    ///   返回对 `x[10 + i]` 寄存器的可变引用。
-    </span><span class="kw">fn </span>a(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="kw">fn </span>a(<span class="kw-2">&amp;mut </span><span class="self">self</span>, i: usize) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.x[<span class="number">10 </span>+ i]
     }
-    <span class="doccomment">/// # sepc:
-    ///   返回对 `sepc` 寄存器的可变引用。
-    </span><span class="kw">fn </span>sepc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="kw">fn </span>sepc(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.sepc
     }
-    <span class="doccomment">/// # sstatus:
-    ///   返回对 `sstatus` 寄存器的可变引用。
-    </span><span class="kw">fn </span>sstatus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
+    <span class="kw">fn </span>sstatus(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut </span>usize {
         <span class="kw-2">&amp;mut </span><span class="self">self</span>.sstatus
     }
 }

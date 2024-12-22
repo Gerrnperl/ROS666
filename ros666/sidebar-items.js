@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["_kernel_entry","clear_bss","startup_log"],"macro":["debug","error","extern_global","info","log","printk","printkln","trace","warn"],"mod":["drivers","fs","io","language_item","mm","sbi","syscall","task","timer","trap","utils"]};
+window.SIDEBAR_ITEMS = {"fn":["_kernel_entry","clear_bss","print_logo","startup_log"],"macro":["debug","error","extern_global","info","log","printk","printkln","trace","warn"],"mod":["drivers","fs","io","language_item","mm","sbi","syscall","task","timer","trap","utils"]};

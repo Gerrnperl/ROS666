@@ -201,7 +201,24 @@
 <a href="#200" id="200">200</a>
 <a href="#201" id="201">201</a>
 <a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a></pre></div><pre class="rust"><code><span class="kw">use </span>alloc::sync::Arc;
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a></pre></div><pre class="rust"><code><span class="doccomment">//! 系统调用实现
+</span><span class="kw">use </span>alloc::sync::Arc;
 <span class="kw">use </span>common::syscall::{
     OpenFlags, Syscall, SyscallArgs, SyscallRet,
     time::{TimeVal, TimeZone},
@@ -209,16 +226,15 @@
 
 <span class="kw">use crate</span>::{
     fs::inode::open_file,
-    info,
-    io::stdio::read_str,
     mm::page_table::{
         UserBuffer, get_mut_translated_byte_slices, get_translated_byte_slices,
         get_translated_refmut, get_translated_string,
     },
-    printk, printkln,
-    task::{<span class="self">self</span>, manager::TaskManager, pid, processor::Processor, task::ProcessStatus},
-    timer::{get_time, get_time_us},
+    printkln,
+    task::{<span class="self">self</span>, manager::TaskManager, processor::Processor, task::ProcessStatus},
+    timer::get_time_us,
     trap::context::Riscv64RegAlias,
+    warn,
 };
 
 <span class="kw">pub fn </span>syscall(call: Syscall, args: SyscallArgs) -&gt; SyscallRet {
@@ -233,6 +249,7 @@
         </span>}
         Syscall::SchedYield =&gt; sys_yield(),
         Syscall::GetTimeOfDay =&gt; sys_get_time_of_day(args[<span class="number">0</span>] <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>, args[<span class="number">1</span>] <span class="kw">as </span><span class="kw-2">*mut </span><span class="kw">_</span>),
+        Syscall::Shutdown =&gt; sys_shutdown(),
         Syscall::Clone =&gt; sys_clone(),
         Syscall::Execve =&gt; sys_execve(args[<span class="number">0</span>] <span class="kw">as </span><span class="kw-2">*const </span>u8),
         Syscall::Wait4 =&gt; sys_wait4(args[<span class="number">0</span>] <span class="kw">as </span>isize, args[<span class="number">1</span>] <span class="kw">as </span><span class="kw-2">*mut </span>i32),
@@ -247,7 +264,8 @@
 <span class="kw">const </span>FD_STDIN: usize = <span class="number">0</span>;
 <span class="kw">const </span>FD_STDOUT: usize = <span class="number">1</span>;
 
-<span class="kw">pub fn </span>sys_openat(path: <span class="kw-2">*const </span>u8, flags: usize) -&gt; SyscallRet {
+<span class="doccomment">/// [Syscall::OpenAt]
+</span><span class="kw">pub fn </span>sys_openat(path: <span class="kw-2">*const </span>u8, flags: usize) -&gt; SyscallRet {
     <span class="kw">let </span>current = Processor::get_current().unwrap();
     <span class="kw">let </span>path = get_translated_string(Processor::current_user_token().unwrap(), path <span class="kw">as </span><span class="kw-2">*const </span>u8);
     <span class="kw">let </span>inode = open_file(path.as_str(), OpenFlags::from_bits(flags).unwrap());
@@ -260,7 +278,8 @@
     </span>}
 }
 
-<span class="kw">pub fn </span>sys_close(fd: usize) -&gt; SyscallRet {
+<span class="doccomment">/// [Syscall::Close]
+</span><span class="kw">pub fn </span>sys_close(fd: usize) -&gt; SyscallRet {
     <span class="kw">let </span>current = Processor::get_current().unwrap();
     <span class="kw">let </span><span class="kw-2">mut </span>pcb = current.inner_borrow_mut();
     <span class="kw">if </span>fd &gt;= pcb.fd_table.len() {
@@ -273,7 +292,8 @@
     <span class="number">0
 </span>}
 
-<span class="kw">pub fn </span>sys_read(fd: usize, buffer: <span class="kw-2">*mut </span>u8, len: usize) -&gt; SyscallRet {
+<span class="doccomment">/// [Syscall::Read]
+</span><span class="kw">pub fn </span>sys_read(fd: usize, buffer: <span class="kw-2">*mut </span>u8, len: usize) -&gt; SyscallRet {
     <span class="kw">let </span>token = Processor::current_user_token().unwrap();
     <span class="kw">let </span>task = Processor::get_current().unwrap();
     <span class="kw">let </span>pcb = task.inner_borrow();
@@ -294,7 +314,8 @@
     </span>}
 }
 
-<span class="kw">pub fn </span>sys_write(fd: usize, buffer: <span class="kw-2">*const </span>u8, len: usize) -&gt; SyscallRet {
+<span class="doccomment">/// [Syscall::Write]
+</span><span class="kw">pub fn </span>sys_write(fd: usize, buffer: <span class="kw-2">*const </span>u8, len: usize) -&gt; SyscallRet {
     <span class="kw">let </span>token = Processor::current_user_token().unwrap();
     <span class="kw">let </span>task = Processor::get_current().unwrap();
     <span class="kw">let </span>pcb = task.inner_borrow();
@@ -315,17 +336,19 @@
     </span>}
 }
 
-<span class="kw">pub fn </span>sys_exit(code: i32) {
-    <span class="macro">printk!</span>(<span class="string">"Process exited with code {}\n"</span>, code);
+<span class="doccomment">/// [Syscall::Exit]
+</span><span class="kw">pub fn </span>sys_exit(code: i32) {
     task::manager::TaskManager::replace_to_next(code);
 }
 
-<span class="kw">pub fn </span>sys_yield() -&gt; SyscallRet {
+<span class="doccomment">/// [Syscall::SchedYield]
+</span><span class="kw">pub fn </span>sys_yield() -&gt; SyscallRet {
     task::manager::TaskManager::cycle_to_next();
     <span class="number">0
 </span>}
 
-<span class="kw">pub fn </span>sys_get_time_of_day(ts: <span class="kw-2">*mut </span>TimeVal, tz: <span class="kw-2">*mut </span>TimeZone) -&gt; SyscallRet {
+<span class="doccomment">/// [Syscall::GetTimeOfDay]
+</span><span class="kw">pub fn </span>sys_get_time_of_day(ts: <span class="kw-2">*mut </span>TimeVal, tz: <span class="kw-2">*mut </span>TimeZone) -&gt; SyscallRet {
     <span class="kw">let </span>ts_buffer = get_translated_byte_slices(
         Processor::current_user_token().unwrap(),
         ts <span class="kw">as </span><span class="kw-2">*const </span>u8,
@@ -346,7 +369,14 @@
     <span class="number">0
 </span>}
 
-<span class="kw">pub fn </span>sys_clone() -&gt; SyscallRet {
+<span class="doccomment">/// [Syscall::Shutdown]
+</span><span class="kw">pub fn </span>sys_shutdown() -&gt; ! {
+    <span class="macro">warn!</span>(<span class="string">"System shutdown"</span>);
+    <span class="kw">crate</span>::sbi::sbi_shutdown(<span class="bool-val">false</span>);
+}
+
+<span class="doccomment">/// [Syscall::Clone]
+</span><span class="kw">pub fn </span>sys_clone() -&gt; SyscallRet {
     <span class="kw">let </span>current = Processor::get_current().unwrap();
     <span class="kw">let </span>new_task = current.fork();
     <span class="kw">let </span>new_task_pid = new_task.inner_borrow().pid.<span class="number">0</span>;
@@ -356,7 +386,8 @@
     new_task_pid <span class="kw">as </span>SyscallRet
 }
 
-<span class="kw">pub fn </span>sys_execve(path: <span class="kw-2">*const </span>u8) -&gt; SyscallRet {
+<span class="doccomment">/// [Syscall::Execve]
+</span><span class="kw">pub fn </span>sys_execve(path: <span class="kw-2">*const </span>u8) -&gt; SyscallRet {
     <span class="kw">let </span>path = get_translated_string(Processor::current_user_token().unwrap(), path <span class="kw">as </span><span class="kw-2">*const </span>u8);
     <span class="kw">if let </span><span class="prelude-val">Some</span>(app_inode) = open_file(path.as_str(), OpenFlags::READONLY) {
         <span class="kw">let </span>data = app_inode.read_all();
@@ -370,7 +401,8 @@
     </span>}
 }
 
-<span class="kw">pub fn </span>sys_wait4(pid: isize, exit_code_ptr: <span class="kw-2">*mut </span>i32) -&gt; SyscallRet {
+<span class="doccomment">/// [Syscall::Wait4]
+</span><span class="kw">pub fn </span>sys_wait4(pid: isize, exit_code_ptr: <span class="kw-2">*mut </span>i32) -&gt; SyscallRet {
     <span class="kw">let </span>task = Processor::get_current().unwrap();
     <span class="kw">let </span><span class="kw-2">mut </span>pcb = task.inner_borrow_mut();
 

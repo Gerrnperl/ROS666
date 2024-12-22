@@ -35,9 +35,14 @@
 <a href="#34" id="34">34</a>
 <a href="#35" id="35">35</a>
 <a href="#36" id="36">36</a>
-<a href="#37" id="37">37</a></pre></div><pre class="rust"><code><span class="doccomment">//! # 任务模块
+<a href="#37" id="37">37</a>
+<a href="#38" id="38">38</a>
+<a href="#39" id="39">39</a>
+<a href="#40" id="40">40</a>
+<a href="#41" id="41">41</a></pre></div><pre class="rust"><code><span class="doccomment">//! 任务模块
+//!
+//! 任务模块实现了进程控制块、任务管理调度、任务切换等功能。
 
-</span><span class="comment">// 引入所需的库和模块
 </span><span class="kw">use </span>alloc::sync::Arc;
 <span class="kw">use </span>common::syscall::OpenFlags;
 <span class="kw">use </span>lazy_static::lazy_static;
@@ -46,8 +51,7 @@
 
 <span class="kw">use crate</span>::{fs::inode::open_file, utils::safety::SyncRefCell};
 
-<span class="comment">// 声明子模块
-</span><span class="kw">pub mod </span>context;
+<span class="kw">pub mod </span>context;
 <span class="kw">pub mod </span>manager;
 <span class="kw">pub mod </span>pid;
 <span class="kw">pub mod </span>processor;
@@ -55,9 +59,12 @@
 <span class="kw">pub mod </span>switch;
 <span class="kw">pub mod </span>task;
 
-<span class="comment">// 使用 lazy_static 宏定义一个静态的 INIT_PROC 变量
-</span><span class="macro">lazy_static!</span> {
-    <span class="comment">// INIT_PROC 是一个 Arc 包装的 SyncRefCell，内部存储了一个 ProcessControlBlock 实例
+<span class="macro">lazy_static!</span> {
+    <span class="doccomment">/// INIT_PROC
+    ///
+    /// ininproc 是系统的第一个进程，它的代码和数据来自 initproc 文件。
+    ///
+    /// 其主要功能是启动其他用户进程（sh)
     </span><span class="kw">pub static </span><span class="kw-2">ref </span>INIT_PROC: Arc&lt;SyncRefCell&lt;ProcessControlBlock&gt;&gt; = {
         Arc::new(SyncRefCell::new({
             <span class="kw">let </span>inode = open_file(<span class="string">"initproc"</span>, OpenFlags::READONLY).unwrap();
@@ -67,9 +74,10 @@
     };
 }
 
-<span class="doccomment">/// 初始化任务管理器函数
+<span class="doccomment">/// 初始化任务管理器
+///
+/// 初始化任务管理器，并将 INIT_PROC 放入任务管理器的就绪队列中
 </span><span class="kw">pub fn </span>init() {
-    <span class="comment">// 将 INIT_PROC 添加到任务管理器中
-    </span>TaskManager::put_task(INIT_PROC.clone());
+    TaskManager::put_task(INIT_PROC.clone());
 }
 </code></pre></div></section></main></body></html>

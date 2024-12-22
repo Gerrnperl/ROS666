@@ -117,7 +117,42 @@
 <a href="#116" id="116">116</a>
 <a href="#117" id="117">117</a>
 <a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a></pre></div><pre class="rust"><code><span class="kw">use </span>alloc::{sync::Arc, vec::Vec};
+<a href="#119" id="119">119</a>
+<a href="#120" id="120">120</a>
+<a href="#121" id="121">121</a>
+<a href="#122" id="122">122</a>
+<a href="#123" id="123">123</a>
+<a href="#124" id="124">124</a>
+<a href="#125" id="125">125</a>
+<a href="#126" id="126">126</a>
+<a href="#127" id="127">127</a>
+<a href="#128" id="128">128</a>
+<a href="#129" id="129">129</a>
+<a href="#130" id="130">130</a>
+<a href="#131" id="131">131</a>
+<a href="#132" id="132">132</a>
+<a href="#133" id="133">133</a>
+<a href="#134" id="134">134</a>
+<a href="#135" id="135">135</a>
+<a href="#136" id="136">136</a>
+<a href="#137" id="137">137</a>
+<a href="#138" id="138">138</a>
+<a href="#139" id="139">139</a>
+<a href="#140" id="140">140</a>
+<a href="#141" id="141">141</a>
+<a href="#142" id="142">142</a>
+<a href="#143" id="143">143</a>
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a></pre></div><pre class="rust"><code><span class="doccomment">//! 操作系统 Inode (文件) 结构
+//!
+//! 一个文件在操作系统中对应一个 Inode 结构，用于管理文件的读写操作
+</span><span class="kw">use </span>alloc::{sync::Arc, vec::Vec};
 <span class="kw">use </span>common::syscall::OpenFlags;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>ros_fs::{fs::FileSystemRootInode, layout::disk_inode::InodeType, virt_fs::MemInode};
@@ -135,7 +170,12 @@
     });
 }
 
-<span class="kw">pub struct </span>OSInode {
+<span class="doccomment">/// OS Inode
+///
+/// 文件层级的 Inode 结构，对 内存 Inode [MemInode] 的文件读写访问的封装
+///
+/// 一个 文件 (OS Inode) 可以被多个进程共享，因此需要实现 Send 和 Sync trait
+</span><span class="kw">pub struct </span>OSInode {
     readable: bool,
     writable: bool,
     inode: Mutex&lt;InodeData&gt;,
@@ -147,7 +187,8 @@
 }
 
 <span class="kw">impl </span>OSInode {
-    <span class="kw">pub fn </span>new(readable: bool, writable: bool, inode: Arc&lt;MemInode&gt;) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 创建一个新的 OS Inode
+    </span><span class="kw">pub fn </span>new(readable: bool, writable: bool, inode: Arc&lt;MemInode&gt;) -&gt; <span class="self">Self </span>{
         <span class="self">Self </span>{
             readable,
             writable,
@@ -155,7 +196,8 @@
         }
     }
 
-    <span class="kw">pub fn </span>read_all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+    <span class="doccomment">/// 读取文件的所有内容
+    </span><span class="kw">pub fn </span>read_all(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>inode = <span class="self">self</span>.inode.lock();
         <span class="kw">let </span>inode = <span class="kw-2">&amp;mut *</span>inode;
         <span class="kw">let </span><span class="kw-2">mut </span>buf = Vec::new();
@@ -213,7 +255,17 @@
     }
 }
 
-<span class="kw">pub fn </span>open_file(name: <span class="kw-2">&amp;</span>str, flags: OpenFlags) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;OSInode&gt;&gt; {
+<span class="doccomment">/// 打开文件
+///
+/// 根据文件名和打开标志打开文件
+///
+/// ## 参数
+/// - `name`：文件名
+/// - `flags`：打开标志, 包括读写标志和创建标志等
+///
+/// ## 返回
+/// 成功打开文件时返回文件的 OS Inode，否则返回 None
+</span><span class="kw">pub fn </span>open_file(name: <span class="kw-2">&amp;</span>str, flags: OpenFlags) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;OSInode&gt;&gt; {
     <span class="kw">let </span>readable = flags.readable();
     <span class="kw">let </span>writable = flags.writable();
     <span class="kw">if </span>flags.contains(OpenFlags::CREATE) {
@@ -226,7 +278,19 @@
     <span class="prelude-val">Some</span>(Arc::new(OSInode::new(readable, writable, inode)))
 }
 
-<span class="kw">fn </span>create_file(name: <span class="kw-2">&amp;</span>str, flags: OpenFlags) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;OSInode&gt;&gt; {
+<span class="doccomment">/// 创建文件
+///
+/// 根据文件名和打开标志创建文件
+///
+/// 在文件存在时清空文件内容
+///
+/// ## 参数
+/// - `name`：文件名
+/// - `flags`：打开标志, 包括读写标志和创建标志等
+///
+/// ## 返回
+/// 成功创建文件时返回文件的 OS Inode，否则返回 None
+</span><span class="kw">fn </span>create_file(name: <span class="kw-2">&amp;</span>str, flags: OpenFlags) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;OSInode&gt;&gt; {
     <span class="kw">let </span>readable = flags.readable();
     <span class="kw">let </span>writable = flags.writable();
     <span class="kw">if let </span><span class="prelude-val">Some</span>(inode) = ROOT_INODE.find(name) {

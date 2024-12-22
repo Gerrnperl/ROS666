@@ -89,40 +89,20 @@
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a></pre></div><pre class="rust"><code><span class="doccomment">//! 标准输入输出模块
+<a href="#91" id="91">91</a></pre></div><pre class="rust"><code><span class="doccomment">//! 终端输入输出模块
 
 </span><span class="kw">use </span>core::fmt::Write;
 
-<span class="doccomment">/// 导入 `sbi` 模块及其 `sbi_console_getchar` 函数。
-/// 导入 `task::manager::TaskManager` 模块。
-</span><span class="kw">use crate</span>::{
+<span class="kw">use crate</span>::{
     sbi::{<span class="self">self</span>, sbi_console_getchar},
     task::manager::TaskManager,
 };
 
-<span class="doccomment">/// 标准输出结构体
-</span><span class="kw">struct </span>Stdout {}
+<span class="kw">struct </span>Stdout {}
 
-<span class="doccomment">/// 为 `Stdout` 实现 `Write` trait
-</span><span class="kw">impl </span>Write <span class="kw">for </span>Stdout {
-    <span class="doccomment">/// 实现 `write_str` 方法，将字符串写入标准输出
-    </span><span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; core::fmt::Result {
-        <span class="comment">// 使用 `sbi_console_put` 将字符串输出到控制台
-        </span>sbi::sbi_console_put(s).map_err(|<span class="kw">_</span>| core::fmt::Error)<span class="question-mark">?</span>;
+<span class="kw">impl </span>Write <span class="kw">for </span>Stdout {
+    <span class="kw">fn </span>write_str(<span class="kw-2">&amp;mut </span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>str) -&gt; core::fmt::Result {
+        sbi::sbi_console_put(s).map_err(|<span class="kw">_</span>| core::fmt::Error)<span class="question-mark">?</span>;
         <span class="comment">// 遍历字符串的每个字符并输出到控制台
         // for c in s.chars() {
         //     let _ = sbi::sbi_console_putchar(c as usize);
@@ -137,37 +117,29 @@
 /// * `buf` - 存储读取到的字符串的缓冲区
 /// * `len` - 要读取的字符串的长度
 </span><span class="kw">pub fn </span>read_str(buf: <span class="kw-2">&amp;mut </span>[u8], len: usize) {
-    <span class="comment">// 初始化索引
-    </span><span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
-    <span class="comment">// 循环读取字符
-    </span><span class="kw">loop </span>{
+    <span class="kw">let </span><span class="kw-2">mut </span>i = <span class="number">0</span>;
+    <span class="kw">loop </span>{
         <span class="kw">match </span>sbi_console_getchar() {
-            <span class="comment">// 如果读取到空字符，则切换到下一个任务
-            </span><span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
+            <span class="prelude-val">Ok</span>(<span class="number">0</span>) =&gt; {
                 TaskManager::cycle_to_next();
                 <span class="kw">continue</span>;
             }
-            <span class="comment">// 如果读取到有效字符，则存储到缓冲区
-            </span><span class="prelude-val">Ok</span>(c) =&gt; {
+            <span class="prelude-val">Ok</span>(c) =&gt; {
                 buf[i] = c;
                 i += <span class="number">1</span>;
-                <span class="comment">// 如果读取到的字符数达到指定长度，则退出循环
-                </span><span class="kw">if </span>i == len {
+                <span class="kw">if </span>i == len {
                     <span class="kw">break</span>;
                 }
             }
-            <span class="comment">// 如果读取失败，则退出循环
-            </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="kw">break</span>,
         }
     }
 }
 
 <span class="doccomment">/// 打印格式化的字符串到标准输出
 </span><span class="kw">pub fn </span>printk(args: core::fmt::Arguments) {
-    <span class="comment">// 尝试将格式化的字符串写入标准输出
-    </span><span class="kw">if let </span><span class="prelude-val">Err</span>(e) = (Stdout {}.write_fmt(args)) {
-        <span class="comment">// 如果写入失败，则触发恐慌并打印错误信息
-        </span><span class="macro">panic!</span>(<span class="string">"Printing to stdout failed: {:?}"</span>, e);
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(e) = (Stdout {}.write_fmt(args)) {
+        <span class="macro">panic!</span>(<span class="string">"Printing to stdout failed: {:?}"</span>, e);
     }
 }
 

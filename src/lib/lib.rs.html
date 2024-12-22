@@ -66,26 +66,13 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a></pre></div><pre class="rust"><code><span class="doccomment">//! 这个模块包含用户库的主要功能。
+<a href="#68" id="68">68</a></pre></div><pre class="rust"><code><span class="doccomment">//! 用户程序库
 //!
-//! 主要功能包括：
-//! - 清空 BSS 段。
-//! - 提供系统调用接口。
-//! - 提供堆分配器。
-//! - 提供与时间相关的系统调用接口。
-//! - 提供与等待相关的系统调用接口。
+//! 用于在用户程序中调用系统功能。
+//!
+//! 在无`std`的情况下，用户程序需要调用系统功能，例如`println!`、`exit`等，此时用户程序需要调用系统库。
+//!
+//! 此库提供了系统功能的实现，用户程序以此作为依赖，以调用系统功能。
 
 </span><span class="attr">#![no_std]
 #![no_main]
@@ -93,37 +80,20 @@
 #![feature(alloc_error_handler)]
 
 </span><span class="kw">pub mod </span>fcntl;
-<span class="doccomment">/// 语言项模块
-</span><span class="kw">pub mod </span>language_item;
-<span class="doccomment">/// 调度模块
-</span><span class="kw">pub mod </span>sched;
-<span class="doccomment">/// 标准输入输出模块
-</span><span class="kw">pub mod </span>stdio;
-<span class="doccomment">/// 系统模块
-</span><span class="kw">pub mod </span>sys;
-<span class="doccomment">/// 系统调用模块
-</span><span class="kw">pub mod </span>syscall;
-<span class="doccomment">/// Unix 标准模块
-</span><span class="kw">pub mod </span>unistd;
+<span class="kw">pub mod </span>language_item;
+<span class="kw">pub mod </span>sched;
+<span class="kw">pub mod </span>stdio;
+<span class="kw">pub mod </span>sys;
+<span class="kw">pub mod </span>syscall;
+<span class="kw">pub mod </span>unistd;
 
-<span class="doccomment">/// 使用堆分配器初始化函数
-</span><span class="kw">use </span>heap_allocator::init_heap;
-<span class="doccomment">/// 使用语言项模块中的所有内容
-</span><span class="kw">pub use </span>language_item::<span class="kw-2">*</span>;
-<span class="doccomment">/// 使用调度模块中的所有内容
-</span><span class="kw">pub use </span>sched::<span class="kw-2">*</span>;
-<span class="doccomment">/// 使用标准输入输出模块中的所有内容
-</span><span class="kw">pub use </span>stdio::<span class="kw-2">*</span>;
-<span class="doccomment">/// 使用系统调用模块中的所有内容
-</span><span class="kw">pub use </span>syscall::<span class="kw-2">*</span>;
-<span class="doccomment">/// 使用 Unix 标准模块中的所有内容
-</span><span class="kw">pub use </span>unistd::<span class="kw-2">*</span>;
+<span class="kw">use </span>heap_allocator::init_heap;
+<span class="kw">pub use </span>sched::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>stdio::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>syscall::<span class="kw-2">*</span>;
+<span class="kw">pub use </span>unistd::<span class="kw-2">*</span>;
 
-<span class="doccomment">/// 堆分配器模块
-</span><span class="kw">mod </span>heap_allocator;
-
-<span class="doccomment">/// 使用核心架构中的汇编和全局汇编
-</span><span class="kw">use </span>core::arch::{asm, global_asm};
+<span class="kw">mod </span>heap_allocator;
 
 <span class="doccomment">/// 程序入口点
 ///
@@ -147,6 +117,7 @@
 <span class="doccomment">/// 清空 BSS 段
 ///
 /// 该函数将 BSS 段的所有字节设置为 0。
+</span><span class="attr">#[allow(dead_code)]
 </span><span class="kw">fn </span>clear_bss() {
     <span class="kw">unsafe extern </span><span class="string">"C" </span>{
         <span class="kw">fn </span>__bss_start();
@@ -157,5 +128,10 @@
             core::ptr::write_volatile(i <span class="kw">as </span><span class="kw-2">*mut </span>u8, <span class="number">0</span>);
         }
     }
+}
+
+<span class="doccomment">/// 关闭系统
+</span><span class="kw">pub fn </span>shutdown() -&gt; ! {
+    sys_shutdown();
 }
 </code></pre></div></section></main></body></html>

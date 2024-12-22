@@ -28,36 +28,34 @@
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
 <a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
-<a href="#31" id="31">31</a></pre></div><pre class="rust"><code><span class="doccomment">//! 初始化模块
+<a href="#30" id="30">30</a></pre></div><pre class="rust"><code><span class="doccomment">//! 初始化陷入
 
 </span><span class="kw">use </span>core::arch::global_asm;
 
 <span class="kw">use </span>riscv::register::stvec::{<span class="self">self</span>, TrapMode};
 
-<span class="kw">use </span><span class="kw">crate</span>::extern_global;
-
 <span class="kw">use </span><span class="kw">super</span>::handler::trap_from_kernel;
 
-<span class="comment">// 包含汇编代码
-</span><span class="macro">global_asm!</span>(<span class="macro">include_str!</span>(<span class="string">"trap.asm"</span>));
+<span class="macro">global_asm!</span>(<span class="macro">include_str!</span>(<span class="string">"trap.asm"</span>));
 
-<span class="doccomment">/// 初始化内核陷阱函数
+<span class="doccomment">/// 初始化陷入
 </span><span class="kw">pub fn </span>init() {
-    set_kernel_trap_entry(); <span class="comment">// 设置内核陷阱入口
-</span>}
+    set_kernel_trap_entry();
+}
 
 <span class="doccomment">/// 启用定时器中断
 </span><span class="kw">pub fn </span>enable_timer_interrupt() {
     <span class="kw">unsafe </span>{
-        riscv::register::sie::set_stimer(); <span class="comment">// 设置定时器中断使能位
-    </span>}
+        <span class="comment">// 设置定时器中断使能位
+        </span>riscv::register::sie::set_stimer();
+    }
 }
 
-<span class="doccomment">/// 设置内核陷阱入口地址
+<span class="doccomment">/// 设置内核陷入入口地址
 </span><span class="kw">fn </span>set_kernel_trap_entry() {
     <span class="kw">unsafe </span>{
-        stvec::write(trap_from_kernel <span class="kw">as </span>usize, TrapMode::Direct); <span class="comment">// 写入陷阱处理函数地址
-    </span>}
+        <span class="comment">// 写入陷入处理函数地址
+        </span>stvec::write(trap_from_kernel <span class="kw">as </span>usize, TrapMode::Direct);
+    }
 }
 </code></pre></div></section></main></body></html>

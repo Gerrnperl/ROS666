@@ -85,11 +85,30 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a>
+<a href="#104" id="104">104</a>
+<a href="#105" id="105">105</a>
+<a href="#106" id="106">106</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
 #![no_main]
 #![feature(inline_const_pat)]
 #![feature(alloc_error_handler)]
-
+#![allow(dead_code)]
 </span><span class="kw">extern crate </span>alloc;
 
 <span class="kw">mod </span>drivers;
@@ -104,7 +123,7 @@
 <span class="kw">mod </span>trap;
 <span class="kw">mod </span>utils;
 
-<span class="kw">use </span>core::{arch::global_asm, cell::RefCell};
+<span class="kw">use </span>core::arch::global_asm;
 
 <span class="kw">use </span>fs::inode::ROOT_INODE;
 
@@ -113,26 +132,31 @@
 <span class="doccomment">/// 内核入口函数
 </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
 </span><span class="kw">pub extern </span><span class="string">"C" </span><span class="kw">fn </span>_kernel_entry() -&gt; ! {
+    print_logo();
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Clear BSS"</span>);
     clear_bss();
     startup_log();
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Init trap"</span>);
     trap::init();
-
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Init memory"</span>);
     mm::init::init();
     mm::memory_set::remap_test();
 
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Load file system"</span>);
     <span class="kw">for </span>app <span class="kw">in </span>ROOT_INODE.ls() {
         <span class="macro">info!</span>(<span class="string">"App: {}"</span>, app);
     }
 
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Init process manager"</span>);
     task::init();
 
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Enable timer interrupt"</span>);
     trap::init::enable_timer_interrupt();
     timer::set_next_timeout(trap::handler::TIMER_INTERVAL_USEC);
-    <span class="comment">// APP_LOADER.ref_cell.borrow().print_apps_info();
-    </span>task::processor::Processor::run_tasks();
 
-    <span class="comment">// sbi::sbi_shutdown(false);
-    </span><span class="kw">loop </span>{}
+    task::processor::Processor::run_tasks();
+
+    <span class="kw">loop </span>{}
 }
 
 <span class="kw">fn </span>startup_log() {
@@ -171,5 +195,19 @@
             core::ptr::write_volatile(i <span class="kw">as </span><span class="kw-2">*mut </span>u8, <span class="number">0</span>);
         }
     }
+}
+
+<span class="kw">fn </span>print_logo() {
+    <span class="macro">printkln!</span>(
+        <span class="string">r#"
++--------------------------------------------------------------------+
+|      _/_/_/      _/_/      _/_/_/    _/_/_/    _/_/_/    _/_/_/    |
+|     _/    _/  _/    _/  _/        _/        _/        _/           |
+|    _/_/_/    _/    _/    _/_/    _/_/_/    _/_/_/    _/_/_/        |
+|   _/    _/  _/    _/        _/  _/    _/  _/    _/  _/    _/       |
+|  _/    _/    _/_/    _/_/_/      _/_/      _/_/      _/_/          |
++--------------------------------------------------------------------+
+"#
+    </span>);
 }
 </code></pre></div></section></main></body></html>

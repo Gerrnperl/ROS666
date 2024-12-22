@@ -41,11 +41,17 @@
 <a href="#40" id="40">40</a>
 <a href="#41" id="41">41</a>
 <a href="#42" id="42">42</a>
-<a href="#43" id="43">43</a></pre></div><pre class="rust"><code><span class="doccomment">//! 该模块包含了一些用于提高代码安全性的工具。
+<a href="#43" id="43">43</a>
+<a href="#44" id="44">44</a>
+<a href="#45" id="45">45</a>
+<a href="#46" id="46">46</a></pre></div><pre class="rust"><code><span class="doccomment">//! 安全性相关
 
 </span><span class="kw">use </span>core::cell::{RefCell, RefMut};
 
-<span class="kw">pub struct </span>SyncRefCell&lt;T&gt; {
+<span class="doccomment">/// 一个线程安全的 `RefCell` 包装器。
+///
+/// "I Promise I'm Safe RefCell :)"
+</span><span class="kw">pub struct </span>SyncRefCell&lt;T&gt; {
     <span class="kw">pub </span>ref_cell: RefCell&lt;T&gt;,
 }
 
@@ -66,20 +72,20 @@
 
     <span class="doccomment">/// 获取对内部值的可变引用。
     ///
-    /// ## 返回值
+    /// ## 返回
     /// 返回一个可变引用，允许修改内部值。
-    /// ## 注意
-    /// 如果已经有不可变引用存在，则此方法会导致运行时恐慌。
+    /// ## 安全性
+    /// 如果已经有不可变引用存在，则此方法会导致运行时 `Panic`。
     </span><span class="kw">pub fn </span>inner_borrow_mut(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; RefMut&lt;<span class="lifetime">'_</span>, T&gt; {
         <span class="self">self</span>.ref_cell.borrow_mut()
     }
 
     <span class="doccomment">/// 获取对内部值的不可变引用。
     ///
-    /// ## 返回值
+    /// ## 返回
     /// 返回一个不可变引用，允许读取内部值。
-    /// ## 注意
-    /// 如果已经有可变引用存在，则此方法会导致运行时恐慌。
+    /// ## 安全性
+    /// 如果已经有可变引用存在，则此方法会导致运行时 `Panic`。
     </span><span class="kw">pub fn </span>inner_borrow(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; core::cell::Ref&lt;<span class="lifetime">'_</span>, T&gt; {
         <span class="self">self</span>.ref_cell.borrow()
     }

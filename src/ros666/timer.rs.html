@@ -17,23 +17,37 @@
 <a href="#16" id="16">16</a>
 <a href="#17" id="17">17</a>
 <a href="#18" id="18">18</a>
-<a href="#19" id="19">19</a></pre></div><pre class="rust"><code><span class="kw">use </span>riscv::register::time;
+<a href="#19" id="19">19</a>
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a>
+<a href="#25" id="25">25</a>
+<a href="#26" id="26">26</a></pre></div><pre class="rust"><code><span class="doccomment">//! 定时器相关
+</span><span class="kw">use </span>riscv::register::time;
 
 <span class="kw">use </span><span class="kw">crate</span>::sbi::sbi_set_timer;
 
-<span class="kw">pub fn </span>get_time() -&gt; usize {
+<span class="doccomment">/// 获取当前时间
+</span><span class="kw">pub fn </span>get_time() -&gt; usize {
     time::read()
 }
 
-<span class="kw">pub const </span>CLOCK_FREQ: usize = <span class="number">12500000</span>;
-<span class="kw">pub const </span>MSEC_PER_SEC: usize = <span class="number">1000</span>;
-<span class="kw">pub const </span>USEC_PER_SEC: usize = <span class="number">1_000_000</span>;
+<span class="doccomment">/// 时钟频率
+</span><span class="kw">pub const </span>CLOCK_FREQ: usize = <span class="number">12500000</span>;
+<span class="doccomment">/// 每秒的毫秒数
+</span><span class="kw">pub const </span>MSEC_PER_SEC: usize = <span class="number">1000</span>;
+<span class="doccomment">/// 每秒的微秒数
+</span><span class="kw">pub const </span>USEC_PER_SEC: usize = <span class="number">1_000_000</span>;
 
-<span class="kw">pub fn </span>get_time_us() -&gt; usize {
+<span class="doccomment">/// 获取当前时间（微秒）
+</span><span class="kw">pub fn </span>get_time_us() -&gt; usize {
     get_time() / (CLOCK_FREQ / USEC_PER_SEC)
 }
 
-<span class="kw">pub fn </span>set_next_timeout(timeout_us: usize) {
+<span class="doccomment">/// 设置下一个时钟中断触发时间
+</span><span class="kw">pub fn </span>set_next_timeout(timeout_us: usize) {
     sbi_set_timer((get_time() + timeout_us * (CLOCK_FREQ / USEC_PER_SEC)) <span class="kw">as </span>u64);
 }
 </code></pre></div></section></main></body></html>

@@ -145,7 +145,14 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a></pre></div><pre class="rust"><code><span class="doccomment">//! 系统调用相关定义。
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a></pre></div><pre class="rust"><code><span class="doccomment">//! 系统调用
 
 </span><span class="kw">use </span>bitflags::bitflags;
 
@@ -182,8 +189,14 @@
     </span>SchedYield = <span class="number">124</span>,
     <span class="doccomment">/// 读取当前时间
     ///
+    /// 目前只返回系统 uptime, 未实现获取当前时间
+    ///
     /// [gettimeofday(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/gettimeofday.2.html)
     </span>GetTimeOfDay = <span class="number">169</span>,
+    <span class="doccomment">/// 关机 (shutdown)
+    ///
+    /// [shutdown(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/shutdown.2.html)
+    </span>Shutdown = <span class="number">210</span>,
     <span class="doccomment">/// 创建子进程 (fork)
     ///
     /// [clone(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/clone.2.html)
@@ -198,36 +211,32 @@
     </span>Wait4 = <span class="number">260</span>,
 }
 
-<span class="doccomment">/// 为 `sycall` 枚举实现 `Display` 特性。
-///
-/// 允许使用`{}`格式说明符将`sycall`实例格式化为字符串。
-/// 实现简单地委托给 `Debug` trait的格式，提供 `sycall` 的调试表示。
-</span><span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>Syscall {
+<span class="kw">impl </span>core::fmt::Display <span class="kw">for </span>Syscall {
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>core::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; core::fmt::Result {
         <span class="macro">write!</span>(f, <span class="string">"{:?}"</span>, <span class="self">self</span>)
     }
 }
 
-<span class="doccomment">/// 将 `Syscall` 枚举转换为 `usize` 类型。
-///
-/// ## 参数
-/// * `syscall` - 要转换的 `Syscall` 枚举值。
-/// ## 返回值
-/// 返回对应的 `usize` 类型值。
-</span><span class="kw">impl </span>From&lt;Syscall&gt; <span class="kw">for </span>usize {
-    <span class="kw">fn </span>from(syscall: Syscall) -&gt; usize {
+<span class="kw">impl </span>From&lt;Syscall&gt; <span class="kw">for </span>usize {
+    <span class="doccomment">/// 将 `Syscall` 枚举转换为 `usize` 类型。
+    ///
+    /// ## 参数
+    /// * `syscall` - 要转换的 `Syscall` 枚举值。
+    /// ## 返回值
+    /// 返回对应的 `usize` 类型值。
+    </span><span class="kw">fn </span>from(syscall: Syscall) -&gt; usize {
         syscall <span class="kw">as </span>usize
     }
 }
 
-<span class="doccomment">/// 将 `usize` 类型转换为 `Syscall` 枚举。
-///
-/// ## 参数
-/// * `syscall` - 要转换的 `usize` 类型值。
-/// ## 返回值
-/// 返回对应的 `Syscall` 枚举值。
-</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>Syscall {
-    <span class="kw">fn </span>from(syscall: usize) -&gt; Syscall {
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>Syscall {
+    <span class="doccomment">/// 将 `usize` 类型转换为 `Syscall` 枚举。
+    ///
+    /// ## 参数
+    /// * `syscall` - 要转换的 `usize` 类型值。
+    /// ## 返回值
+    /// 返回对应的 `Syscall` 枚举值。
+    </span><span class="kw">fn </span>from(syscall: usize) -&gt; Syscall {
         <span class="comment">// 使用 `match` 表达式匹配 `syscall` 的值
         </span><span class="kw">match </span>syscall {
             <span class="number">56 </span>=&gt; Syscall::OpenAt,
@@ -237,6 +246,7 @@
             <span class="number">93 </span>=&gt; Syscall::Exit,
             <span class="number">124 </span>=&gt; Syscall::SchedYield,
             <span class="number">169 </span>=&gt; Syscall::GetTimeOfDay,
+            <span class="number">210 </span>=&gt; Syscall::Shutdown,
             <span class="number">220 </span>=&gt; Syscall::Clone,
             <span class="number">221 </span>=&gt; Syscall::Execve,
             <span class="number">260 </span>=&gt; Syscall::Wait4,
@@ -245,10 +255,9 @@
     }
 }
 
-<span class="doccomment">/// ## 系统调用参数
-/// 系统调用参数是一个长度为 3 的数组，用于传递系统调用的参数。
+<span class="doccomment">/// 系统调用参数
 ///
-/// 通常的参数是：fd：文件描述符，buffer：缓冲区，len：字节数。
+/// 一个长度为 3 的数组，用于传递系统调用的参数。
 </span><span class="kw">pub type </span>SyscallArgs = [usize; <span class="number">3</span>];
 <span class="doccomment">/// 系统调用返回值
 </span><span class="kw">pub type </span>SyscallRet = isize;
@@ -265,6 +274,8 @@
     }
 
     <span class="doccomment">/// 表示一个包含时区偏移和夏令时信息的时区。
+    ///
+    /// 仅占位，未实现。
     </span><span class="attr">#[repr(C)]
     </span><span class="kw">pub struct </span>TimeZone {
         <span class="doccomment">/// 西格林尼治的分钟数。
@@ -275,7 +286,8 @@
 }
 
 <span class="macro">bitflags!</span> {
-    <span class="kw">pub struct </span>OpenFlags: usize {
+    <span class="doccomment">/// 文件打开标志
+    </span><span class="kw">pub struct </span>OpenFlags: usize {
         <span class="kw">const </span>READONLY  = <span class="number">0b00000000000</span>;
         <span class="kw">const </span>WRITEONLY = <span class="number">0b00000000001</span>;
         <span class="kw">const </span>READWRITE = <span class="number">0b00000000010</span>;
@@ -285,10 +297,12 @@
 }
 
 <span class="kw">impl </span>OpenFlags {
-    <span class="kw">pub fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// 判断是否可读
+    </span><span class="kw">pub fn </span>readable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         !<span class="self">self</span>.contains(OpenFlags::WRITEONLY)
     }
-    <span class="kw">pub fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+    <span class="doccomment">/// 判断是否可写
+    </span><span class="kw">pub fn </span>writable(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         !<span class="self">self</span>.is_empty()
     }
 }

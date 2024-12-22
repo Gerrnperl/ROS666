@@ -28,38 +28,34 @@
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
 <a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
-<a href="#31" id="31">31</a>
-<a href="#32" id="32">32</a></pre></div><pre class="rust"><code><span class="doccomment">//! # Bye
+<a href="#30" id="30">30</a></pre></div><pre class="rust"><code><span class="doccomment">//! # Bye World
 
 </span><span class="attr">#![no_std]
 #![no_main]
 
-</span><span class="kw">use </span>lib::sched_yield;
+</span><span class="kw">use </span>lib::{TimeVal, sleep, sys::time::get_time_of_day};
 
 <span class="attr">#[macro_use]
 </span><span class="kw">extern crate </span>lib;
 
 <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
 </span><span class="kw">pub fn </span>main() -&gt; i32 {
-    <span class="kw">let </span><span class="kw-2">mut </span>a: usize = <span class="number">0</span>;
-    <span class="kw">const </span>CLOCK_FREQ: usize = <span class="number">1250000</span>;
-    <span class="comment">// 循环 1250000 * 10 次
-    </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..(<span class="number">1250000 </span>* <span class="number">10</span>) {
-        <span class="comment">// 每当 i 是 CLOCK_FREQ 的倍数时，打印 "Bye, world!" 和 a 的值
-        </span><span class="kw">if </span>i % CLOCK_FREQ == <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">"Bye, world! {}"</span>, a);
-            a += <span class="number">1</span>;
-        }
+    <span class="comment">// 打印欢迎信息
+    </span><span class="macro">println!</span>(<span class="string">"Bye world from user mode program!"</span>);
+    <span class="comment">// 测试格式化信息
+    </span><span class="macro">println!</span>(<span class="string">"Array: {:#?}"</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);
+    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
+        sleep(<span class="number">1</span>);
+        <span class="macro">println!</span>(<span class="string">"[Bye] Tick {}"</span>, i);
     }
-    <span class="comment">// 调用 sched_yield 函数
-    </span>sched_yield();
-    <span class="comment">// 再次打印 "Bye, world!" 和 a 的值
-    </span><span class="macro">println!</span>(<span class="string">"Bye, world! {}"</span>, a);
-    <span class="comment">// 再次调用 sched_yield 函数
-    </span>sched_yield();
-    <span class="comment">// 触发 panic，打印 "Bye!"
-    </span><span class="macro">panic!</span>(<span class="string">"Bye!"</span>);
+    <span class="kw">let </span><span class="kw-2">mut </span>ts = TimeVal {
+        tv_sec: <span class="number">0</span>,
+        tv_usec: <span class="number">0</span>,
+    };
+    <span class="comment">// 获取当前时间
+    </span>get_time_of_day(<span class="kw-2">&amp;mut </span>ts, <span class="prelude-val">None</span>);
+    <span class="comment">// 打印时间信息
+    </span><span class="macro">println!</span>(<span class="string">"[Bye] Time: {}.{:06}"</span>, ts.tv_sec, ts.tv_usec);
     <span class="number">0
 </span>}
 </code></pre></div></section></main></body></html>

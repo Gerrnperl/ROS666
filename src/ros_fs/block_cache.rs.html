@@ -142,7 +142,62 @@
 <a href="#141" id="141">141</a>
 <a href="#142" id="142">142</a>
 <a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::block_dev::BlockDevice;
+<a href="#144" id="144">144</a>
+<a href="#145" id="145">145</a>
+<a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a></pre></div><pre class="rust"><code><span class="kw">use </span><span class="kw">crate</span>::block_dev::BlockDevice;
 <span class="kw">use </span>alloc::{collections::vec_deque::VecDeque, sync::Arc};
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>spin::Mutex;
@@ -151,15 +206,24 @@
 <span class="kw">pub const </span>BLOCK_CACHE_SIZE: usize = <span class="number">16</span>;
 
 <span class="macro">lazy_static!</span> {
-    <span class="kw">pub static </span><span class="kw-2">ref </span>BLOCK_CACHE_MANAGER: Mutex&lt;BlockCacheManager&gt; =
+    <span class="doccomment">/// 块缓存管理器
+    </span><span class="kw">pub static </span><span class="kw-2">ref </span>BLOCK_CACHE_MANAGER: Mutex&lt;BlockCacheManager&gt; =
         Mutex::new(BlockCacheManager::new());
 }
 
-<span class="kw">pub struct </span>BlockCacheManager {
+<span class="doccomment">/// 块缓存管理器
+///
+/// 用于管理块缓存，以先进先出的方式管理块缓存
+</span><span class="kw">pub struct </span>BlockCacheManager {
     queue: VecDeque&lt;(usize, Arc&lt;Mutex&lt;BlockCache&gt;&gt;)&gt;,
 }
 
-<span class="kw">pub struct </span>BlockCache {
+<span class="doccomment">/// 块缓存
+///
+/// 用于缓存块设备中的块，减少对块设备的读写次数。
+///
+/// 当块缓存被销毁时，会将缓存中的数据写回到块设备中。
+</span><span class="kw">pub struct </span>BlockCache {
     cache: [u8; BLOCK_SIZE],
     id: usize,
     dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;,
@@ -173,7 +237,19 @@
         }
     }
 
-    <span class="kw">pub fn </span>get_cache(
+    <span class="doccomment">/// 获取块缓存
+    ///
+    /// - 如果缓存中存在指定 ID 的块缓存，则返回该块缓存的引用。
+    /// - 如果缓存中不存在指定 ID 的块缓存，则创建一个新的块缓存，并将其加入缓存队列。
+    /// - 如果缓存队列已满，则会将引用计数为 1 的块缓存移除。
+    ///
+    /// ## 参数
+    /// - `id`：块 ID
+    /// - `dev`：块设备
+    ///
+    /// ## 返回
+    /// 返回块缓存的引用，如果创建失败则返回 None
+    </span><span class="kw">pub fn </span>get_cache(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         id: usize,
         dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;,
@@ -201,13 +277,22 @@
     }
 }
 
-<span class="kw">pub fn </span>get_cache(id: usize, dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Mutex&lt;BlockCache&gt;&gt;&gt; {
+<span class="doccomment">/// 获取块缓存
+///
+/// ## 参数
+/// - `id`：块 ID
+/// - `dev`：块设备
+///
+/// ## 返回
+/// 返回块缓存的引用，如果创建失败则返回 None
+</span><span class="kw">pub fn </span>get_cache(id: usize, dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;Mutex&lt;BlockCache&gt;&gt;&gt; {
     <span class="kw">let </span><span class="kw-2">mut </span>manager = BLOCK_CACHE_MANAGER.lock();
     manager.get_cache(id, dev)
 }
 
 <span class="kw">impl </span>BlockCache {
-    <span class="kw">pub fn </span>new(id: usize, dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 创建一个新的块缓存
+    </span><span class="kw">pub fn </span>new(id: usize, dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>cache = [<span class="number">0</span>; BLOCK_SIZE];
         dev.read_block(id, <span class="kw-2">&amp;mut </span>cache);
         <span class="self">Self </span>{
@@ -222,7 +307,8 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.cache[offset] <span class="kw">as </span><span class="kw-2">*const </span><span class="kw">_ as </span>usize
     }
 
-    <span class="kw">fn </span>get_at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
+    <span class="doccomment">/// 获取指定偏移处的数据
+    </span><span class="kw">fn </span>get_at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: usize) -&gt; <span class="prelude-ty">Option</span>&lt;usize&gt;
     <span class="kw">where
         </span>T: Sized,
     {
@@ -233,7 +319,8 @@
         <span class="prelude-val">Some</span>(<span class="self">self</span>.get_addr_at(offset))
     }
 
-    <span class="kw">pub fn </span>get_ref_at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;
+    <span class="doccomment">/// 获取指定偏移处的数据的引用
+    </span><span class="kw">pub fn </span>get_ref_at&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>T&gt;
     <span class="kw">where
         </span>T: Sized,
     {
@@ -241,7 +328,8 @@
         <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(addr <span class="kw">as </span><span class="kw-2">*const </span>T) })
     }
 
-    <span class="kw">pub fn </span>get_mut_at&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, offset: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt;
+    <span class="doccomment">/// 获取指定偏移处的数据的可变引用
+    </span><span class="kw">pub fn </span>get_mut_at&lt;T&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, offset: usize) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;mut </span>T&gt;
     <span class="kw">where
         </span>T: Sized,
     {
@@ -250,7 +338,17 @@
         <span class="prelude-val">Some</span>(<span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(addr <span class="kw">as </span><span class="kw-2">*mut </span>T) })
     }
 
-    <span class="kw">pub fn </span>read_at&lt;T, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: usize, adapter: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>T) -&gt; R) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;
+    <span class="doccomment">/// 读取指定偏移处的数据
+    ///
+    /// 在读取数据时，可以通过适配器对数据进行处理
+    ///
+    /// ## 参数
+    /// - `offset`：偏移
+    /// - `adapter`：适配器, 用于在读取数据时进行处理
+    ///
+    /// ## 返回
+    /// 返回 适配器 的返回值，如果读取失败则返回 None
+    </span><span class="kw">pub fn </span>read_at&lt;T, R&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: usize, adapter: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;</span>T) -&gt; R) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;
     <span class="kw">where
         </span>T: Sized,
     {
@@ -258,7 +356,17 @@
         <span class="prelude-val">Some</span>(adapter(t))
     }
 
-    <span class="kw">pub fn </span>modify_at&lt;T, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, offset: usize, adapter: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; R) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;
+    <span class="doccomment">/// 修改指定偏移处的数据
+    ///
+    /// 在修改数据时，可以通过适配器对数据进行处理
+    ///
+    /// ## 参数
+    /// - `offset`：偏移
+    /// - `adapter`：适配器, 用于在修改数据时进行处理
+    ///
+    /// ## 返回
+    /// 返回 适配器 的返回值，如果修改失败则返回 None
+    </span><span class="kw">pub fn </span>modify_at&lt;T, R&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, offset: usize, adapter: <span class="kw">impl </span>FnOnce(<span class="kw-2">&amp;mut </span>T) -&gt; R) -&gt; <span class="prelude-ty">Option</span>&lt;R&gt;
     <span class="kw">where
         </span>T: Sized,
     {
@@ -266,7 +374,8 @@
         <span class="prelude-val">Some</span>(adapter(t))
     }
 
-    <span class="kw">pub fn </span>sync(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+    <span class="doccomment">/// 将缓存中的数据写回到块设备中
+    </span><span class="kw">pub fn </span>sync(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
         <span class="kw">if </span><span class="self">self</span>.modified {
             <span class="self">self</span>.dev.write_block(<span class="self">self</span>.id, <span class="kw-2">&amp;</span><span class="self">self</span>.cache);
             <span class="self">self</span>.modified = <span class="bool-val">false</span>;
@@ -280,7 +389,8 @@
     }
 }
 
-<span class="kw">pub fn </span>block_cache_sync_all() {
+<span class="doccomment">/// 同步所有块缓存
+</span><span class="kw">pub fn </span>block_cache_sync_all() {
     <span class="kw">let </span>manager = BLOCK_CACHE_MANAGER.lock();
     <span class="kw">for </span>(<span class="kw">_</span>, cache) <span class="kw">in </span>manager.queue.iter() {
         cache.lock().sync();

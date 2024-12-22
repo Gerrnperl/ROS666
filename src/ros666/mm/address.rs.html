@@ -380,18 +380,8 @@
 <a href="#379" id="379">379</a>
 <a href="#380" id="380">380</a>
 <a href="#381" id="381">381</a>
-<a href="#382" id="382">382</a>
-<a href="#383" id="383">383</a>
-<a href="#384" id="384">384</a>
-<a href="#385" id="385">385</a>
-<a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a>
-<a href="#388" id="388">388</a>
-<a href="#389" id="389">389</a>
-<a href="#390" id="390">390</a>
-<a href="#391" id="391">391</a>
-<a href="#392" id="392">392</a>
-<a href="#393" id="393">393</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::ops::Add;
+<a href="#382" id="382">382</a></pre></div><pre class="rust"><code><span class="doccomment">//! 地址空间相关
+</span><span class="kw">use </span>core::ops::Add;
 
 <span class="kw">use </span><span class="kw">super</span>::page_table::PageTableEntry;
 
@@ -412,62 +402,50 @@
 </span><span class="kw">pub const </span>VIRTUAL_PAGE_NUMBER_WIDTH_SV39: usize =
     VIRTUAL_ADDRESS_WIDTH_SV39 - PAGE_OFFSET_WIDTH_SV39;
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-</span><span class="doccomment">/// 物理地址结构体，包含一个 `usize` 类型的地址值。
-///
-/// ## 示例
-/// ```
-/// let addr = PhysicalAddress(0x1000);
-/// ```
+<span class="doccomment">/// 物理地址
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>PhysicalAddress(<span class="kw">pub </span>usize);
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-</span><span class="doccomment">/// 虚拟地址结构体，包含一个 `usize` 类型的地址值。
-///
-/// ## 示例
-/// ```
-/// let addr = VirtualAddress(0x1000);
-/// ```
+<span class="doccomment">/// 虚拟地址
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>VirtualAddress(<span class="kw">pub </span>usize);
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-</span><span class="doccomment">/// 物理页号结构体，包含一个 `usize` 类型的页号值。
-///
-/// ## 示例
-/// ```
-/// let ppn = PhysicalPageNumber(0x100);
-/// ```
+<span class="doccomment">/// 物理页号
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>PhysicalPageNumber(<span class="kw">pub </span>usize);
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-</span><span class="doccomment">/// 虚拟页号结构体，包含一个 `usize` 类型的页号值。
-///
-/// ## 示例
-/// ```
-/// let vpn = VirtualPageNumber(0x100);
-/// ```
+<span class="doccomment">/// 虚拟页号
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 </span><span class="kw">pub struct </span>VirtualPageNumber(<span class="kw">pub </span>usize);
 
 <span class="kw">impl </span>PhysicalPageNumber {
-    <span class="doccomment">/// 获取一个可变引用
+    <span class="doccomment">/// 获取物理页号所在的物理地址页的可变引用
+    ///
+    /// 将指向的物理地址数据视为类型 T 的可变引用
     </span><span class="kw">pub fn </span>get_mut&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>T {
         <span class="kw">let </span>addr: PhysicalAddress = (<span class="kw-2">*</span><span class="self">self</span>).into();
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(addr.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>T) }
     }
 
-    <span class="doccomment">/// 获取一个不可变引用
+    <span class="doccomment">/// 获取物理页号所在的物理地址页的引用
+    ///
+    /// 将指向的物理地址数据视为类型 T 的引用
     </span><span class="kw">pub fn </span>get_ref&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>T {
         <span class="kw">let </span>addr: PhysicalAddress = (<span class="kw-2">*</span><span class="self">self</span>).into();
         <span class="kw">unsafe </span>{ <span class="kw-2">&amp;*</span>(addr.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*const </span>T) }
     }
 
-    <span class="doccomment">/// 获取页表项数组的可变引用
+    <span class="doccomment">/// 获取物理页号所在的物理地址页的页表项数组的可变引用
+    ///
+    /// 将指向的物理地址数据视为页表项数组的可变引用
     </span><span class="kw">pub fn </span>get_pte_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>[PageTableEntry] {
         <span class="kw">let </span>addr: PhysicalAddress = (<span class="kw-2">*</span><span class="self">self</span>).into();
         <span class="kw">unsafe </span>{ core::slice::from_raw_parts_mut(addr.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>PageTableEntry, <span class="number">512</span>) }
     }
 
-    <span class="doccomment">/// 获取字节数组的可变引用
+    <span class="doccomment">/// 获取物理页号所在的物理地址页的字节数组的可变引用
+    ///
+    /// 将指向的物理地址数据视为字节数组的可变引用
     </span><span class="kw">pub fn </span>get_bytes_array(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>[u8] {
         <span class="kw">let </span>addr: PhysicalAddress = (<span class="kw-2">*</span><span class="self">self</span>).into();
         <span class="kw">unsafe </span>{ core::slice::from_raw_parts_mut(addr.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>u8, <span class="number">4096</span>) }
@@ -475,9 +453,11 @@
 }
 
 <span class="kw">impl </span>VirtualPageNumber {
-    <span class="doccomment">/// 取出三级页索引
+    <span class="doccomment">/// 从虚拟页号中取出三级分页页表索引
     ///
-    /// ## 返回值
+    /// 虚拟页号的低 39 位中的每 9 位分别对应三级页表中的一个索引。
+    ///
+    /// ## 返回
     /// 返回一个包含三级页索引的数组。
     /// 数组中的每个元素分别对应三级页索引中的一个。
     </span><span class="kw">pub fn </span>indexes(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; [usize; <span class="number">3</span>] {
@@ -486,128 +466,128 @@
     }
 }
 
-<span class="doccomment">/// 将 `usize` 转换为 `PhysicalAddress` 类型。
-///
-/// ## 参数
-/// * `address` - 一个 `usize` 类型的值。
-/// ## 返回值
-/// 返回 `address` 的 `PhysicalAddress` 表示。
-</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>PhysicalAddress {
-    <span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>PhysicalAddress {
+    <span class="doccomment">/// 将 `usize` 转换为 `PhysicalAddress` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 一个 `usize` 类型的值。
+    /// ## 返回值
+    /// 返回 `address` 的 `PhysicalAddress` 表示。
+    </span><span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
         <span class="comment">// 只保留低 56 位
         </span><span class="self">Self</span>(address &amp; ((<span class="number">1 </span>&lt;&lt; PHYSICAL_ADDRESS_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
 
-<span class="doccomment">/// 将 `usize` 转换为 `VirtualAddress` 类型。
-///
-/// ## 参数
-/// * `address` - 一个 `usize` 类型的值。
-/// ## 返回值
-/// 返回 `address` 的 `VirtualAddress` 表示。
-</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>VirtualAddress {
-    <span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>VirtualAddress {
+    <span class="doccomment">/// 将 `usize` 转换为 `VirtualAddress` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 一个 `usize` 类型的值。
+    /// ## 返回值
+    /// 返回 `address` 的 `VirtualAddress` 表示。
+    </span><span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
         <span class="comment">// 只保留低 39 位
         </span><span class="self">Self</span>(address &amp; ((<span class="number">1 </span>&lt;&lt; VIRTUAL_ADDRESS_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
 
-<span class="doccomment">/// 将 `usize` 转换为 `PhysicalPageNumber` 类型。
-///
-/// ## 参数
-/// * `address` - 一个 `usize` 类型的值。
-/// ## 返回值
-/// 返回 `address` 的 `PhysicalPageNumber` 表示。
-</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>PhysicalPageNumber {
-    <span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>PhysicalPageNumber {
+    <span class="doccomment">/// 将 `usize` 转换为 `PhysicalPageNumber` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 一个 `usize` 类型的值。
+    /// ## 返回值
+    /// 返回 `address` 的 `PhysicalPageNumber` 表示。
+    </span><span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
         <span class="comment">// 只保留低 44 位
         </span><span class="self">Self</span>(address &amp; ((<span class="number">1 </span>&lt;&lt; PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
 
-<span class="doccomment">/// 将 `usize` 转换为 `VirtualPageNumber` 类型。
-///
-/// ## 参数
-/// * `address` - 一个 `usize` 类型的值。
-/// ## 返回值
-/// 返回 `address` 的 `VirtualPageNumber` 表示。
-</span><span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>VirtualPageNumber {
-    <span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;usize&gt; <span class="kw">for </span>VirtualPageNumber {
+    <span class="doccomment">/// 将 `usize` 转换为 `VirtualPageNumber` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 一个 `usize` 类型的值。
+    /// ## 返回值
+    /// 返回 `address` 的 `VirtualPageNumber` 表示。
+    </span><span class="kw">fn </span>from(address: usize) -&gt; <span class="self">Self </span>{
         <span class="comment">// 只保留低 27 位
         </span><span class="self">Self</span>(address &amp; ((<span class="number">1 </span>&lt;&lt; VIRTUAL_PAGE_NUMBER_WIDTH_SV39) - <span class="number">1</span>))
     }
 }
 
-<span class="doccomment">/// 将 `PhysicalAddress` 转换为 `usize` 类型。
-///
-/// ## 参数
-/// * `address` - 一个 `PhysicalAddress` 类型的值。
-/// ## 返回值
-/// 返回 `address` 的内部 `usize` 表示。
-</span><span class="kw">impl </span>From&lt;PhysicalAddress&gt; <span class="kw">for </span>usize {
-    <span class="kw">fn </span>from(address: PhysicalAddress) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;PhysicalAddress&gt; <span class="kw">for </span>usize {
+    <span class="doccomment">/// 将 `PhysicalAddress` 转换为 `usize` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 一个 `PhysicalAddress` 类型的值。
+    /// ## 返回值
+    /// 返回 `address` 的内部 `usize` 表示。
+    </span><span class="kw">fn </span>from(address: PhysicalAddress) -&gt; <span class="self">Self </span>{
         address.<span class="number">0
     </span>}
 }
 
-<span class="doccomment">/// 将 `VirtualAddress` 转换为 `usize` 类型。
-///
-/// ## 参数
-/// * `address` - 一个 `VirtualAddress` 类型的值。
-/// ## 返回值
-/// 返回 `address` 的内部 `usize` 表示。
-</span><span class="kw">impl </span>From&lt;VirtualAddress&gt; <span class="kw">for </span>usize {
-    <span class="kw">fn </span>from(address: VirtualAddress) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;VirtualAddress&gt; <span class="kw">for </span>usize {
+    <span class="doccomment">/// 将 `VirtualAddress` 转换为 `usize` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 一个 `VirtualAddress` 类型的值。
+    /// ## 返回值
+    /// 返回 `address` 的内部 `usize` 表示。
+    </span><span class="kw">fn </span>from(address: VirtualAddress) -&gt; <span class="self">Self </span>{
         address.<span class="number">0
     </span>}
 }
 
-<span class="doccomment">/// 将 `PhysicalPageNumber` 转换为 `usize` 类型。
-///
-/// ## 参数
-/// * `address` - 要转换的 `PhysicalPageNumber` 实例。
-/// ## 返回值
-/// 返回 `PhysicalPageNumber` 的内部值，类型为 `usize`。
-</span><span class="kw">impl </span>From&lt;PhysicalPageNumber&gt; <span class="kw">for </span>usize {
-    <span class="kw">fn </span>from(address: PhysicalPageNumber) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;PhysicalPageNumber&gt; <span class="kw">for </span>usize {
+    <span class="doccomment">/// 将 `PhysicalPageNumber` 转换为 `usize` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 要转换的 `PhysicalPageNumber` 实例。
+    /// ## 返回值
+    /// 返回 `PhysicalPageNumber` 的内部值，类型为 `usize`。
+    </span><span class="kw">fn </span>from(address: PhysicalPageNumber) -&gt; <span class="self">Self </span>{
         address.<span class="number">0
     </span>}
 }
 
-<span class="doccomment">/// 将 `VirtualPageNumber` 转换为 `usize` 类型。
-///
-/// ## 参数
-/// * `address` - 要转换的 `VirtualPageNumber` 实例。
-/// ## 返回值
-/// 返回 `VirtualPageNumber` 的内部值，类型为 `usize`。
-</span><span class="kw">impl </span>From&lt;VirtualPageNumber&gt; <span class="kw">for </span>usize {
-    <span class="kw">fn </span>from(address: VirtualPageNumber) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;VirtualPageNumber&gt; <span class="kw">for </span>usize {
+    <span class="doccomment">/// 将 `VirtualPageNumber` 转换为 `usize` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 要转换的 `VirtualPageNumber` 实例。
+    /// ## 返回值
+    /// 返回 `VirtualPageNumber` 的内部值，类型为 `usize`。
+    </span><span class="kw">fn </span>from(address: VirtualPageNumber) -&gt; <span class="self">Self </span>{
         address.<span class="number">0
     </span>}
 }
 
-<span class="doccomment">/// 为 `VirtualPageNumber` 实现加法运算。
-///
-/// ## 参数
-/// * `rhs` - 右操作数，类型为 `VirtualPageNumber`。
-/// ## 返回值
-/// 返回两个 `VirtualPageNumber` 相加的结果。
-</span><span class="kw">impl </span>Add <span class="kw">for </span>VirtualPageNumber {
+<span class="kw">impl </span>Add <span class="kw">for </span>VirtualPageNumber {
     <span class="kw">type </span>Output = <span class="self">Self</span>;
 
-    <span class="kw">fn </span>add(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
+    <span class="doccomment">/// 为 `VirtualPageNumber` 实现加法运算。
+    ///
+    /// ## 参数
+    /// * `rhs` - 右操作数，类型为 `VirtualPageNumber`。
+    /// ## 返回值
+    /// 返回两个 `VirtualPageNumber` 相加的结果。
+    </span><span class="kw">fn </span>add(<span class="self">self</span>, rhs: <span class="self">Self</span>) -&gt; <span class="self">Self </span>{
         VirtualPageNumber(<span class="self">self</span>.<span class="number">0 </span>+ rhs.<span class="number">0</span>)
     }
 }
 
 <span class="kw">impl </span>PhysicalAddress {
-    <span class="doccomment">/// 计算页内偏移量，通过对地址进行按位与操作
+    <span class="doccomment">/// 计算物理地址在其所在页内的偏移量
     </span><span class="kw">pub fn </span>page_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="comment">// PAGE_SIZE_SV39 - 1 用于获取页大小减一的值，这样可以确保只保留页内偏移部分
         </span><span class="self">self</span>.<span class="number">0 </span>&amp; (PAGE_SIZE_SV39 - <span class="number">1</span>)
     }
 
-    <span class="doccomment">/// 计算对齐到页边界的物理地址，通过对地址进行按位与操作
+    <span class="doccomment">/// 计算对齐到页边界的物理地址
     </span><span class="kw">pub fn </span>floor_page(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; PhysicalAddress {
         <span class="comment">// !(PAGE_SIZE_SV39 - 1) 用于获取页大小减一的补码，这样可以清除页内偏移部分
         </span>PhysicalAddress(<span class="self">self</span>.<span class="number">0 </span>&amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
@@ -620,45 +600,43 @@
         </span>PhysicalAddress((<span class="self">self</span>.<span class="number">0 </span>+ PAGE_SIZE_SV39 - <span class="number">1</span>) &amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
     }
 
-    <span class="doccomment">/// 计算页号
+    <span class="comment">// 获取物理地址指向的数据的可变引用
     </span><span class="kw">pub fn </span>get_mut&lt;T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span><span class="kw-2">mut </span>T {
-        <span class="comment">// 使用 unsafe 块将地址转换为指向类型 T 的可变指针，并返回可变引用
-        </span><span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>T) }
+        <span class="kw">unsafe </span>{ <span class="kw-2">&amp;mut *</span>(<span class="self">self</span>.<span class="number">0 </span><span class="kw">as </span><span class="kw-2">*mut </span>T) }
     }
 }
 
-<span class="doccomment">/// 将 `PhysicalAddress` 转换为 `PhysicalPageNumber` 类型。
-///
-/// ## 参数
-/// * `address` - 一个 `PhysicalAddress` 类型的值。
-/// ## 返回值
-/// 返回 `address` 的 `PhysicalPageNumber` 表示。
-</span><span class="kw">impl </span>From&lt;PhysicalAddress&gt; <span class="kw">for </span>PhysicalPageNumber {
-    <span class="kw">fn </span>from(address: PhysicalAddress) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;PhysicalAddress&gt; <span class="kw">for </span>PhysicalPageNumber {
+    <span class="doccomment">/// 将 `PhysicalAddress` 转换为 `PhysicalPageNumber` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 一个 `PhysicalAddress` 类型的值。
+    /// ## 返回值
+    /// 返回 `address` 的 `PhysicalPageNumber` 表示。
+    </span><span class="kw">fn </span>from(address: PhysicalAddress) -&gt; <span class="self">Self </span>{
         PhysicalPageNumber(address.<span class="number">0 </span>&gt;&gt; PAGE_OFFSET_WIDTH_SV39)
     }
 }
-
-<span class="doccomment">/// 将 `PhysicalPageNumber` 转换为 `PhysicalAddress` 类型。
-///
-/// ## 参数
-/// * `page_number` - 一个 `PhysicalPageNumber` 类型的值。
-/// ## 返回值
-/// 返回 `page_number` 的 `PhysicalAddress` 表示。
-</span><span class="kw">impl </span>From&lt;PhysicalPageNumber&gt; <span class="kw">for </span>PhysicalAddress {
-    <span class="kw">fn </span>from(page_number: PhysicalPageNumber) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;PhysicalPageNumber&gt; <span class="kw">for </span>PhysicalAddress {
+    <span class="doccomment">/// 将 `PhysicalPageNumber` 转换为 `PhysicalAddress` 类型。
+    ///
+    /// ## 参数
+    /// * `page_number` - 一个 `PhysicalPageNumber` 类型的值。
+    /// ## 返回值
+    /// 返回 `page_number` 的 `PhysicalAddress` 表示。
+    </span><span class="kw">fn </span>from(page_number: PhysicalPageNumber) -&gt; <span class="self">Self </span>{
         PhysicalAddress(page_number.<span class="number">0 </span>&lt;&lt; PAGE_OFFSET_WIDTH_SV39)
     }
 }
 
 <span class="kw">impl </span>VirtualAddress {
-    <span class="doccomment">/// 计算页内偏移量，通过对地址进行按位与操作
+    <span class="doccomment">/// 计算页内偏移量
     </span><span class="kw">pub fn </span>page_offset(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="comment">// PAGE_SIZE_SV39 - 1 用于获取页大小减一的值，这样可以确保只保留页内偏移部分
         </span><span class="self">self</span>.<span class="number">0 </span>&amp; (PAGE_SIZE_SV39 - <span class="number">1</span>)
     }
 
-    <span class="doccomment">/// 计算对齐到页边界的虚拟地址，通过对地址进行按位与操作
+    <span class="doccomment">/// 计算对齐到页边界的虚拟地址
     </span><span class="kw">pub fn </span>floor(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; VirtualAddress {
         <span class="comment">// !(PAGE_SIZE_SV39 - 1) 用于获取页大小减一的补码，这样可以清除页内偏移部分
         </span>VirtualAddress(<span class="self">self</span>.<span class="number">0 </span>&amp; !(PAGE_SIZE_SV39 - <span class="number">1</span>))
@@ -686,37 +664,37 @@
     }
 }
 
-<span class="doccomment">/// 将 `VirtualAddress` 转换为 `VirtualPageNumber` 类型。
-///
-/// ## 参数
-/// * `address` - 一个 `VirtualAddress` 类型的值。
-/// ## 返回值
-/// 返回 `address` 的 `VirtualPageNumber` 表示。
-</span><span class="kw">impl </span>From&lt;VirtualAddress&gt; <span class="kw">for </span>VirtualPageNumber {
-    <span class="kw">fn </span>from(address: VirtualAddress) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;VirtualAddress&gt; <span class="kw">for </span>VirtualPageNumber {
+    <span class="doccomment">/// 将 `VirtualAddress` 转换为 `VirtualPageNumber` 类型。
+    ///
+    /// ## 参数
+    /// * `address` - 一个 `VirtualAddress` 类型的值。
+    /// ## 返回值
+    /// 返回 `address` 的 `VirtualPageNumber` 表示。
+    </span><span class="kw">fn </span>from(address: VirtualAddress) -&gt; <span class="self">Self </span>{
         VirtualPageNumber(address.<span class="number">0 </span>&gt;&gt; PAGE_OFFSET_WIDTH_SV39)
     }
 }
 
-<span class="doccomment">/// 将 `VirtualPageNumber` 转换为 `VirtualAddress`。
-///
-/// ## 参数
-/// * `page_number` - 虚拟页号。
-/// ## 返回值
-/// 返回一个 `VirtualAddress`，其值为 `page_number` 左移 `PAGE_OFFSET_WIDTH_SV39` 位。
-</span><span class="kw">impl </span>From&lt;VirtualPageNumber&gt; <span class="kw">for </span>VirtualAddress {
-    <span class="kw">fn </span>from(page_number: VirtualPageNumber) -&gt; <span class="self">Self </span>{
+<span class="kw">impl </span>From&lt;VirtualPageNumber&gt; <span class="kw">for </span>VirtualAddress {
+    <span class="doccomment">/// 将 `VirtualPageNumber` 转换为 `VirtualAddress`。
+    ///
+    /// ## 参数
+    /// * `page_number` - 虚拟页号。
+    /// ## 返回值
+    /// 返回一个 `VirtualAddress`，其值为 `page_number` 左移 `PAGE_OFFSET_WIDTH_SV39` 位。
+    </span><span class="kw">fn </span>from(page_number: VirtualPageNumber) -&gt; <span class="self">Self </span>{
         VirtualAddress(page_number.<span class="number">0 </span>&lt;&lt; PAGE_OFFSET_WIDTH_SV39)
     }
 }
 
-<span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-</span><span class="doccomment">/// 表示虚拟页号范围的结构体。
+<span class="doccomment">/// 虚拟页号范围
 ///
 /// ## 字段
 /// * `start` - 范围的起始虚拟页号。
 /// * `length` - 范围的长度，以页为单位。
 /// * `current` - 当前虚拟页号，用于内部跟踪。
+</span><span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub struct </span>VPNRange {
     <span class="kw">pub </span>start: VirtualPageNumber,
     <span class="kw">pub </span>length: usize,
@@ -729,7 +707,7 @@
 /// ## 方法
 /// * `next` - 返回下一个 `VirtualPageNumber`，如果范围内没有更多的页码则返回 `None`。
 /// ## 示例
-/// ```rust
+/// ```no_run
 /// let mut range = VPNRange { start: ..., length: ..., current: ... };
 /// while let Some(vpn) = range.next() {
 ///     // 处理 `vpn`

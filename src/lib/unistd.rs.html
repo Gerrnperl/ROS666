@@ -57,16 +57,31 @@
 <a href="#56" id="56">56</a>
 <a href="#57" id="57">57</a>
 <a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a></pre></div><pre class="rust"><code><span class="doccomment">//! 这个模块提供 Unix 标准的系统调用接口。
+<a href="#59" id="59">59</a>
+<a href="#60" id="60">60</a>
+<a href="#61" id="61">61</a>
+<a href="#62" id="62">62</a>
+<a href="#63" id="63">63</a>
+<a href="#64" id="64">64</a>
+<a href="#65" id="65">65</a>
+<a href="#66" id="66">66</a>
+<a href="#67" id="67">67</a>
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a></pre></div><pre class="rust"><code><span class="doccomment">//! POSIX 标准的系统调用接口封装
 //!
-//! 主要功能包括：
-//! - 退出当前进程。
-//! - 读取文件描述符。
-//! - 写入文件描述符。
-//! - 创建新进程。
-//! - 执行新程序。
+//! &lt;del&gt; 仅包含了实现的部分系统调用，并且接口并不完全符合 POSIX 标准 :| &lt;/del&gt;
+</span><span class="kw">use </span>common::syscall::time::TimeVal;
 
-</span><span class="kw">use </span><span class="kw">crate</span>::syscall;
+<span class="kw">use crate</span>::{sched_yield, sys::time::get_time_of_day, syscall};
 
 <span class="doccomment">/// 退出当前进程
 ///
@@ -115,5 +130,28 @@
 /// 返回执行结果
 </span><span class="kw">pub fn </span>execve(path: <span class="kw-2">&amp;</span>str) -&gt; isize {
     syscall::sys_execve(path)
+}
+
+<span class="doccomment">/// 休眠指定秒数
+///
+/// ## 参数
+/// - `seconds`: 休眠的秒数
+</span><span class="kw">pub fn </span>sleep(seconds: usize) {
+    <span class="kw">let </span><span class="kw-2">mut </span>ts = TimeVal {
+        tv_sec: <span class="number">0</span>,
+        tv_usec: <span class="number">0</span>,
+    };
+    <span class="kw">let _ </span>= get_time_of_day(<span class="kw-2">&amp;mut </span>ts, <span class="prelude-val">None</span>);
+    <span class="kw">loop </span>{
+        <span class="kw">let </span><span class="kw-2">mut </span>ts_now = TimeVal {
+            tv_sec: <span class="number">0</span>,
+            tv_usec: <span class="number">0</span>,
+        };
+        <span class="kw">let _ </span>= get_time_of_day(<span class="kw-2">&amp;mut </span>ts_now, <span class="prelude-val">None</span>);
+        <span class="kw">if </span>ts_now.tv_sec - ts.tv_sec &gt;= seconds {
+            <span class="kw">break</span>;
+        }
+        sched_yield();
+    }
 }
 </code></pre></div></section></main></body></html>

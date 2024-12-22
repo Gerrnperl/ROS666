@@ -69,16 +69,7 @@
 <a href="#68" id="68">68</a>
 <a href="#69" id="69">69</a>
 <a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a></pre></div><pre class="rust"><code><span class="doccomment">//! 这个模块包含标准输入输出相关的功能。
-//!
-//! 主要功能包括：
-//! - 打印格式化字符串。
-//! - 从标准输入读取字符串。
+<a href="#71" id="71">71</a></pre></div><pre class="rust"><code><span class="doccomment">//! 标准输入输出
 
 </span><span class="kw">use </span>core::fmt::Write;
 
@@ -91,8 +82,7 @@
 /// ## 返回值
 /// 返回读取到的字符
 </span><span class="kw">pub fn </span>getchar() -&gt; u8 {
-    <span class="doccomment">/// 一个长度为1的可变字节数组，用于存储单个字节的数据。
-    </span><span class="kw">let </span><span class="kw-2">mut </span>c = [<span class="number">0u8</span>; <span class="number">1</span>];
+    <span class="kw">let </span><span class="kw-2">mut </span>c = [<span class="number">0u8</span>; <span class="number">1</span>];
     read(STDIN, <span class="kw-2">&amp;mut </span>c);
     c[<span class="number">0</span>]
 }

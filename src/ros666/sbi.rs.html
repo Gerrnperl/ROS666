@@ -131,19 +131,11 @@
 <a href="#130" id="130">130</a>
 <a href="#131" id="131">131</a>
 <a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::ops::Add;
-
-<span class="kw">use </span>alloc::vec;
+<a href="#133" id="133">133</a></pre></div><pre class="rust"><code><span class="doccomment">//! SBI 硬件调用封装
+</span><span class="kw">use </span>alloc::vec;
 <span class="kw">use </span>rustsbi::{Console, Physical, Reset, SbiRet, Timer};
 
-<span class="kw">use crate</span>::{
-    mm::{<span class="self">self</span>},
-    task::manager::TaskManager,
-};
+<span class="kw">use </span><span class="kw">crate</span>::mm;
 
 <span class="kw">pub enum </span>ConsolePutError {
     AddrInvalid,

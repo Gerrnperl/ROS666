@@ -74,14 +74,18 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a></pre></div><pre class="rust"><code><span class="doccomment">//! 进程 ID（PID）分配器
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a></pre></div><pre class="rust"><code><span class="doccomment">//! 进程 ID（PID）分配器
 
 </span><span class="kw">use </span>core::{cell::RefCell, ops::Range};
 
 <span class="kw">use </span>alloc::vec::Vec;
 <span class="kw">use </span>lazy_static::lazy_static;
 
-<span class="kw">use </span><span class="kw">crate</span>::utils::safety::{<span class="self">self</span>, SyncRefCell};
+<span class="kw">use </span><span class="kw">crate</span>::utils::safety::SyncRefCell;
 
 <span class="macro">lazy_static!</span> {
     <span class="doccomment">/// 全局 PID 分配器
@@ -90,14 +94,20 @@
     };
 }
 
-<span class="doccomment">/// PID 处理器结构体
+<span class="doccomment">/// PID 句柄
+///
+/// 当 PID 句柄被丢弃时，自动释放 PID
 </span><span class="kw">pub struct </span>PidHandler(<span class="kw">pub </span>usize);
 
-<span class="doccomment">/// PID 分配器结构体
+<span class="doccomment">/// PID 分配器
+///
+/// PID 分配器基于栈分配 PID，维护了未使用的 PID 范围和回收的 PID 列表。
 </span><span class="kw">pub struct </span>PidAllocator {
-    unused: Range&lt;usize&gt;, <span class="comment">// 未使用的 PID 范围
-    </span>recycled: Vec&lt;usize&gt;, <span class="comment">// 回收的 PID 列表
-</span>}
+    <span class="doccomment">/// 未使用的 PID 范围
+    </span>unused: Range&lt;usize&gt;,
+    <span class="doccomment">/// 回收的 PID 列表
+    </span>recycled: Vec&lt;usize&gt;,
+}
 
 <span class="kw">impl </span>PidAllocator {
     <span class="doccomment">/// 创建一个新的 PID 分配器
@@ -120,18 +130,16 @@
             <span class="self">self</span>.unused.start += <span class="number">1</span>;
             <span class="kw">return </span><span class="prelude-val">Some</span>(PidHandler(pid));
         }
-        <span class="comment">// 如果没有可用的 PID，则返回 None
-        </span><span class="prelude-val">None
+        <span class="prelude-val">None
     </span>}
 
     <span class="doccomment">/// 释放一个 PID
     </span><span class="kw">fn </span>dealloc(<span class="kw-2">&amp;mut </span><span class="self">self</span>, pid: usize) {
-        <span class="comment">// 检查 PID 是否在未使用的范围内
+        <span class="comment">// 检查 PID 是否在未使用的范围内并且是否已经在回收列表中
         </span><span class="kw">if </span>pid &gt;= <span class="self">self</span>.unused.start {
             <span class="macro">panic!</span>(<span class="string">"尝试释放未分配的 PID: {:?}"</span>, pid);
         }
-        <span class="comment">// 检查 PID 是否已经在回收列表中
-        </span><span class="kw">if </span><span class="self">self</span>.recycled.iter().any(|<span class="kw-2">&amp;</span>f| f == pid) {
+        <span class="kw">if </span><span class="self">self</span>.recycled.iter().any(|<span class="kw-2">&amp;</span>f| f == pid) {
             <span class="macro">panic!</span>(<span class="string">"尝试释放已释放的 PID: {:?}"</span>, pid);
         }
         <span class="comment">// 将 PID 添加到回收列表中

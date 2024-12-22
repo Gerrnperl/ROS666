@@ -4,10 +4,46 @@
 <a href="#3" id="3">3</a>
 <a href="#4" id="4">4</a>
 <a href="#5" id="5">5</a>
-<a href="#6" id="6">6</a></pre></div><pre class="rust"><code><span class="kw">use </span>core::any::Any;
+<a href="#6" id="6">6</a>
+<a href="#7" id="7">7</a>
+<a href="#8" id="8">8</a>
+<a href="#9" id="9">9</a>
+<a href="#10" id="10">10</a>
+<a href="#11" id="11">11</a>
+<a href="#12" id="12">12</a>
+<a href="#13" id="13">13</a>
+<a href="#14" id="14">14</a>
+<a href="#15" id="15">15</a>
+<a href="#16" id="16">16</a>
+<a href="#17" id="17">17</a>
+<a href="#18" id="18">18</a>
+<a href="#19" id="19">19</a>
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a>
+<a href="#24" id="24">24</a></pre></div><pre class="rust"><code><span class="doccomment">//! 块设备接口
+</span><span class="kw">use </span>core::any::Any;
 
-<span class="kw">pub trait </span>BlockDevice: Send + Sync + Any {
-    <span class="kw">fn </span>read_block(<span class="kw-2">&amp;</span><span class="self">self</span>, block_id: usize, buf: <span class="kw-2">&amp;mut </span>[u8]);
-    <span class="kw">fn </span>write_block(<span class="kw-2">&amp;</span><span class="self">self</span>, block_id: usize, buf: <span class="kw-2">&amp;</span>[u8]);
+<span class="doccomment">/// 块设备接口
+///
+/// 块设备是一种随机访问设备，可以按块读写数据。需要提供 [BlockDevice::read_block] 和 [BlockDevice::write_block] 两个方法。
+///
+/// 实现 `BlockDevice` trait 来提供对特定块设备, 如 virtio block device 和 sd 卡等的访问。
+///
+/// 块设备的实现需要保证线程安全，块设备的读写操作是阻塞的
+</span><span class="kw">pub trait </span>BlockDevice: Send + Sync + Any {
+    <span class="doccomment">/// 读取一个块
+    ///
+    /// ## 参数
+    /// - `block_id`：块 ID
+    /// - `buf`：目标缓冲区
+    </span><span class="kw">fn </span>read_block(<span class="kw-2">&amp;</span><span class="self">self</span>, block_id: usize, buf: <span class="kw-2">&amp;mut </span>[u8]);
+    <span class="doccomment">/// 写入一个块
+    ///
+    /// ## 参数
+    /// - `block_id`：块 ID
+    /// - `buf`：源缓冲区
+    </span><span class="kw">fn </span>write_block(<span class="kw-2">&amp;</span><span class="self">self</span>, block_id: usize, buf: <span class="kw-2">&amp;</span>[u8]);
 }
 </code></pre></div></section></main></body></html>

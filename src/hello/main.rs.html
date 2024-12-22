@@ -28,21 +28,12 @@
 <a href="#27" id="27">27</a>
 <a href="#28" id="28">28</a>
 <a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
-<a href="#31" id="31">31</a>
-<a href="#32" id="32">32</a>
-<a href="#33" id="33">33</a>
-<a href="#34" id="34">34</a>
-<a href="#35" id="35">35</a>
-<a href="#36" id="36">36</a>
-<a href="#37" id="37">37</a>
-<a href="#38" id="38">38</a>
-<a href="#39" id="39">39</a></pre></div><pre class="rust"><code><span class="doccomment">//! # Hello World
+<a href="#30" id="30">30</a></pre></div><pre class="rust"><code><span class="doccomment">//! # Hello World
 
 </span><span class="attr">#![no_std]
 #![no_main]
 
-</span><span class="kw">use </span>lib::{TimeVal, sched_yield, sys::time::get_time_of_day};
+</span><span class="kw">use </span>lib::{TimeVal, sleep, sys::time::get_time_of_day};
 
 <span class="attr">#[macro_use]
 </span><span class="kw">extern crate </span>lib;
@@ -51,20 +42,11 @@
 </span><span class="kw">pub fn </span>main() -&gt; i32 {
     <span class="comment">// 打印欢迎信息
     </span><span class="macro">println!</span>(<span class="string">"Hello world from user mode program!"</span>);
-    <span class="comment">// 调用调度让出函数
-    </span>sched_yield();
-    <span class="comment">// 打印数组
+    <span class="comment">// 测试格式化信息
     </span><span class="macro">println!</span>(<span class="string">"Array: {:#?}"</span>, [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>]);
-    <span class="comment">// 再次调用调度让出函数
-    </span>sched_yield();
-    <span class="kw">let </span><span class="kw-2">mut </span>a: usize = <span class="number">0</span>;
-    <span class="kw">const </span>CLOCK_FREQ: usize = <span class="number">125000</span>;
-    <span class="comment">// 循环打印信息
-    </span><span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..(<span class="number">125000 </span>* <span class="number">10</span>) {
-        <span class="kw">if </span>i % CLOCK_FREQ == <span class="number">0 </span>{
-            <span class="macro">println!</span>(<span class="string">"Hello, world! {}"</span>, a);
-            a += <span class="number">1</span>;
-        }
+    <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..<span class="number">10 </span>{
+        sleep(<span class="number">1</span>);
+        <span class="macro">println!</span>(<span class="string">"[Hello] Tick {}"</span>, i);
     }
     <span class="kw">let </span><span class="kw-2">mut </span>ts = TimeVal {
         tv_sec: <span class="number">0</span>,
@@ -73,7 +55,7 @@
     <span class="comment">// 获取当前时间
     </span>get_time_of_day(<span class="kw-2">&amp;mut </span>ts, <span class="prelude-val">None</span>);
     <span class="comment">// 打印时间信息
-    </span><span class="macro">println!</span>(<span class="string">"Time: {}.{:06}"</span>, ts.tv_sec, ts.tv_usec);
+    </span><span class="macro">println!</span>(<span class="string">"[Hello] Time: {}.{:06}"</span>, ts.tv_sec, ts.tv_usec);
     <span class="number">0
 </span>}
 </code></pre></div></section></main></body></html>

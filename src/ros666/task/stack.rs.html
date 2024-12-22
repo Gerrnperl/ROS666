@@ -74,7 +74,7 @@
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
 <a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a></pre></div><pre class="rust"><code><span class="doccomment">//! 进程栈管理
+<a href="#76" id="76">76</a></pre></div><pre class="rust"><code><span class="doccomment">//! 内核和用户栈管理
 
 </span><span class="kw">use </span><span class="kw">crate</span>::mm::{
     KERNEL_SPACE,
@@ -96,7 +96,7 @@
     (bottom, top)
 }
 
-<span class="doccomment">/// 内核栈结构体
+<span class="doccomment">/// 内核栈
 </span><span class="kw">pub struct </span>KernelStack {
     pid: usize,
 }
@@ -143,7 +143,7 @@
 <span class="kw">impl </span>Drop <span class="kw">for </span>KernelStack {
     <span class="doccomment">/// 在内核栈被销毁时，移除对应的内存区域
     </span><span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-        <span class="kw">let </span>(bottom, top) = kernel_stack_position(<span class="self">self</span>.pid);
+        <span class="kw">let </span>(bottom, _top) = kernel_stack_position(<span class="self">self</span>.pid);
         KERNEL_SPACE
             .ref_cell
             .borrow_mut()

@@ -30,18 +30,7 @@
 <a href="#29" id="29">29</a>
 <a href="#30" id="30">30</a>
 <a href="#31" id="31">31</a>
-<a href="#32" id="32">32</a>
-<a href="#33" id="33">33</a>
-<a href="#34" id="34">34</a>
-<a href="#35" id="35">35</a>
-<a href="#36" id="36">36</a>
-<a href="#37" id="37">37</a>
-<a href="#38" id="38">38</a>
-<a href="#39" id="39">39</a></pre></div><pre class="rust"><code><span class="doccomment">//! 这个模块包含堆分配器的初始化和错误处理。
-//!
-//! 主要功能包括：
-//! - 初始化堆分配器。
-//! - 处理堆分配错误。
+<a href="#32" id="32">32</a></pre></div><pre class="rust"><code><span class="doccomment">//! 堆内存分配器
 
 </span><span class="kw">use </span>slab_allocator::LockedHeap;
 
@@ -66,12 +55,9 @@
     }
 }
 
-<span class="doccomment">/// 堆分配错误处理函数
+<span class="doccomment">/// Rust 语言项 - 分配错误处理函数
 ///
-/// ## 参数
-/// - `layout`: 分配错误的内存布局
-/// ## 返回值
-/// 该函数不会返回，直接 panic
+/// 当分配失败，例如 Out Of Memory 时会调用该函数
 </span><span class="attr">#[alloc_error_handler]
 </span><span class="kw">fn </span>alloc_error_handler(layout: core::alloc::Layout) -&gt; ! {
     <span class="macro">panic!</span>(<span class="string">"Heap allocation error: {:?}"</span>, layout)

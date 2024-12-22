@@ -16,22 +16,32 @@
 <a href="#15" id="15">15</a>
 <a href="#16" id="16">16</a>
 <a href="#17" id="17">17</a>
-<a href="#18" id="18">18</a></pre></div><pre class="rust"><code><span class="doccomment">//! # 初始化模块
+<a href="#18" id="18">18</a>
+<a href="#19" id="19">19</a>
+<a href="#20" id="20">20</a>
+<a href="#21" id="21">21</a>
+<a href="#22" id="22">22</a>
+<a href="#23" id="23">23</a></pre></div><pre class="rust"><code><span class="doccomment">//! 内核堆初始化
 
-</span><span class="kw">use super</span>::{KERNEL_SPACE, frame_allocator, heap_allocator};
+</span><span class="kw">use </span><span class="kw">crate</span>::trace;
 
-<span class="comment">// 全局静态变量，表示堆是否已初始化
+<span class="kw">use super</span>::{KERNEL_SPACE, frame_allocator, heap_allocator};
+
+<span class="doccomment">/// 记录内核堆是否已初始化
+///
+/// 内核堆初始化后，内核地址空间将被激活。
+///
+/// 一些硬件相关的功能，如 sbi io 需要根据不同的地址空间执行不同的操作。
 </span><span class="kw">pub static </span><span class="kw-2">mut </span>HEAP_INITED: bool = <span class="bool-val">false</span>;
 
-<span class="comment">// 初始化函数
+<span class="comment">// 初始化内核内存管理
 </span><span class="kw">pub fn </span>init() {
-    <span class="comment">// 初始化堆分配器
-    </span>heap_allocator::init_heap();
-    <span class="comment">// 初始化帧分配器
-    </span>frame_allocator::StackFrameAllocator::init_frame_allocator();
-    <span class="comment">// 激活内核空间
-    </span>KERNEL_SPACE.ref_cell.borrow_mut().activate();
-    <span class="comment">// 设置堆已初始化标志
-    </span><span class="kw">unsafe </span>{ HEAP_INITED = <span class="bool-val">true </span>};
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Init heap allocator"</span>);
+    heap_allocator::init_heap();
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Init frame allocator"</span>);
+    frame_allocator::StackFrameAllocator::init_frame_allocator();
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Activate kernel space"</span>);
+    KERNEL_SPACE.ref_cell.borrow_mut().activate();
+    <span class="kw">unsafe </span>{ HEAP_INITED = <span class="bool-val">true </span>};
 }
 </code></pre></div></section></main></body></html>

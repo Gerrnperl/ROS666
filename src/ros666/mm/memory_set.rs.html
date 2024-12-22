@@ -541,20 +541,36 @@
 <a href="#540" id="540">540</a>
 <a href="#541" id="541">541</a>
 <a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a></pre></div><pre class="rust"><code><span class="doccomment">/// 导入核心库中的一些模块
-</span><span class="kw">use </span>core::{arch::asm, borrow::BorrowMut, cell::RefCell, ops::Range};
+<a href="#543" id="543">543</a>
+<a href="#544" id="544">544</a>
+<a href="#545" id="545">545</a>
+<a href="#546" id="546">546</a>
+<a href="#547" id="547">547</a>
+<a href="#548" id="548">548</a>
+<a href="#549" id="549">549</a>
+<a href="#550" id="550">550</a>
+<a href="#551" id="551">551</a>
+<a href="#552" id="552">552</a>
+<a href="#553" id="553">553</a>
+<a href="#554" id="554">554</a>
+<a href="#555" id="555">555</a>
+<a href="#556" id="556">556</a>
+<a href="#557" id="557">557</a>
+<a href="#558" id="558">558</a>
+<a href="#559" id="559">559</a></pre></div><pre class="rust"><code><span class="doccomment">//! 地址空间管理
+//!
+//! 地址空间管理模块实现了内核和用户的地址空间管理，提供了内核空间和用户空间的创建、映射、切换等功能。
+</span><span class="kw">use </span>core::{arch::asm, cell::RefCell, ops::Range};
 
-<span class="doccomment">/// 导入项目中的一些模块
-</span><span class="kw">use crate</span>::{
-    extern_global, info,
+<span class="kw">use crate</span>::{
+    extern_global,
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
-    printkln,
     task::{stack::USER_STACK_SIZE, task::TRAP_CONTEXT},
+    trace,
     utils::safety::SyncRefCell,
 };
 
-<span class="doccomment">/// 导入项目中的一些模块
-</span><span class="kw">use super</span>::{
+<span class="kw">use super</span>::{
     address::{PhysicalAddress, PhysicalPageNumber, VPNRange, VirtualAddress, VirtualPageNumber},
     frame_allocator::{FrameTracker, StackFrameAllocator},
     page_table::{<span class="self">self</span>, PTEFlags, PageTable, PageTableEntry},
@@ -567,10 +583,12 @@
 <span class="kw">use </span>lazy_static::lazy_static;
 
 <span class="doccomment">/// 跳板地址常量
+///
+/// 用于存放用户态-内核态切换时的中间跳板代码
 </span><span class="kw">pub const </span>TRAMPOLINE: usize = usize::MAX - PAGE_SIZE_SV39 + <span class="number">1</span>;
 
 <span class="macro">lazy_static!</span> {
-    <span class="doccomment">/// 内核空间的静态引用
+    <span class="doccomment">/// 内核空间
     </span><span class="kw">pub static </span><span class="kw-2">ref </span>KERNEL_SPACE: Arc&lt;SyncRefCell&lt;MemorySet&gt;&gt; = {
         Arc::new(SyncRefCell {
             ref_cell: RefCell::new(MemorySet::new_kernel()),
@@ -578,7 +596,9 @@
     };
 }
 
-<span class="doccomment">/// 映射类型枚举
+<span class="doccomment">/// 映射类型
+///
+/// 映射类型包括线性映射(恒等映射)和页帧映射
 </span><span class="attr">#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 </span><span class="kw">pub enum </span>MapType {
     Linear,
@@ -596,7 +616,11 @@
     }
 }
 
-<span class="doccomment">/// 一段虚拟内存 (逻辑段)
+<span class="doccomment">/// 逻辑段
+///
+/// 逻辑段管理了一段虚拟内存，提供映射和访存权限控制
+///
+/// 在内核和应用程序初始化时，需要根据编译链接到的代码段、数据段等信息，创建逻辑段
 </span><span class="kw">pub struct </span>MapArea {
     vpn_range: VPNRange,
     data: BTreeMap&lt;VirtualPageNumber, FrameTracker&gt;,
@@ -604,7 +628,9 @@
     permission: MapPermission,
 }
 
-<span class="doccomment">/// 一组虚拟内存 (地址空间)
+<span class="doccomment">/// 地址空间
+///
+/// 地址空间包含了一组虚拟内存，基于三级页表实现了虚拟内存到物理内存的映射
 </span><span class="kw">pub struct </span>MemorySet {
     <span class="kw">pub </span>page_table: PageTable,
     <span class="kw">pub </span>areas: Vec&lt;MapArea&gt;,
@@ -749,6 +775,10 @@
     }
 
     <span class="doccomment">/// 获取页表 token
+    ///
+    /// token 即 satp (satp: Supervisor Address Translation and Protection) 寄存器的值
+    ///
+    /// 在启用 Sv39 页表时，satp 即作为三级页表的根节点。其第 60-63 位为模式位，为 0b100 时启用 Sv39 页表
     </span><span class="kw">pub fn </span>token(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
         <span class="self">self</span>.page_table.token()
     }
@@ -840,7 +870,7 @@
 
     <span class="doccomment">/// 创建内核 MemorySet
     </span><span class="kw">pub fn </span>new_kernel() -&gt; <span class="self">Self </span>{
-        <span class="kw">let </span>kernel_start = <span class="macro">extern_global!</span>(__kernel_start) <span class="kw">as </span>usize;
+        <span class="kw">let </span>_kernel_start = <span class="macro">extern_global!</span>(__kernel_start) <span class="kw">as </span>usize;
         <span class="kw">let </span>kernel_end = <span class="macro">extern_global!</span>(__kernel_end) <span class="kw">as </span>usize;
         <span class="kw">let </span>text_start = <span class="macro">extern_global!</span>(__text_start) <span class="kw">as </span>usize;
         <span class="kw">let </span>text_end = <span class="macro">extern_global!</span>(__text_end) <span class="kw">as </span>usize;
@@ -853,7 +883,7 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>memory_set = MemorySet::empty();
         memory_set.map_trampoline();
-        <span class="macro">info!</span>(<span class="string">"mapping .text: [{:#x}, {:#x})"</span>, text_start, text_end);
+        <span class="macro">trace!</span>(<span class="string">"mapping .text: [{:#x}, {:#x})"</span>, text_start, text_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -865,7 +895,7 @@
             ),
             <span class="prelude-val">None</span>,
         );
-        <span class="macro">info!</span>(<span class="string">"mapping .rodata: [{:#x}, {:#x})"</span>, rodata_start, rodata_end);
+        <span class="macro">trace!</span>(<span class="string">"mapping .rodata: [{:#x}, {:#x})"</span>, rodata_start, rodata_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -877,7 +907,7 @@
             ),
             <span class="prelude-val">None</span>,
         );
-        <span class="macro">info!</span>(<span class="string">"mapping .data: [{:#x}, {:#x})"</span>, data_start, data_end);
+        <span class="macro">trace!</span>(<span class="string">"mapping .data: [{:#x}, {:#x})"</span>, data_start, data_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -889,7 +919,7 @@
             ),
             <span class="prelude-val">None</span>,
         );
-        <span class="macro">info!</span>(<span class="string">"mapping .bss: [{:#x}, {:#x})"</span>, bss_start, bss_end);
+        <span class="macro">trace!</span>(<span class="string">"mapping .bss: [{:#x}, {:#x})"</span>, bss_start, bss_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -901,7 +931,7 @@
             ),
             <span class="prelude-val">None</span>,
         );
-        <span class="macro">info!</span>(<span class="string">"mapping heap: [{:#x}, {:#x})"</span>, kernel_end, MEMORY_END);
+        <span class="macro">trace!</span>(<span class="string">"mapping heap: [{:#x}, {:#x})"</span>, kernel_end, MEMORY_END);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -1048,9 +1078,11 @@
     }
 }
 
-<span class="doccomment">/// 重新映射测试函数
+<span class="doccomment">/// 地址空间重映射测试
+///
+/// Copied from [rCore-Tutorial-v3/memory_set.rs/memory_set.rs](https://github.com/rcore-os/rCore-Tutorial-v3/blob/main/os/src/mm/memory_set.rs)
 </span><span class="kw">pub fn </span>remap_test() {
-    <span class="kw">let </span><span class="kw-2">mut </span>kernel_space = KERNEL_SPACE.ref_cell.borrow_mut();
+    <span class="kw">let </span>kernel_space = KERNEL_SPACE.ref_cell.borrow_mut();
     <span class="kw">let </span>mid_text: VirtualAddress =
         ((<span class="macro">extern_global!</span>(__text_start) <span class="kw">as </span>usize + <span class="macro">extern_global!</span>(__text_end) <span class="kw">as </span>usize) / <span class="number">2</span>).into();
     <span class="kw">let </span>mid_rodata: VirtualAddress =
@@ -1082,6 +1114,6 @@
             .executable(),
         <span class="bool-val">false</span>,
     );
-    <span class="macro">printkln!</span>(<span class="string">"remap_test passed!"</span>);
+    <span class="macro">trace!</span>(<span class="string">"[Kernel] Remap test passed"</span>);
 }
 </code></pre></div></section></main></body></html>

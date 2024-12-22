@@ -358,20 +358,7 @@
 <a href="#357" id="357">357</a>
 <a href="#358" id="358">358</a>
 <a href="#359" id="359">359</a>
-<a href="#360" id="360">360</a>
-<a href="#361" id="361">361</a>
-<a href="#362" id="362">362</a>
-<a href="#363" id="363">363</a>
-<a href="#364" id="364">364</a>
-<a href="#365" id="365">365</a>
-<a href="#366" id="366">366</a>
-<a href="#367" id="367">367</a>
-<a href="#368" id="368">368</a>
-<a href="#369" id="369">369</a>
-<a href="#370" id="370">370</a>
-<a href="#371" id="371">371</a>
-<a href="#372" id="372">372</a>
-<a href="#373" id="373">373</a></pre></div><pre class="rust"><code><span class="doccomment">//! 基于 Slab Allocator 的堆内存分配器
+<a href="#360" id="360">360</a></pre></div><pre class="rust"><code><span class="doccomment">//! 基于 Slab Allocator 的堆内存分配器
 //! 使用 Linked List Allocator 作为备选分配器，分配大于 4096 字节的内存
 //!
 //! ## Example
@@ -389,26 +376,21 @@
 
 </span><span class="attr">#![no_std]
 #![feature(allocator_api)]
-
-</span><span class="comment">// 引入核心库中的分配器模块、分配错误和布局
+#![allow(dead_code)]
 </span><span class="kw">use </span>core::{
     alloc::{<span class="self">self</span>, AllocError, Layout},
     ptr::NonNull,
 };
 
-<span class="comment">// 引入链表分配器和 Slab 模块
-</span><span class="kw">use </span>linked_list_allocator;
+<span class="kw">use </span>linked_list_allocator;
 <span class="kw">use </span>slab::Slab;
 
-<span class="comment">// 如果启用了 "use_spin" 功能，则引入 spin::Mutex
-</span><span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
+<span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
 </span><span class="kw">use </span>spin::Mutex;
 
-<span class="comment">// 引入 slab 模块
-</span><span class="kw">mod </span>slab;
+<span class="kw">mod </span>slab;
 
-<span class="doccomment">/// 地址类型
-</span><span class="kw">pub type </span>Address = usize;
+<span class="kw">pub type </span>Address = usize;
 
 <span class="kw">pub const </span>MIN_ALLOC_SIZE: usize = <span class="number">64</span>;
 <span class="kw">pub const </span>MAX_SLAB_SIZE: usize = <span class="number">4096</span>;
@@ -438,7 +420,7 @@
 </span><span class="kw">pub struct </span>Heap {
     <span class="doccomment">/// Slab 分配器数组
     </span>slabs: [slab::Slab; SLABS_NUM],
-    <span class="doccomment">/// 回退分配器 (链表分配器)
+    <span class="doccomment">/// Fallback Linked List Allocator
     </span>fallback: linked_list_allocator::Heap,
     <span class="doccomment">/// 用户请求的字节数
     </span>user: usize,
@@ -452,7 +434,7 @@
 </span><span class="kw">enum </span>AllocType {
     <span class="doccomment">/// Slab 分配器，包含索引
     </span>Slab(usize),
-    <span class="doccomment">/// 回退分配器
+    <span class="doccomment">/// 对于大于 4096 字节的内存分配申请，使用 Fallback (Linked List Allocator)
     </span>Fallback,
 }
 
@@ -470,14 +452,10 @@
                 Slab::empty(<span class="number">2048</span>),
                 Slab::empty(<span class="number">4096</span>),
             ],
-            <span class="comment">// 初始化回退分配器（链表分配器）
-            </span>fallback: linked_list_allocator::Heap::empty(),
-            <span class="comment">// 初始化用户请求的字节数为 0
-            </span>user: <span class="number">0</span>,
-            <span class="comment">// 初始化实际分配的字节数为 0
-            </span>allocated: <span class="number">0</span>,
-            <span class="comment">// 初始化堆中的总字节数为 0
-            </span>total: <span class="number">0</span>,
+            fallback: linked_list_allocator::Heap::empty(),
+            user: <span class="number">0</span>,
+            allocated: <span class="number">0</span>,
+            total: <span class="number">0</span>,
         }
     }
 
@@ -666,10 +644,12 @@
     }
 }
 
-<span class="doccomment">/// 一个锁定版本的 `Heap`
+<span class="doccomment">/// 互斥的 `Heap`
+///
+/// 用于在多线程环境下使用 `Heap` 分配器，作为临界资源，避免竞争
 ///
 /// ## 用法
-/// 创建一个锁定的堆并添加一个内存区域:
+/// 创建一个互斥的堆并添加一个内存区域:
 /// ```no_run
 /// use buddy_system_allocator::*;
 /// # use core::mem::size_of;
@@ -685,7 +665,6 @@
 /// }
 /// ```
 </span><span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
-</span><span class="doccomment">/// 一个锁定版本的 `Heap`
 </span><span class="kw">pub struct </span>LockedHeap(Mutex&lt;Heap&gt;);
 
 <span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
@@ -717,16 +696,10 @@
 }
 
 <span class="attr">#[cfg(feature = <span class="string">"use_spin"</span>)]
-</span><span class="doccomment">/// ## Safety
-/// 这个实现是 `GlobalAlloc` trait 的一个不安全实现，
-/// 需要确保在使用过程中不会违反 Rust 的内存安全规则。
-///
-/// ## 注意事项
-/// 由于这些方法都是不安全的（`unsafe`），调用者必须确保传入的参数是有效的，
-/// 并且在调用这些方法时不会导致未定义行为。
 </span><span class="kw">unsafe impl </span>alloc::GlobalAlloc <span class="kw">for </span>LockedHeap {
-    <span class="doccomment">/// ## 分配器
-    /// `alloc` 方法用于分配内存，根据传入的 `layout` 参数返回一个指向分配内存的指针。
+    <span class="doccomment">/// 分配
+    ///
+    /// 分配内存，根据传入的 `layout` 参数返回一个指向分配内存的指针。
     /// 如果分配失败，返回一个空指针。
     </span><span class="kw">unsafe fn </span>alloc(<span class="kw-2">&amp;</span><span class="self">self</span>, layout: Layout) -&gt; <span class="kw-2">*mut </span>u8 {
         <span class="self">self</span>.<span class="number">0
@@ -736,8 +709,9 @@
             .map_or(core::ptr::null_mut(), |allocation| allocation.as_ptr())
     }
 
-    <span class="doccomment">/// ## 释放器
-    /// `dealloc` 方法用于释放内存，根据传入的指针 `ptr` 和 `layout` 参数释放对应的内存。
+    <span class="doccomment">/// 释放
+    ///
+    /// 释放内存，根据传入的指针 `ptr` 和 `layout` 参数释放对应的内存。
     </span><span class="kw">unsafe fn </span>dealloc(<span class="kw-2">&amp;</span><span class="self">self</span>, ptr: <span class="kw-2">*mut </span>u8, layout: Layout) {
         <span class="self">self</span>.<span class="number">0
             </span>.lock()

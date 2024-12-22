@@ -66,7 +66,9 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a></pre></div><pre class="rust"><code><span class="doccomment">//! 堆内存分配器
+<a href="#68" id="68">68</a>
+<a href="#69" id="69">69</a>
+<a href="#70" id="70">70</a></pre></div><pre class="rust"><code><span class="doccomment">//! 堆内存分配器
 </span><span class="kw">use </span>slab_allocator::LockedHeap;
 
 <span class="kw">use crate</span>::{extern_global, printkln, trace};
@@ -85,7 +87,7 @@
 </span><span class="kw">static </span><span class="kw-2">mut </span>HEAP: [u8; KERNEL_HEAP_SIZE] = [<span class="number">0</span>; KERNEL_HEAP_SIZE];
 
 <span class="attr">#[allow(static_mut_refs)]
-</span><span class="doccomment">/// 初始化堆内存分配器
+</span><span class="doccomment">/// 初始化内核堆内存分配器
 </span><span class="kw">pub fn </span>init_heap() {
     <span class="kw">unsafe </span>{
         <span class="macro">trace!</span>(
@@ -99,7 +101,9 @@
     }
 }
 
-<span class="doccomment">/// 分配错误处理函数
+<span class="doccomment">/// Rust 语言项 - 分配错误处理函数
+///
+/// 当分配失败，例如 Out Of Memory 时会调用该函数
 </span><span class="attr">#[alloc_error_handler]
 </span><span class="kw">fn </span>alloc_error_handler(layout: core::alloc::Layout) -&gt; ! {
     <span class="macro">panic!</span>(<span class="string">"Heap allocation error: {:?}"</span>, layout)

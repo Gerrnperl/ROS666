@@ -159,7 +159,82 @@
 <a href="#158" id="158">158</a>
 <a href="#159" id="159">159</a>
 <a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a></pre></div><pre class="rust"><code><span class="kw">use </span>alloc::sync::Arc;
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a>
+<a href="#173" id="173">173</a>
+<a href="#174" id="174">174</a>
+<a href="#175" id="175">175</a>
+<a href="#176" id="176">176</a>
+<a href="#177" id="177">177</a>
+<a href="#178" id="178">178</a>
+<a href="#179" id="179">179</a>
+<a href="#180" id="180">180</a>
+<a href="#181" id="181">181</a>
+<a href="#182" id="182">182</a>
+<a href="#183" id="183">183</a>
+<a href="#184" id="184">184</a>
+<a href="#185" id="185">185</a>
+<a href="#186" id="186">186</a>
+<a href="#187" id="187">187</a>
+<a href="#188" id="188">188</a>
+<a href="#189" id="189">189</a>
+<a href="#190" id="190">190</a>
+<a href="#191" id="191">191</a>
+<a href="#192" id="192">192</a>
+<a href="#193" id="193">193</a>
+<a href="#194" id="194">194</a>
+<a href="#195" id="195">195</a>
+<a href="#196" id="196">196</a>
+<a href="#197" id="197">197</a>
+<a href="#198" id="198">198</a>
+<a href="#199" id="199">199</a>
+<a href="#200" id="200">200</a>
+<a href="#201" id="201">201</a>
+<a href="#202" id="202">202</a>
+<a href="#203" id="203">203</a>
+<a href="#204" id="204">204</a>
+<a href="#205" id="205">205</a>
+<a href="#206" id="206">206</a>
+<a href="#207" id="207">207</a>
+<a href="#208" id="208">208</a>
+<a href="#209" id="209">209</a>
+<a href="#210" id="210">210</a>
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a>
+<a href="#215" id="215">215</a>
+<a href="#216" id="216">216</a>
+<a href="#217" id="217">217</a>
+<a href="#218" id="218">218</a>
+<a href="#219" id="219">219</a>
+<a href="#220" id="220">220</a>
+<a href="#221" id="221">221</a>
+<a href="#222" id="222">222</a>
+<a href="#223" id="223">223</a>
+<a href="#224" id="224">224</a>
+<a href="#225" id="225">225</a>
+<a href="#226" id="226">226</a>
+<a href="#227" id="227">227</a>
+<a href="#228" id="228">228</a>
+<a href="#229" id="229">229</a>
+<a href="#230" id="230">230</a>
+<a href="#231" id="231">231</a>
+<a href="#232" id="232">232</a>
+<a href="#233" id="233">233</a></pre></div><pre class="rust"><code><span class="doccomment">//! 物理文件系统
+//!
+//! 建立在物理磁盘块设备上的文件系统，提供了文件系统的底层基本操作，包括创建文件系统、打开文件系统、分配 inode、分配数据块等。
+</span><span class="kw">use </span>alloc::sync::Arc;
 <span class="kw">use </span>spin::Mutex;
 
 <span class="kw">use crate</span>::{
@@ -173,7 +248,17 @@
     virt_fs::MemInode,
 };
 
-<span class="kw">pub struct </span>FileSystem {
+<span class="doccomment">/// 文件系统
+///
+/// 一个文件系统包含了一个块设备，一个 inode 位图，一个数据块位图，inode 区域的起始块号，数据区域的起始块号
+///
+/// 文件系统物理结构：
+/// - 超级块 [SuperBlock], 包含了文件系统的元信息
+/// - inode 位示图 [Bitmap], 用于标记 inode 块的使用情况
+/// - inode 区域, 用于存储 inode 结构
+/// - 数据块位示图 [Bitmap], 用于标记数据块的使用情况
+/// - 数据区域, 用于存储文件数据
+</span><span class="kw">pub struct </span>FileSystem {
     <span class="kw">pub </span>dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;,
     <span class="kw">pub </span>inode_bitmap: Bitmap,
     <span class="kw">pub </span>data_bitmap: Bitmap,
@@ -182,7 +267,17 @@
 }
 
 <span class="kw">impl </span>FileSystem {
-    <span class="kw">pub fn </span>new(
+    <span class="doccomment">/// 创建一个新的文件系统
+    ///
+    /// 在块设备上创建一个新的文件系统，划分出超级块 [SuperBlock]、inode 位图、inode 区域、数据块位图、数据区域
+    ///
+    /// 并将第一个 inode 分配给根目录
+    ///
+    /// ## 参数
+    /// - `dev`：块设备
+    /// - `total_blocks`：总块数
+    /// - `inode_bitmap_blocks`：inode 位图的块数
+    </span><span class="kw">pub fn </span>new(
         dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;,
         total_blocks: u32,
         inode_bitmap_blocks: u32,
@@ -237,7 +332,16 @@
         Arc::new(Mutex::new(fs))
     }
 
-    <span class="kw">pub fn </span>get_disk_inode_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, inode_id: u32) -&gt; (u32, usize) {
+    <span class="doccomment">/// 获取 inode 的磁盘位置
+    ///
+    /// 根据 inode 编号计算 inode 所在的块号和偏移量，一个磁盘块可以存放多个 inode。
+    ///
+    /// ## 参数
+    /// - `inode_id`：inode 编号
+    ///
+    /// ## 返回
+    /// inode 所在的块号和偏移量
+    </span><span class="kw">pub fn </span>get_disk_inode_pos(<span class="kw-2">&amp;</span><span class="self">self</span>, inode_id: u32) -&gt; (u32, usize) {
         <span class="kw">let </span>inode_size = core::mem::size_of::&lt;DiskInode&gt;();
         <span class="kw">let </span>inode_per_block = (BLOCK_SIZE / inode_size) <span class="kw">as </span>u32;
         <span class="kw">let </span>inode_bid = <span class="self">self</span>.inode_area_start + inode_id / inode_per_block;
@@ -245,28 +349,61 @@
         (inode_bid, inode_offset)
     }
 
-    <span class="kw">pub fn </span>get_data_block_id(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: u32) -&gt; u32 {
+    <span class="doccomment">/// 获取数据块的编号
+    ///
+    /// 根据数据块的偏移量计算数据块的编号
+    ///
+    /// ## 参数
+    /// - `offset`：数据块的偏移量
+    ///
+    /// ## 返回
+    /// 数据块的编号
+    </span><span class="kw">pub fn </span>get_data_block_id(<span class="kw-2">&amp;</span><span class="self">self</span>, offset: u32) -&gt; u32 {
         <span class="self">self</span>.data_area_start + offset
     }
 
-    <span class="kw">pub fn </span>alloc_inode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+    <span class="doccomment">/// 分配一个 inode
+    ///
+    /// 在 inode 位图中分配一个 inode
+    ///
+    /// ## 返回
+    /// inode 编号
+    </span><span class="kw">pub fn </span>alloc_inode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="self">self</span>.inode_bitmap
             .alloc(<span class="kw-2">&amp;</span><span class="self">self</span>.dev)
             .expect(<span class="string">"alloc inode failed"</span>) <span class="kw">as </span>u32
     }
 
-    <span class="kw">pub fn </span>alloc_data_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
+    <span class="doccomment">/// 分配一个数据块
+    ///
+    /// 在数据块位图中分配一个数据块
+    ///
+    /// ## 返回
+    /// 数据块编号
+    </span><span class="kw">pub fn </span>alloc_data_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; u32 {
         <span class="self">self</span>.data_bitmap
             .alloc(<span class="kw-2">&amp;</span><span class="self">self</span>.dev)
             .expect(<span class="string">"alloc data block failed"</span>) <span class="kw">as </span>u32
             + <span class="self">self</span>.data_area_start
     }
 
-    <span class="kw">pub fn </span>free_inode(<span class="kw-2">&amp;</span><span class="self">self</span>, inode_id: u32) {
+    <span class="doccomment">/// 释放一个 inode
+    ///
+    /// 从 inode 位图中释放一个 inode
+    ///
+    /// ## 参数
+    /// - `inode_id`：inode 编号
+    </span><span class="kw">pub fn </span>free_inode(<span class="kw-2">&amp;</span><span class="self">self</span>, inode_id: u32) {
         <span class="self">self</span>.inode_bitmap.free(<span class="kw-2">&amp;</span><span class="self">self</span>.dev, inode_id <span class="kw">as </span>usize);
     }
 
-    <span class="kw">pub fn </span>free_data_block(<span class="kw-2">&amp;</span><span class="self">self</span>, data_block_id: u32) {
+    <span class="doccomment">/// 释放一个数据块
+    ///
+    /// 从数据块位图中释放一个数据块，并清空数据块内容
+    ///
+    /// ## 参数
+    /// - `data_block_id`：数据块编号
+    </span><span class="kw">pub fn </span>free_data_block(<span class="kw-2">&amp;</span><span class="self">self</span>, data_block_id: u32) {
         <span class="kw">let </span>cache = get_cache(data_block_id <span class="kw">as </span>usize, <span class="self">self</span>.dev.clone()).expect(<span class="string">"get cache failed"</span>);
         cache.lock().modify_at(<span class="number">0</span>, |data_block: <span class="kw-2">&amp;mut </span>DataBlock| {
             data_block.iter_mut().for_each(|x| <span class="kw-2">*</span>x = <span class="number">0</span>);
@@ -275,7 +412,10 @@
             .free(<span class="kw-2">&amp;</span><span class="self">self</span>.dev, (data_block_id - <span class="self">self</span>.data_area_start) <span class="kw">as </span>usize);
     }
 
-    <span class="kw">pub fn </span>open(dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;) -&gt; Arc&lt;Mutex&lt;<span class="self">Self</span>&gt;&gt; {
+    <span class="doccomment">/// 打开一个已有的文件系统
+    ///
+    /// 从块设备中打开一个已有的文件系统，读取超级块，inode 位图，数据块位图等信息
+    </span><span class="kw">pub fn </span>open(dev: Arc&lt;<span class="kw">dyn </span>BlockDevice&gt;) -&gt; Arc&lt;Mutex&lt;<span class="self">Self</span>&gt;&gt; {
         <span class="kw">let </span>cache = get_cache(<span class="number">0</span>, dev.clone()).expect(<span class="string">"get cache failed"</span>);
         <span class="kw">let </span>fs = cache
             .lock()
@@ -309,7 +449,11 @@
 }
 
 <span class="kw">impl </span>FileSystemRootInode <span class="kw">for </span>Arc&lt;Mutex&lt;FileSystem&gt;&gt; {
-    <span class="kw">fn </span>root_inode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MemInode {
+    <span class="doccomment">/// 获取根目录的 inode
+    ///
+    /// ## 返回
+    /// 根目录的 inode
+    </span><span class="kw">fn </span>root_inode(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; MemInode {
         <span class="kw">let </span>fs = <span class="self">self</span>.lock();
         <span class="kw">let </span>(root_inode_bid, root_inode_offset) = fs.get_disk_inode_pos(<span class="number">0</span>);
         MemInode::new(

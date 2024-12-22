@@ -105,27 +105,12 @@
 <a href="#104" id="104">104</a>
 <a href="#105" id="105">105</a>
 <a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a></pre></div><pre class="rust"><code><span class="doccomment">//! 中断处理模块
+<a href="#107" id="107">107</a></pre></div><pre class="rust"><code><span class="doccomment">//! 陷入处理
 
-</span><span class="comment">// 导入核心库中的 asm 和 usize 模块
 </span><span class="kw">use </span>core::{arch::asm, usize};
 
-<span class="comment">// 导入公共库中的 Syscall 模块
-</span><span class="kw">use </span>common::syscall::Syscall;
-<span class="comment">// 导入 RISC-V 架构相关的中断和寄存器模块
-</span><span class="kw">use </span>riscv::{
+<span class="kw">use </span>common::syscall::Syscall;
+<span class="kw">use </span>riscv::{
     interrupt::{Exception, supervisor::Interrupt},
     register::{
         scause, stval,
@@ -133,33 +118,27 @@
     },
 };
 
-<span class="comment">// 导入当前 crate 中的模块
-</span><span class="kw">use crate</span>::{
-    extern_global,                                                          <span class="comment">// 外部全局变量
-    </span>mm::memory_set::TRAMPOLINE, <span class="comment">// 内存设置中的 TRAMPOLINE 常量
-    </span>printk,                     <span class="comment">// 打印内核日志的宏
-    </span>syscall::syscall,           <span class="comment">// 系统调用处理函数
-    </span>task::{manager::TaskManager, processor::Processor, task::TRAP_CONTEXT}, <span class="comment">// 任务管理相关模块
-    </span>timer::set_next_timeout,    <span class="comment">// 设置下一个定时器中断的函数
-</span>};
+<span class="kw">use </span><span class="kw">super</span>::context::Riscv64RegAlias;
+<span class="kw">use crate</span>::{
+    extern_global,
+    mm::memory_set::TRAMPOLINE,
+    syscall::syscall,
+    task::{manager::TaskManager, processor::Processor, task::TRAP_CONTEXT},
+    timer::set_next_timeout,
+};
 
-<span class="comment">// 导入上级模块中的上下文相关定义
-</span><span class="kw">use </span><span class="kw">super</span>::context::{Riscv64RegAlias, TrapCtx};
-
-<span class="doccomment">/// 定义定时器中断间隔时间（微秒）
+<span class="doccomment">/// 定时器中断间隔时间（微秒）
 </span><span class="kw">pub const </span>TIMER_INTERVAL_USEC: usize = <span class="number">10_000</span>;
 
-<span class="comment">// 定义一个不进行名称修饰的函数
+<span class="doccomment">/// 陷入处理函数
+///
+/// 在发生陷入时，根据陷入原因进行相应的处理
 </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
-</span><span class="comment">// 用于处理用户态陷入
 </span><span class="kw">pub fn </span>trap_handler() -&gt; ! {
-    <span class="comment">// 设置用户态陷阱入口
-    </span>set_user_trap_entry();
-    <span class="comment">// 读取 scause 和 stval 寄存器的值
-    </span><span class="kw">let </span>scause = scause::read().cause();
+    set_user_trap_entry();
+    <span class="kw">let </span>scause = scause::read().cause();
     <span class="kw">let </span>stval = stval::read();
-    <span class="comment">// 根据 scause 的值进行匹配处理
-    </span><span class="kw">match </span>scause {
+    <span class="kw">match </span>scause {
         <span class="comment">// 用户态环境调用异常
         </span>scause::Trap::Exception(<span class="kw">const </span>{ Exception::UserEnvCall <span class="kw">as </span>usize }) =&gt; {
             <span class="kw">let </span>ctx = Processor::current_trap_cx().unwrap();
@@ -195,22 +174,19 @@
     </span>trap_return();
 }
 
-<span class="doccomment">/// 设置用户态陷阱入口函数
+<span class="doccomment">/// 设置用户态陷入入口函数
 </span><span class="kw">fn </span>set_user_trap_entry() {
     <span class="kw">unsafe </span>{
-        <span class="comment">// 将 stvec 寄存器设置为 TRAMPOLINE 地址，陷阱模式为直接模式
+        <span class="comment">// 将 stvec 寄存器设置为 TRAMPOLINE 地址，陷入模式为直接模式
         </span>stvec::write(TRAMPOLINE <span class="kw">as </span>usize, TrapMode::Direct);
     }
 }
 
-<span class="comment">// 定义一个不进行名称修饰的函数，用于返回到用户态
+<span class="doccomment">/// 陷入返回
 </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
-</span><span class="doccomment">/// 返回到用户态
 </span><span class="kw">pub fn </span>trap_return() -&gt; ! {
-    <span class="comment">// 设置用户态陷阱入口
-    </span>set_user_trap_entry();
-    <span class="comment">// 获取陷阱上下文指针
-    </span><span class="kw">let </span>trap_cx_ptr = TRAP_CONTEXT;
+    set_user_trap_entry();
+    <span class="kw">let </span>trap_cx_ptr = TRAP_CONTEXT;
     <span class="comment">// 获取当前用户页表的 token
     </span><span class="kw">let </span>user_satp = Processor::current_user_token().unwrap();
     <span class="comment">// 计算 __restore_trap 的虚拟地址
