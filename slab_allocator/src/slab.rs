@@ -1,10 +1,13 @@
-//! `slab` 模块包含 `Slab` 结构体，该结构体表示一个内存块分配器。
-
+//! Slab Allocator
+//!
+//! Slab Allocator 是一种简单的内存分配器，它将内存分配为固定大小的块，并在需要时分配这些块。
+//!
+//! 在分配时，保持各个大小的 Slab 块数量的平衡，以适应不同大小的内存分配请求。
 use core::{alloc::AllocError, ptr::NonNull};
 
 use crate::Address;
 
-/// `Slab` 结构体表示一个内存块分配器。
+/// Slab 内存块分配器。
 ///
 /// ## 字段
 /// - `block_size`：每个内存块的大小
