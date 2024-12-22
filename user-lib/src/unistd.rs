@@ -7,7 +7,9 @@
 //! - 创建新进程。
 //! - 执行新程序。
 
-use crate::syscall;
+use common::syscall::time::TimeVal;
+
+use crate::{sched_yield, sys::time::get_time_of_day, syscall};
 
 /// 退出当前进程
 ///
@@ -56,4 +58,27 @@ pub fn fork() -> isize {
 /// 返回执行结果
 pub fn execve(path: &str) -> isize {
     syscall::sys_execve(path)
+}
+
+/// 休眠指定秒数
+///
+/// ## 参数
+/// - `seconds`: 休眠的秒数
+pub fn sleep(seconds: usize) {
+    let mut ts = TimeVal {
+        tv_sec: 0,
+        tv_usec: 0,
+    };
+    let _ = get_time_of_day(&mut ts, None);
+    loop {
+        let mut ts_now = TimeVal {
+            tv_sec: 0,
+            tv_usec: 0,
+        };
+        let _ = get_time_of_day(&mut ts_now, None);
+        if ts_now.tv_sec - ts.tv_sec >= seconds {
+            break;
+        }
+        sched_yield();
+    }
 }
