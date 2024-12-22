@@ -120,6 +120,7 @@ impl MemInode {
                 DirEntry::new(inode_id, name).as_bytes(),
             );
         });
+        crate::block_cache::block_cache_sync_all();
         Arc::new(inode)
     }
 
@@ -133,6 +134,7 @@ impl MemInode {
             });
         })
         .expect("modify disk inode failed");
+        crate::block_cache::block_cache_sync_all();
     }
 
     pub fn increase_size(
@@ -165,6 +167,7 @@ impl MemInode {
             self.increase_size(new_size, disk_inode, &mut fs);
             disk_inode.write_at(offset, &self.dev, buf)
         });
+        crate::block_cache::block_cache_sync_all();
         write_size.unwrap()
     }
 

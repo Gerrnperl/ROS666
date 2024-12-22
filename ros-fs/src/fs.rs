@@ -72,6 +72,7 @@ impl FileSystem {
             .modify_at(root_inode_offset as usize, |disk_inode: &mut DiskInode| {
                 disk_inode.init(InodeType::Dir);
             });
+        crate::block_cache::block_cache_sync_all();
         Arc::new(Mutex::new(fs))
     }
 
