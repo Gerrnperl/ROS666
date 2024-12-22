@@ -52,7 +52,7 @@ echo-make-args:
 
 #region 构建
 # 构建内核 (开发模式)
-build-kernel.dev: pack-users-fs-img.dev
+build-kernel.dev: pack-users-fs-img.release
 	cargo build
 	rust-objcopy --strip-all $(KERNEL_ELF) -O binary $(KERNEL_BIN)
 # 构建内核 (发布模式)
@@ -102,8 +102,8 @@ launch-qemu-system.dev: build-kernel.dev __launch_qemu_startup_log
 		-bios $(BOOTLOADER) \
 		-device loader,file=$(KERNEL_BIN),addr=0x80200000 \
 		-S \
-		-gdb tcp::25666
-		-drive file=$(FS_IMG),if=none,format=raw,id=x0 \
+		-gdb tcp::25666 \
+		-drive file=$(FS_IMG_RELEASE),if=none,format=raw,id=x0 \
         -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 	@echo "\033[30m[QEMU launcher] QEMU has exited\033[0m"
 
@@ -114,7 +114,7 @@ launch-qemu-system.release: build-kernel.release __launch_qemu_startup_log
 		-nographic \
 		-bios $(BOOTLOADER) \
 		-device loader,file=$(KERNEL_BIN_RELEASE),addr=0x80200000 \
-		-gdb tcp::25666
+		-gdb tcp::25666 \
 		-drive file=$(FS_IMG_RELEASE),if=none,format=raw,id=x0 \
         -device virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0
 	@echo "\033[30m[QEMU launcher] QEMU has exited\033[0m"
