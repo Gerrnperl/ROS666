@@ -40,7 +40,7 @@ impl TaskCtx {
     /// * `sp` 被设置为传入的 `kernel_stack_ptr`。
     /// * `s` 寄存器数组被初始化为 0。
     /// ## 示例
-    /// ```rust
+    /// ```no_run
     /// let task_ctx = TaskCtx::goto_trap_return(kernel_stack_ptr);
     /// ```
     pub fn goto_trap_return(kernel_stack_ptr: usize) -> Self {

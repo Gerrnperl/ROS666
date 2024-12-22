@@ -1,25 +1,22 @@
-//! 任务管理器模块，用于管理任务的调度和切换
+//! 任务管理器模块，
+//!
+//! 基于时间片轮转的任务调度，实现了任务的创建、删除、切换等操作。
 
-// 引入核心库中的Ref和RefCell模块，用于实现内部可变性
 use core::cell::RefCell;
 
-// 引入alloc库中的VecDeque，用于实现任务队列
 use alloc::collections::vec_deque::VecDeque;
-// 引入alloc库中的Arc，用于实现引用计数的智能指针
 use alloc::sync::Arc;
-// 引入lazy_static库，用于定义静态变量
 use lazy_static::lazy_static;
 
 use crate::task::context::TaskCtx;
 use crate::task::task::{ProcessControlBlock, ProcessStatus};
 use crate::utils::safety::SyncRefCell;
 
-// 引入当前模块中的INIT_PROC和Processor
 use super::INIT_PROC;
 use super::processor::Processor;
 
-// 使用lazy_static宏定义一个静态变量TASK_MANAGER，用于管理任务
 lazy_static! {
+    /// 全局任务管理器
     pub static ref TASK_MANAGER: SyncRefCell<TaskManager> = {
         SyncRefCell {
             ref_cell: RefCell::new(TaskManager::new()),
@@ -27,7 +24,7 @@ lazy_static! {
     };
 }
 
-/// 任务管理器结构体
+/// 任务管理器
 pub struct TaskManager {
     // 就绪队列，用于存放准备执行的任务
     ready_queue: VecDeque<Arc<SyncRefCell<ProcessControlBlock>>>,

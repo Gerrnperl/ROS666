@@ -1,4 +1,4 @@
-//! 进程栈管理
+//! 内核和用户栈管理
 
 use crate::mm::{
     KERNEL_SPACE,
@@ -20,7 +20,7 @@ pub fn kernel_stack_position(pid: usize) -> (usize, usize) {
     (bottom, top)
 }
 
-/// 内核栈结构体
+/// 内核栈
 pub struct KernelStack {
     pid: usize,
 }

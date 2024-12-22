@@ -14,13 +14,19 @@ lazy_static! {
     };
 }
 
-/// PID 处理器结构体
+/// PID 句柄
+///
+/// 当 PID 句柄被丢弃时，自动释放 PID
 pub struct PidHandler(pub usize);
 
-/// PID 分配器结构体
+/// PID 分配器
+///
+/// PID 分配器基于栈分配 PID，维护了未使用的 PID 范围和回收的 PID 列表。
 pub struct PidAllocator {
-    unused: Range<usize>, // 未使用的 PID 范围
-    recycled: Vec<usize>, // 回收的 PID 列表
+    /// 未使用的 PID 范围
+    unused: Range<usize>,
+    /// 回收的 PID 列表
+    recycled: Vec<usize>,
 }
 
 impl PidAllocator {
@@ -44,17 +50,15 @@ impl PidAllocator {
             self.unused.start += 1;
             return Some(PidHandler(pid));
         }
-        // 如果没有可用的 PID，则返回 None
         None
     }
 
     /// 释放一个 PID
     fn dealloc(&mut self, pid: usize) {
-        // 检查 PID 是否在未使用的范围内
+        // 检查 PID 是否在未使用的范围内并且是否已经在回收列表中
         if pid >= self.unused.start {
             panic!("尝试释放未分配的 PID: {:?}", pid);
         }
-        // 检查 PID 是否已经在回收列表中
         if self.recycled.iter().any(|&f| f == pid) {
             panic!("尝试释放已释放的 PID: {:?}", pid);
         }
