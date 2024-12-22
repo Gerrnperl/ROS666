@@ -17,7 +17,7 @@ static HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();
 static mut HEAP: [u8; KERNEL_HEAP_SIZE] = [0; KERNEL_HEAP_SIZE];
 
 #[allow(static_mut_refs)]
-/// 初始化堆内存分配器
+/// 初始化内核堆内存分配器
 pub fn init_heap() {
     unsafe {
         trace!(
@@ -31,7 +31,9 @@ pub fn init_heap() {
     }
 }
 
-/// 分配错误处理函数
+/// Rust 语言项 - 分配错误处理函数
+///
+/// 当分配失败，例如 Out Of Memory 时会调用该函数
 #[alloc_error_handler]
 fn alloc_error_handler(layout: core::alloc::Layout) -> ! {
     panic!("Heap allocation error: {:?}", layout)
