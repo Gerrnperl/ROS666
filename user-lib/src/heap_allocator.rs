@@ -1,3 +1,9 @@
+//! 这个模块包含堆分配器的初始化和错误处理。
+//!
+//! 主要功能包括：
+//! - 初始化堆分配器。
+//! - 处理堆分配错误。
+
 use slab_allocator::LockedHeap;
 
 pub const USER_HEAP_SIZE: usize = 0x4000;
@@ -11,6 +17,7 @@ static HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();
 // .rodata: const global variables
 static mut HEAP: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
 
+/// 初始化堆分配器
 #[allow(static_mut_refs)]
 pub fn init_heap() {
     unsafe {
@@ -20,6 +27,12 @@ pub fn init_heap() {
     }
 }
 
+/// 堆分配错误处理函数
+///
+/// ## 参数
+/// - `layout`: 分配错误的内存布局
+/// ## 返回值
+/// 该函数不会返回，直接 panic
 #[alloc_error_handler]
 fn alloc_error_handler(layout: core::alloc::Layout) -> ! {
     panic!("Heap allocation error: {:?}", layout)

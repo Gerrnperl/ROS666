@@ -1,10 +1,21 @@
+//! 这个模块包含标准输入输出相关的功能。
+//!
+//! 主要功能包括：
+//! - 打印格式化字符串。
+//! - 从标准输入读取字符串。
+
 use core::fmt::Write;
 
 use crate::{read, write};
 
 const STDIN: usize = 0;
 
+/// 从标准输入读取一个字符
+///
+/// ## 返回值
+/// 返回读取到的字符
 pub fn getchar() -> u8 {
+    /// 一个长度为1的可变字节数组，用于存储单个字节的数据。
     let mut c = [0u8; 1];
     read(STDIN, &mut c);
     c[0]
@@ -13,7 +24,13 @@ pub fn getchar() -> u8 {
 const STDOUT: usize = 1;
 struct Stdout {}
 
+/// 实现 `Write` trait 用于 `Stdout`。
 impl Write for Stdout {
+    /// * `write_str` - 将字符串写入标准输出。
+    /// # 参数
+    /// * `s` - 要写入的字符串切片。
+    /// # 返回值
+    /// 如果写入成功，返回 `Ok(())`，否则返回 `Err(core::fmt::Error)`。
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         let ret = write(STDOUT, s.as_bytes());
         if ret < 0 {
@@ -23,6 +40,12 @@ impl Write for Stdout {
     }
 }
 
+/// 打印格式化字符串
+///
+/// ## 参数
+/// - `args`: 格式化字符串的参数
+/// ## 返回值
+/// 返回格式化结果
 pub fn print(args: core::fmt::Arguments) {
     if let Err(e) = (Stdout {}.write_fmt(args)) {
         panic!("Printing to stdout failed: {:?}", e);

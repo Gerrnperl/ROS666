@@ -1,3 +1,5 @@
+//! 任务上下文
+
 use crate::trap::handler::trap_return;
 
 /// 任务上下文
@@ -15,6 +17,9 @@ pub struct TaskCtx {
 }
 
 impl Default for TaskCtx {
+    /// 默认任务上下文
+    ///
+    /// 初始化任务上下文的寄存器信息为0
     fn default() -> Self {
         Self {
             ra: 0,
@@ -25,6 +30,19 @@ impl Default for TaskCtx {
 }
 
 impl TaskCtx {
+    /// 创建一个新的 `TaskCtx` 实例，并将其初始化为陷阱返回状态。
+    ///
+    /// ## 参数
+    /// * `kernel_stack_ptr` - 内核栈指针的地址。
+    /// ## 返回值
+    /// 返回一个新的 `TaskCtx` 实例，其中：
+    /// * `ra` 被设置为 `trap_return` 函数的地址。
+    /// * `sp` 被设置为传入的 `kernel_stack_ptr`。
+    /// * `s` 寄存器数组被初始化为 0。
+    /// ## 示例
+    /// ```rust
+    /// let task_ctx = TaskCtx::goto_trap_return(kernel_stack_ptr);
+    /// ```
     pub fn goto_trap_return(kernel_stack_ptr: usize) -> Self {
         Self {
             ra: trap_return as usize,

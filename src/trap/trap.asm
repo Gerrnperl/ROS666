@@ -10,12 +10,12 @@
 .align 2
 .global __save_trap
 __save_trap:
-    # swap sp and sscratch
-    # currently sp -> user *TrapContext, sscratch -> user stack
+    # 交换 sp 和 sscratch
+    # 当前 sp 指向用户 *TrapContext，sscratch 指向用户栈
     csrrw sp, sscratch, sp
-    # # allocate space for trap frame
+    # # 为陷阱帧分配空间
     # addi sp, sp, -34*8
-    # save registers
+    # 保存寄存器
     sd x1, 1*8(sp)
     sd x3, 3*8(sp)
 
@@ -39,25 +39,25 @@ __save_trap:
     # pub kernel_virt_sp: usize,
     ld sp, 35*8(sp)
 
-    # switch to kernel space
+    # 切换到内核空间
     csrw satp, t0
     sfence.vma
 
-    # # call trap handler
+    # # 调用陷阱处理程序
     # mv a0, sp
     # call trap_handler
     jr t1
 
 
 .global __restore_trap
-__restore_trap: # a0: *TrapContext, a1: user space token
-    # # switch to user space
+__restore_trap: # a0: *TrapContext, a1: 用户空间令牌
+    # # 切换到用户空间
     # csrw satp, a1
     # sfence.vma
     # csrw sscratch, a0
     # mv sp, a0
-    # # sp -> TrapContext
-    # # restore registers
+    # # sp 指向 TrapContext
+    # # 恢复寄存器
     # ld t0, 32*8(sp)
     # ld t1, 33*8(sp)
     # csrw sstatus, t0
@@ -71,9 +71,9 @@ __restore_trap: # a0: *TrapContext, a1: user space token
     #     .set rept_i, rept_i+1
     # .endr
 
-    # # # free space for trap frame
+    # # # 释放陷阱帧空间
     # # addi sp, sp, 34*8
-    # # # swap sp and sscratch
+    # # # 交换 sp 和 sscratch
     # # csrrw sp, sscratch, sp
     # ld sp, 2*8(sp)
     # sret
@@ -82,13 +82,13 @@ __restore_trap: # a0: *TrapContext, a1: user space token
     sfence.vma
     csrw sscratch, a0
     mv sp, a0
-    # now sp points to TrapContext in user space, start restoring based on it
-    # restore sstatus/sepc
+    # 现在 sp 指向用户空间中的 TrapContext，开始基于它恢复
+    # 恢复 sstatus/sepc
     ld t0, 32*8(sp)
     ld t1, 33*8(sp)
     csrw sstatus, t0
     csrw sepc, t1
-    # restore general purpose registers except x0/sp/tp
+    # 恢复通用寄存器，除了 x0/sp/tp
     ld x1, 1*8(sp)
     ld x3, 3*8(sp)
     .set rept_i, 5
@@ -96,10 +96,10 @@ __restore_trap: # a0: *TrapContext, a1: user space token
         LOAD_XR %rept_i, %rept_i*8, sp
         .set rept_i, rept_i+1
     .endr
-    # back to user stack
+    # 返回用户栈
     ld sp, 2*8(sp)
 
-    # debug test: load 64bits from 0x10000
+    # 调试测试：从 0x10000 加载 64 位
     lui t0, 0x10
     ld t1, 0(t0)
 

@@ -1,5 +1,7 @@
+/// 导入核心库中的一些模块
 use core::{arch::asm, borrow::BorrowMut, cell::RefCell, ops::Range};
 
+/// 导入项目中的一些模块
 use crate::{
     app_loader::AppData,
     extern_global, info,
@@ -9,6 +11,7 @@ use crate::{
     utils::safety::SyncRefCell,
 };
 
+/// 导入项目中的一些模块
 use super::{
     address::{PhysicalAddress, PhysicalPageNumber, VPNRange, VirtualAddress, VirtualPageNumber},
     frame_allocator::{FrameTracker, StackFrameAllocator},
@@ -21,9 +24,11 @@ use xmas_elf::ElfFile;
 
 use lazy_static::lazy_static;
 
+/// 跳板地址常量
 pub const TRAMPOLINE: usize = usize::MAX - PAGE_SIZE_SV39 + 1;
 
 lazy_static! {
+    /// 内核空间的静态引用
     pub static ref KERNEL_SPACE: Arc<SyncRefCell<MemorySet>> = {
         Arc::new(SyncRefCell {
             ref_cell: RefCell::new(MemorySet::new_kernel()),
@@ -31,6 +36,7 @@ lazy_static! {
     };
 }
 
+/// 映射类型枚举
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum MapType {
     Linear,
@@ -38,6 +44,7 @@ pub enum MapType {
 }
 
 bitflags! {
+    /// 映射权限标志
     #[derive(Copy, Clone, Debug)]
     pub struct MapPermission: u8 {
         const Read = 1 << 1;
@@ -62,6 +69,12 @@ pub struct MemorySet {
 }
 
 impl MapArea {
+    /// 创建新的 MapArea
+    ///
+    /// ## 参数
+    /// * `vpn_range` - 虚拟页号范围
+    /// * `map_type` - 映射类型
+    /// * `permission` - 映射权限
     pub fn new(vpn_range: VPNRange, map_type: MapType, permission: MapPermission) -> Self {
         Self {
             vpn_range,
@@ -71,26 +84,49 @@ impl MapArea {
         }
     }
 
+    /// 映射虚拟页到物理页
+    ///
+    /// ## 参数
+    /// * `page_table` - 页表
     pub fn map(&mut self, page_table: &mut PageTable) {
         for vpn in self.vpn_range {
             self.map_one(vpn, page_table);
         }
     }
 
+    /// 取消映射虚拟页
+    ///
+    /// ## 参数
+    /// * `page_table` - 页表
     pub fn unmap(&mut self, page_table: &mut PageTable) {
         for vpn in self.vpn_range {
             self.unmap_one(vpn, page_table);
         }
     }
 
+    /// 获取虚拟页对应的物理页框
+    ///
+    /// ## 参数
+    /// * `vpn` - 虚拟页号
+    /// ## 返回值
+    /// 返回对应的物理页框
     pub fn get_frame(&self, vpn: VirtualPageNumber) -> Option<&FrameTracker> {
         self.data.get(&vpn)
     }
 
+    /// 获取映射权限
+    ///
+    /// ## 返回值
+    /// 返回映射权限
     pub fn get_permission(&self) -> MapPermission {
         self.permission
     }
 
+    /// 映射单个虚拟页到物理页
+    ///
+    /// ## 参数
+    /// * `vpn` - 虚拟页号
+    /// * `page_table` - 页表
     pub fn map_one(&mut self, vpn: VirtualPageNumber, page_table: &mut PageTable) {
         let ppn = match self.map_type {
             MapType::Linear => PhysicalPageNumber(vpn.0),
@@ -105,6 +141,11 @@ impl MapArea {
         page_table.map(vpn, ppn, flags);
     }
 
+    /// 取消映射单个虚拟页
+    ///
+    /// ## 参数
+    /// * `vpn` - 虚拟页号
+    /// * `page_table` - 页表
     pub fn unmap_one(&mut self, vpn: VirtualPageNumber, page_table: &mut PageTable) {
         match self.map_type {
             MapType::Linear => {}
@@ -116,6 +157,11 @@ impl MapArea {
         page_table.unmap(vpn);
     }
 
+    /// 从源数据复制到映射区域
+    ///
+    /// ## 参数
+    /// * `page_table` - 页表
+    /// * `src` - 源数据
     pub fn copy_from(&mut self, page_table: &mut PageTable, src: &[u8]) {
         if self.map_type != MapType::Framed {
             panic!("copy_from: only support framed mapping");
@@ -135,6 +181,12 @@ impl MapArea {
         }
     }
 
+    /// 从另一个 MapArea 创建新的 MapArea
+    ///
+    /// ## 参数
+    /// * `another` - 另一个 MapArea
+    /// ## 返回值
+    /// 返回新的 MapArea
     pub fn from_another(another: &MapArea) -> Self {
         Self {
             vpn_range: another.vpn_range,
@@ -146,6 +198,7 @@ impl MapArea {
 }
 
 impl MemorySet {
+    /// 创建一个空的 MemorySet
     pub fn empty() -> Self {
         Self {
             page_table: PageTable::new(),
@@ -153,10 +206,12 @@ impl MemorySet {
         }
     }
 
+    /// 获取页表 token
     pub fn token(&self) -> usize {
         self.page_table.token()
     }
 
+    /// 激活当前 MemorySet
     pub fn activate(&self) {
         let satp = self.page_table.token();
         unsafe {
@@ -170,6 +225,11 @@ impl MemorySet {
         }
     }
 
+    /// 添加一个 MapArea 到 MemorySet
+    ///
+    /// ## 参数
+    /// * `area` - 要添加的 MapArea
+    /// * `data` - 可选的数据，用于初始化映射区域
     pub fn push(&mut self, mut area: MapArea, data: Option<&[u8]>) {
         area.map(&mut self.page_table);
         if let Some(data) = data {
@@ -178,6 +238,11 @@ impl MemorySet {
         self.areas.push(area);
     }
 
+    /// 插入一个虚拟地址范围到 MemorySet
+    ///
+    /// ## 参数
+    /// * `va_range` - 虚拟地址范围
+    /// * `permission` - 映射权限
     pub fn insert(&mut self, va_range: Range<VirtualAddress>, permission: MapPermission) {
         self.push(
             MapArea::new(
@@ -189,6 +254,10 @@ impl MemorySet {
         );
     }
 
+    /// 移除一个 MapArea
+    ///
+    /// ## 参数
+    /// * `start_vpn` - 要移除的 MapArea 的起始虚拟页号
     pub fn remove_area(&mut self, start_vpn: VirtualPageNumber) {
         let mut index = None;
         for (i, area) in self.areas.iter().enumerate() {
@@ -203,6 +272,7 @@ impl MemorySet {
         }
     }
 
+    /// 映射跳板
     pub fn map_trampoline(&mut self) {
         self.page_table.map(
             VirtualPageNumber::from(VirtualAddress::from(TRAMPOLINE)),
@@ -211,14 +281,22 @@ impl MemorySet {
         );
     }
 
+    /// 翻译虚拟页号到页表项
+    ///
+    /// ## 参数
+    /// * `vpn` - 虚拟页号
+    /// ## 返回值
+    /// 返回对应的页表项
     pub fn translate(&self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
         self.page_table.translate(vpn)
     }
 
+    /// 回收所有 MapArea
     pub fn recycle(&mut self) {
         self.areas.clear();
     }
 
+    /// 创建内核 MemorySet
     pub fn new_kernel() -> Self {
         let kernel_start = extern_global!(__kernel_start) as usize;
         let kernel_end = extern_global!(__kernel_end) as usize;
@@ -315,6 +393,13 @@ impl MemorySet {
         }
         memory_set
     }
+
+    /// 从 ELF 文件创建用户 MemorySet
+    ///
+    /// ## 参数
+    /// * `app` - 包含 ELF 文件数据的 AppData
+    /// ## 返回值
+    /// 返回创建的 MemorySet、用户栈顶地址和入口点地址
     pub fn from_elf_app(app: AppData) -> (Self, usize, usize) {
         let elf = app.data;
         let elf = ElfFile::new(elf).unwrap();
@@ -398,6 +483,12 @@ impl MemorySet {
         )
     }
 
+    /// 从已存在的用户 MemorySet 创建新的 MemorySet
+    ///
+    /// ## 参数
+    /// * `user_space` - 已存在的用户 MemorySet
+    /// ## 返回值
+    /// 返回新的 MemorySet
     pub fn from_existed_user(user_space: &MemorySet) -> Self {
         let mut memory_set = MemorySet::empty();
         memory_set.map_trampoline();
@@ -416,6 +507,7 @@ impl MemorySet {
     }
 }
 
+/// 重新映射测试函数
 pub fn remap_test() {
     let mut kernel_space = KERNEL_SPACE.ref_cell.borrow_mut();
     let mid_text: VirtualAddress =

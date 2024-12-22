@@ -1,21 +1,35 @@
+//! 页表模块
+
+// 引入分配器模块中的 String 和 Vec 类型
 use alloc::{string::String, vec::Vec};
 
+// 引入打印宏
 use crate::printkln;
 
+// 引入地址模块中的相关类型
 use super::{
     address::{
         PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalAddress, PhysicalPageNumber, VirtualAddress,
         VirtualPageNumber,
     },
+    // 引入帧分配器模块中的相关类型
     frame_allocator::{FrameTracker, StackFrameAllocator},
 };
 
+/// 页表结构体
+///
+/// 包含根页表的物理页号和帧跟踪器的向量
 pub struct PageTable {
+    /// 根页表的物理页号
     pub root: PhysicalPageNumber,
+    /// 帧跟踪器的向量
     pub frames: Vec<FrameTracker>,
 }
 
 impl PageTable {
+    /// 创建一个新的页表
+    ///
+    /// 分配一个根页表帧，并初始化页表结构体
     pub fn new() -> Self {
         let root = StackFrameAllocator::alloc_frame().unwrap();
         Self {
@@ -24,10 +38,16 @@ impl PageTable {
         }
     }
 
+    /// 获取页表的 token
+    ///
+    /// 将根页表的物理页号与模式位组合，生成页表的 token
     pub fn token(&self) -> usize {
         self.root.0 | (8 << 60)
     }
 
+    /// 映射虚拟页号到物理页号
+    ///
+    /// 根据虚拟页号查找页表项，并将其映射到给定的物理页号和标志位
     pub fn map(&mut self, vpn: VirtualPageNumber, ppn: PhysicalPageNumber, flags: PTEFlags) {
         let entry = self.find_pte_mut(vpn).unwrap();
         if (*entry).valid() {
@@ -36,6 +56,9 @@ impl PageTable {
         *entry = PageTableEntry::new(ppn, flags | PTEFlags::Valid);
     }
 
+    /// 取消映射虚拟页号
+    ///
+    /// 根据虚拟页号查找页表项，并将其设置为默认值，取消映射
     pub fn unmap(&mut self, vpn: VirtualPageNumber) {
         let entry = self.find_pte(vpn).unwrap();
         if !(*entry).valid() {
@@ -44,6 +67,9 @@ impl PageTable {
         *entry = PageTableEntry::default();
     }
 
+    /// 查找并返回可变的页表项
+    ///
+    /// 根据虚拟页号查找页表项，如果不存在则分配新的页表项
     pub fn find_pte_mut(&mut self, vpn: VirtualPageNumber) -> Option<&mut PageTableEntry> {
         let indexes = vpn.indexes();
         let mut ppn = self.root;
@@ -62,6 +88,9 @@ impl PageTable {
         None
     }
 
+    /// 查找并返回不可变的页表项
+    ///
+    /// 根据虚拟页号查找页表项，如果不存在则返回 None
     pub fn find_pte(&self, vpn: VirtualPageNumber) -> Option<&mut PageTableEntry> {
         let indexes = vpn.indexes();
         let mut ppn = self.root;
@@ -78,10 +107,16 @@ impl PageTable {
         None
     }
 
+    /// 翻译虚拟页号到页表项
+    ///
+    /// 根据虚拟页号查找页表项，并返回其副本
     pub fn translate(&self, vpn: VirtualPageNumber) -> Option<PageTableEntry> {
         self.find_pte(vpn).map(|entry| *entry)
     }
 
+    /// 翻译虚拟地址到物理地址
+    ///
+    /// 根据虚拟地址查找页表项，并计算物理地址
     pub fn translate_addr(&self, va: VirtualAddress) -> Option<PhysicalAddress> {
         self.find_pte(VirtualPageNumber::from(va)).map(|entry| {
             let floor = PhysicalAddress::from(PhysicalPageNumber::from(entry));
@@ -90,6 +125,9 @@ impl PageTable {
         })
     }
 
+    /// 从 SATP 寄存器创建页表
+    ///
+    /// 根据 SATP 寄存器中的值创建页表结构体
     pub fn from_satp(satp: usize) -> Self {
         let root_ppn = PhysicalPageNumber::from(satp);
         Self {
@@ -102,13 +140,21 @@ impl PageTable {
 bitflags::bitflags! {
     #[derive(PartialEq)]
     pub struct PTEFlags: u8 {
+        /// 有效位
         const Valid = 1 << 0;
+        /// 可读位
         const Read = 1 << 1;
+        /// 可写位
         const Write = 1 << 2;
+        /// 可执行位
         const Execute = 1 << 3;
+        /// 用户位
         const User = 1 << 4;
+        /// 全局位
         const Global = 1 << 5;
+        /// 访问位
         const Accessed = 1 << 6;
+        /// 脏位
         const Dirty = 1 << 7;
     }
 }
@@ -124,63 +170,100 @@ bitflags::bitflags! {
 #[derive(Clone, Copy, Debug)]
 #[repr(C)]
 pub struct PageTableEntry {
-    pub bits: usize,
+    pub bits: usize, // 页表项的位字段
 }
 
 impl PageTableEntry {
+    /// 创建一个新的页表项
+    ///
+    /// 根据给定的物理页号和标志位创建页表项
     pub fn new(phy_page: PhysicalPageNumber, flags: PTEFlags) -> Self {
         Self {
             bits: (phy_page.0 << 10) | flags.bits() as usize,
         }
     }
 
+    /// 判断页表项是否有效
+    ///
+    /// 检查页表项的有效位是否被设置
     pub fn valid(&self) -> bool {
         (PTEFlags::Valid & self.into()) != PTEFlags::empty()
     }
 
+    /// 判断页表项是否可读
+    ///
+    /// 检查页表项的可读位是否被设置
     pub fn readable(&self) -> bool {
         (PTEFlags::Read & self.into()) != PTEFlags::empty()
     }
 
+    /// 判断页表项是否可写
+    ///
+    /// 检查页表项的可写位是否被设置
     pub fn writable(&self) -> bool {
         (PTEFlags::Write & self.into()) != PTEFlags::empty()
     }
 
+    /// 判断页表项是否可执行
+    ///
+    /// 检查页表项的可执行位是否被设置
     pub fn executable(&self) -> bool {
         (PTEFlags::Execute & self.into()) != PTEFlags::empty()
     }
 
+    /// 判断页表项是否为用户态
+    ///
+    /// 检查页表项的用户位是否被设置
     pub fn user(&self) -> bool {
         (PTEFlags::User & self.into()) != PTEFlags::empty()
     }
 
+    /// 判断页表项是否被访问
+    ///
+    /// 检查页表项的访问位是否被设置
     pub fn accessed(&self) -> bool {
         (PTEFlags::Accessed & self.into()) != PTEFlags::empty()
     }
 
+    /// 判断页表项是否脏
+    ///
+    /// 检查页表项的脏位是否被设置
     pub fn dirty(&self) -> bool {
         (PTEFlags::Dirty & self.into()) != PTEFlags::empty()
     }
 }
 
 impl Default for PageTableEntry {
+    /// 创建一个默认的页表项
+    ///
+    /// 默认页表项的位字段为 0
     fn default() -> Self {
         Self { bits: 0 }
     }
 }
 
 impl From<&PageTableEntry> for PTEFlags {
+    /// 从页表项创建标志位
+    ///
+    /// 根据页表项的位字段创建标志位
     fn from(pte: &PageTableEntry) -> Self {
         Self::from_bits_truncate(pte.bits as u8)
     }
 }
 
 impl From<&PageTableEntry> for PhysicalPageNumber {
+    /// 从页表项创建物理页号
+    ///
+    /// 根据页表项的位字段创建物理页号
     fn from(pte: &PageTableEntry) -> Self {
         PhysicalPageNumber::from(pte.bits >> 10 & ((1 << PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - 1))
     }
 }
+
 impl From<&mut PageTableEntry> for PhysicalPageNumber {
+    /// 从可变页表项创建物理页号
+    ///
+    /// 根据页表项的位字段创建物理页号
     fn from(pte: &mut PageTableEntry) -> Self {
         PhysicalPageNumber::from(pte.bits >> 10 & ((1 << PHYSICAL_PAGE_NUMBER_WIDTH_SV39) - 1))
     }
@@ -274,6 +357,14 @@ pub fn get_mut_translated_byte_slices(
     })
 }
 
+/// 根据给定的页表 token 和指针，获取翻译后的字符串。
+///
+/// 用于将一个指针指向的用户地址空间区域翻译为内核地址空间的字符串。内核可以通过字符串引用到用户地址空间的数据。
+/// ## 参数
+/// - `token`: 页表的 token，用于从 SATP 寄存器中创建页表。
+/// - `ptr`: 指向内存区域的指针。
+/// ## 返回值
+/// 返回一个包含翻译后字符串的 String 对象。
 pub fn get_translated_string(token: usize, ptr: *const u8) -> String {
     let page_table = PageTable::from_satp(token);
     let mut string = String::new();
@@ -292,6 +383,14 @@ pub fn get_translated_string(token: usize, ptr: *const u8) -> String {
     }
 }
 
+/// 根据给定的页表 token 和指针，获取翻译后的可变引用。
+///
+/// 用于将一个指针指向的用户地址空间区域翻译为内核地址空间的可变引用。内核可以通过可变引用访问用户地址空间的数据。
+/// ## 参数
+/// - `token`: 页表的 token，用于从 SATP 寄存器中创建页表。
+/// - `ptr`: 指向内存区域的指针。
+/// ## 返回值
+/// 返回一个包含翻译后可变引用的静态生命周期引用。
 pub fn get_translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
     let page_table = PageTable::from_satp(token);
     page_table

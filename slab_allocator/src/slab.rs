@@ -1,7 +1,15 @@
+//! `slab` 模块包含 `Slab` 结构体，该结构体表示一个内存块分配器。
+
 use core::{alloc::AllocError, ptr::NonNull};
 
 use crate::Address;
 
+/// `Slab` 结构体表示一个内存块分配器。
+///
+/// ## 字段
+/// - `block_size`：每个内存块的大小
+/// - `block_num`：内存块的数量
+/// - `free_list`：空闲内存块列表
 pub struct Slab {
     pub block_size: usize,
     pub block_num: usize,
@@ -13,9 +21,7 @@ impl Slab {
     ///
     /// ## 参数
     /// - `block_size`：每个内存块的大小
-    ///
     /// ## 返回
-    ///
     /// 具有指定块大小的新 `Slab` 空实例，其中没有内存块。
     pub const fn empty(block_size: usize) -> Self {
         Slab {
@@ -31,9 +37,7 @@ impl Slab {
     /// - `start`：内存块的起始地址
     /// - `block_size`：每个内存块的大小
     /// - `block_num`：内存块的数量
-    ///
     /// ## 返回
-    ///
     /// 具有指定参数的新 `Slab` 实例。
     pub fn new(start: Address, block_size: usize, block_num: usize) -> Self {
         Slab {
@@ -43,10 +47,15 @@ impl Slab {
         }
     }
 
+    /// 扩展 `Slab` 实例的内存块。
+    ///
+    /// ## 参数
+    /// - `start`：新内存块的起始地址
+    /// - `slab_size`：新内存块的总大小
     pub fn grow(&mut self, start: Address, slab_size: usize) {
         let block_num = slab_size / self.block_size;
         self.block_num += block_num;
-        // add to self.free_list
+        // 添加到 self.free_list
         for i in 0..block_num {
             let block = (start + i * self.block_size) as *mut FreeBlock;
             let block = unsafe { &mut *block };
@@ -57,7 +66,6 @@ impl Slab {
     /// 从 `Slab` 实例中分配一个内存块。
     ///
     /// ## 返回
-    ///
     /// 如果成功分配内存块，则返回内存块的地址；否则返回 `None`。
     pub fn alloc(&mut self) -> Result<NonNull<u8>, AllocError> {
         self.free_list
@@ -79,14 +87,19 @@ impl Slab {
 
 /// 内存块空闲列表
 struct FreeList {
+    /// 空闲列表的长度
     len: usize,
+    /// 空闲列表的头部节点
     head: Option<&'static mut FreeBlock>,
 }
 
+/// 表示一个空闲的内存块
 struct FreeBlock {
+    /// 指向下一个空闲块的可选引用
     next: Option<&'static mut FreeBlock>,
 }
 
+/// 为 `FreeList` 实现 `Drop` 特性，以便在 `FreeList` 被销毁时释放所有节点。
 impl Drop for FreeList {
     fn drop(&mut self) {
         let mut current = self.head.take();
@@ -108,9 +121,7 @@ impl FreeList {
     /// - `start`：内存块的起始地址
     /// - `block_size`：每个内存块的大小
     /// - `block_num`：内存块的数量
-    ///
     /// ## 返回
-    ///
     /// 具有指定参数的新 `FreeList` 实例。
     pub fn new(start: Address, block_size: usize, block_num: usize) -> Self {
         let mut list = FreeList { len: 0, head: None };
@@ -135,7 +146,6 @@ impl FreeList {
     /// 从空闲列表中弹出一个空闲块。
     ///
     /// ## 返回
-    ///
     /// 如果列表不为空，则包含对空闲块的可变引用的 `Option`，如果列表为空，则返回 `None`。
     pub fn pop(&mut self) -> Option<&'static mut FreeBlock> {
         self.head.take().map(|free_block| {

@@ -1,3 +1,5 @@
+//! 系统调用相关定义。
+
 use bitflags::bitflags;
 
 /// 系统调用号
@@ -49,20 +51,37 @@ pub enum Syscall {
     Wait4 = 260,
 }
 
+/// 为 `sycall` 枚举实现 `Display` 特性。
+///
+/// 允许使用`{}`格式说明符将`sycall`实例格式化为字符串。
+/// 实现简单地委托给 `Debug` trait的格式，提供 `sycall` 的调试表示。
 impl core::fmt::Display for Syscall {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
+/// 将 `Syscall` 枚举转换为 `usize` 类型。
+///
+/// ## 参数
+/// * `syscall` - 要转换的 `Syscall` 枚举值。
+/// ## 返回值
+/// 返回对应的 `usize` 类型值。
 impl From<Syscall> for usize {
     fn from(syscall: Syscall) -> usize {
         syscall as usize
     }
 }
 
+/// 将 `usize` 类型转换为 `Syscall` 枚举。
+///
+/// ## 参数
+/// * `syscall` - 要转换的 `usize` 类型值。
+/// ## 返回值
+/// 返回对应的 `Syscall` 枚举值。
 impl From<usize> for Syscall {
     fn from(syscall: usize) -> Syscall {
+        // 使用 `match` 表达式匹配 `syscall` 的值
         match syscall {
             63 => Syscall::Read,
             64 => Syscall::Write,
@@ -77,19 +96,31 @@ impl From<usize> for Syscall {
     }
 }
 
+/// ## 系统调用参数
+/// 系统调用参数是一个长度为 3 的数组，用于传递系统调用的参数。
+///
+/// 通常的参数是：fd：文件描述符，buffer：缓冲区，len：字节数。
 pub type SyscallArgs = [usize; 3];
+/// 系统调用返回值
 pub type SyscallRet = isize;
 
+/// 时间相关结构和函数的模块。
 pub mod time {
+    /// 表示一个包含秒和微秒的时间值。
     #[repr(C)]
     pub struct TimeVal {
+        /// 自纪元以来的秒数。
         pub tv_sec: usize,
+        /// 自秒开始以来的微秒数。
         pub tv_usec: usize,
     }
 
+    /// 表示一个包含时区偏移和夏令时信息的时区。
     #[repr(C)]
     pub struct TimeZone {
+        /// 西格林尼治的分钟数。
         pub tz_minuteswest: i32,
+        /// 夏令时校正类型。
         pub tz_dsttime: i32,
     }
 }

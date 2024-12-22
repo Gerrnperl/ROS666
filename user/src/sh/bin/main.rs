@@ -1,3 +1,5 @@
+//! # Shell
+
 #![no_std]
 #![no_main]
 
@@ -8,66 +10,66 @@ extern crate alloc;
 #[macro_use]
 extern crate lib;
 
-const LF: u8 = 10;
-const CR: u8 = 13;
-const BS: u8 = 8;
-const DEL: u8 = 127;
+const LF: u8 = 10; // 换行符
+const CR: u8 = 13; // 回车符
+const BS: u8 = 8; // 退格符
+const DEL: u8 = 127; // 删除符
 
 #[unsafe(no_mangle)]
 pub fn main() -> i32 {
     loop {
-        print_prompt();
-        let command = get_command(true);
+        print_prompt(); // 打印提示符
+        let command = get_command(true); // 获取用户输入的命令
         if command.len() == 0 {
-            continue;
+            continue; // 如果命令为空，继续循环
         }
-        let pid = fork();
+        let pid = fork(); // 创建子进程
         if pid == 0 {
-            let exit_code = execve(command.as_str());
+            let exit_code = execve(command.as_str()); // 在子进程中执行命令
             if exit_code != 0 {
-                println!("Failed to execute command: {}", command);
+                println!("Failed to execute command: {}", command); // 命令执行失败
                 return -4;
             }
-            unreachable!();
+            unreachable!(); // 不应该到达这里
         } else {
             let mut exit_code = 0;
-            let exit_pid = waitpid(pid as usize, &mut exit_code);
-            assert_eq!(exit_pid, pid);
-            println!("Process {} exited with code {}", pid, exit_code);
+            let exit_pid = waitpid(pid as usize, &mut exit_code); // 等待子进程结束
+            assert_eq!(exit_pid, pid); // 确保等待的进程是刚刚创建的子进程
+            println!("Process {} exited with code {}", pid, exit_code); // 打印子进程的退出状态
         }
     }
 }
 
 fn print_prompt() {
-    print!("> ");
+    print!("> "); // 打印提示符
 }
 
 fn get_command(echo: bool) -> String {
-    let mut buffer = String::new();
+    let mut buffer = String::new(); // 创建一个新的字符串缓冲区
     loop {
-        let c = getchar();
+        let c = getchar(); // 获取一个字符
         match c {
             CR | LF => {
                 if echo {
-                    println!();
+                    println!(); // 如果需要回显，打印换行
                 }
-                break;
+                break; // 结束输入
             }
             BS | DEL => {
                 if buffer.len() > 0 {
-                    buffer.pop();
+                    buffer.pop(); // 删除缓冲区中的最后一个字符
                     if echo {
-                        print!("\u{8} \u{8}");
+                        print!("\u{8} \u{8}"); // 如果需要回显，删除最后一个字符
                     }
                 }
             }
             _ => {
-                buffer.push(c as char);
+                buffer.push(c as char); // 将字符添加到缓冲区
                 if echo {
-                    print!("{}", c as char);
+                    print!("{}", c as char); // 如果需要回显，打印字符
                 }
             }
         }
     }
-    buffer
+    buffer // 返回缓冲区中的字符串
 }
