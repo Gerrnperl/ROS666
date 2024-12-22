@@ -1,6 +1,4 @@
-//! 进程管理模块
-
-use core::borrow::Borrow;
+//! 进程管理
 
 use alloc::vec;
 use alloc::{
@@ -9,33 +7,28 @@ use alloc::{
 };
 
 use crate::fs::stdio::{Stdin, Stdout};
-/// 导入所需的模块和类型:
-///
-/// - `crate::app_loader::AppData`: 应用加载器相关的数据类型。
-/// - `crate::mm::{KERNEL_SPACE, address::{PAGE_SIZE_SV39, PhysicalPageNumber, VirtualAddress, VirtualPageNumber}, memory_set::{self, MapPermission, MemorySet, TRAMPOLINE}}`: 内存管理相关的模块和类型。
-/// - `crate::trap::{self, context::TrapCtx, handler::trap_handler}`: 中断和陷阱处理相关的模块和类型。
-/// - `crate::utils::safety::SyncRefCell`: 一个线程安全的 RefCell 类型。
+
 use crate::{
     fs::File,
     mm::{
         KERNEL_SPACE,
         address::{PAGE_SIZE_SV39, PhysicalPageNumber, VirtualAddress, VirtualPageNumber},
-        memory_set::{self, MapPermission, MemorySet, TRAMPOLINE},
+        memory_set::{MemorySet, TRAMPOLINE},
     },
-    trap::{self, context::TrapCtx, handler::trap_handler},
+    trap::{context::TrapCtx, handler::trap_handler},
     utils::safety::SyncRefCell,
 };
 
 use super::{
     context::TaskCtx,
-    pid::{PID_ALLOCATOR, PidAllocator, PidHandler},
-    stack::{KernelStack, kernel_stack_position},
+    pid::{PidAllocator, PidHandler},
+    stack::KernelStack,
 };
 
-/// 定义陷阱上下文的地址常量
+/// 定义陷入上下文的地址常量
 pub const TRAP_CONTEXT: usize = TRAMPOLINE - PAGE_SIZE_SV39;
 
-/// 进程状态枚举
+/// 进程状态
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ProcessStatus {
     /// 创建状态
@@ -50,9 +43,13 @@ pub enum ProcessStatus {
     Stopped,
 }
 
+/// 进程
 pub type FdTable = Vec<Option<Arc<dyn File + Send + Sync>>>;
 
 pub trait FdTableClone {
+    /// 克隆文件描述符表
+    ///
+    /// 从当前文件描述符表中克隆一个新的文件描述符表，增加文件描述符的引用计数
     fn fd_clone(&self) -> Self;
 }
 
@@ -70,7 +67,7 @@ impl FdTableClone for FdTable {
     }
 }
 
-/// 进程控制块结构体
+/// 进程控制块
 pub struct ProcessControlBlock {
     /// 进程ID
     pub pid: PidHandler,
@@ -92,41 +89,34 @@ pub struct ProcessControlBlock {
     pub children: Vec<Arc<SyncRefCell<ProcessControlBlock>>>,
     /// 退出码
     pub exit_code: i32,
-
+    /// 文件描述符表
     pub fd_table: FdTable,
 }
 
 /// 进程控制块（Process Control Block）实现
 impl ProcessControlBlock {
-    /// 获取陷阱上下文的可变引用
+    /// 获取陷入上下文的可变引用
     ///
-    /// ## 返回值
-    /// 返回陷阱上下文的可变引用
+    /// ## 返回
+    /// 返回陷入上下文的可变引用
     pub fn get_trap_cx(&self) -> &'static mut TrapCtx {
         self.trap_ctx_ppn.get_mut()
     }
 
-    /// 获取用户态的令牌
+    /// 获取用户地址空间的 satp 寄存器值
     ///
-    /// ## 返回值
-    /// 返回用户态的令牌
+    /// 即用户地址空间三级页表根节点的地址（并且其第 60-63 位为模式位 8）
     pub fn get_user_token(&mut self) -> usize {
         let t = self.memory_set.token();
         t
     }
 
     /// 获取进程状态
-    ///
-    /// ## 返回值
-    /// 返回进程状态
     pub fn get_status(&self) -> ProcessStatus {
         self.status
     }
 
     /// 获取进程ID
-    ///
-    /// ## 返回值
-    /// 返回进程ID
     pub fn get_pid(&self) -> usize {
         self.pid.0
     }
@@ -138,7 +128,7 @@ impl ProcessControlBlock {
     /// ## 返回值
     /// 返回一个新的进程控制块实例
     pub fn new(app_data: &[u8]) -> Self {
-        let (mut memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
+        let (memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
         let trap_ctx_ppn = PhysicalPageNumber::from(
             &memory_set
                 .translate(VirtualPageNumber::from(VirtualAddress::from(TRAP_CONTEXT)))
@@ -176,6 +166,7 @@ impl ProcessControlBlock {
         pcb
     }
 
+    /// 为进程分配文件描述符
     pub fn alloc_fd(&mut self) -> usize {
         for (fd, file) in self.fd_table.iter().enumerate() {
             if file.is_none() {
@@ -226,7 +217,7 @@ impl SyncRefCell<ProcessControlBlock> {
         child
     }
 
-    /// 执行新程序
+    /// 在当前进程上执行应用程序
     ///
     /// ## 参数
     /// - `app_data`: 应用程序数据

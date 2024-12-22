@@ -1,4 +1,3 @@
-// 导入相关模块和库
 use super::address::{PhysicalAddress, PhysicalPageNumber};
 use crate::{extern_global, printkln, utils::safety::SyncRefCell};
 use alloc::vec::Vec;
@@ -13,7 +12,9 @@ pub const MEMORY_END: usize = 0x84800000;
 #[cfg(not(debug_assertions))]
 pub const MEMORY_END: usize = 0x80800000;
 
-/// 帧分配器接口，定义了帧分配器的基本操作。
+/// 帧分配器
+///
+/// 帧分配器需要实现 `FrameAllocator` trait，提供分配和释放物理页帧的功能。
 trait FrameAllocator {
     /// 创建一个新的帧分配器实例。
     ///
@@ -34,8 +35,8 @@ trait FrameAllocator {
     fn dealloc(&mut self, frame: PhysicalPageNumber);
 }
 
-// 使用 lazy_static 宏定义一个全局的帧分配器实例
 lazy_static! {
+    /// 全局帧分配器
     pub static ref FRAME_ALLOCATOR: SyncRefCell<StackFrameAllocator> = {
         SyncRefCell {
             ref_cell: RefCell::new(StackFrameAllocator::new()),
@@ -43,7 +44,16 @@ lazy_static! {
     };
 }
 
-/// 栈帧分配器结构体，包含未使用的物理页帧范围和已释放的物理页帧列表。
+/// 栈帧分配器
+///
+/// 基于栈的帧分配器，用于分配和释放物理页帧。
+///
+/// 在栈帧分配器中，未使用的物理页帧范围是一个左闭右开的区间，表示从未使用的物理页帧的起始页号到结束页号的范围。
+///
+/// 释放帧栈维护了一个已释放的物理页帧列表，当需要分配物理页帧时，
+/// 首先从已释放的物理页帧列表中弹出一个物理页帧，如果列表为空，则从未使用的物理页帧范围中分配一个物理页帧。
+///
+/// 包含未使用的物理页帧范围和已释放的物理页帧列表。
 pub struct StackFrameAllocator {
     /// 未使用的物理页帧范围。
     unused: Range<PhysicalPageNumber>,
@@ -52,10 +62,6 @@ pub struct StackFrameAllocator {
 }
 
 impl FrameAllocator for StackFrameAllocator {
-    /// 创建一个新的栈帧分配器实例。
-    ///
-    /// ## 返回值
-    /// 返回一个新的 `StackFrameAllocator` 实例。
     fn new() -> Self {
         Self {
             unused: PhysicalPageNumber(0)..PhysicalPageNumber(0),
@@ -63,10 +69,6 @@ impl FrameAllocator for StackFrameAllocator {
         }
     }
 
-    /// 分配一个物理页帧。
-    ///
-    /// ## 返回值
-    /// 如果成功，返回一个 `PhysicalPageNumber`，否则返回 `None`。
     fn alloc(&mut self) -> Option<PhysicalPageNumber> {
         // 如果有已释放的物理页帧，弹出并返回
         if let Some(frame) = self.freed.pop() {
@@ -78,35 +80,32 @@ impl FrameAllocator for StackFrameAllocator {
             self.unused.start.0 += 1;
             return Some(frame);
         }
-        // 没有可用的物理页帧，返回 None
         None
     }
 
-    /// 释放一个物理页帧。
-    ///
-    /// ## 参数
-    /// * `frame` - 要释放的物理页帧。
     fn dealloc(&mut self, frame: PhysicalPageNumber) {
-        // 检查要释放的物理页帧是否在未使用范围内，如果是则抛出异常
+        // 检查释放的物理页帧是否在未使用的物理页帧范围内以及是否已经释放
         if frame.0 >= self.unused.start.0 {
             panic!("trying to free free page: {:?}", frame);
         }
-        // 检查要释放的物理页帧是否已经在已释放列表中，如果是则抛出异常
         if self.freed.iter().any(|&f| f == frame) {
             panic!("trying to free free page: {:?}", frame);
         }
-        // 将物理页帧添加到已释放列表中
         self.freed.push(frame);
     }
 }
 
 impl StackFrameAllocator {
-    /// 初始化帧分配器，将未使用的物理页号范围设置为传入的范围
+    /// 初始化栈帧分配器
+    ///
+    /// 将未使用的物理页号范围设置为传入的范围
     pub fn init(&mut self, range: Range<PhysicalPageNumber>) {
         self.unused = range;
     }
 
-    /// 初始化帧分配器，将未使用的物理页号范围设置为从内核结束地址到内存结束地址的范围
+    /// 初始化全局栈帧分配器
+    ///
+    /// 将未使用的物理页号范围设置为从内核结束地址到内存结束地址的范围
     pub fn init_frame_allocator() {
         // 获取内核结束地址，并向上取整到页边界
         let start = PhysicalAddress::from(extern_global!(__kernel_end) as usize)
@@ -114,13 +113,13 @@ impl StackFrameAllocator {
             .into();
         // 获取内存结束地址，并向下取整到页边界
         let end = PhysicalAddress::from(MEMORY_END).floor_page().into();
-        // 初始化帧分配器
+
         FRAME_ALLOCATOR.ref_cell.borrow_mut().init(start..end);
     }
 
-    /// 分配一个物理页帧，并返回一个 `FrameTracker` 实例。
+    /// 从全局栈帧分配器分配一个物理页帧，并返回一个 `FrameTracker` 实例。
     ///
-    /// ## 返回值
+    /// ## 返回
     /// 如果成功，返回一个 `FrameTracker`，否则返回 `None`。
     pub fn alloc_frame() -> Option<FrameTracker> {
         FRAME_ALLOCATOR
@@ -130,7 +129,7 @@ impl StackFrameAllocator {
             .map(|frame| FrameTracker::new(frame))
     }
 
-    /// 释放一个物理页帧。
+    /// 从全局栈帧分配器释放一个物理页帧。
     ///
     /// ## 参数
     /// * `frame` - 要释放的物理页帧。
@@ -139,14 +138,15 @@ impl StackFrameAllocator {
     }
 }
 
-/// 帧跟踪器结构体，用于跟踪已分配的物理页帧。
+/// 帧追踪器
+///
+/// 用于追踪物理页帧的分配和释放，每个帧追踪器实例都会追踪（分配）一个物理页帧
+/// 当帧追踪器实例被销毁时，自动释放物理页帧
 #[derive(Debug)]
 pub struct FrameTracker {
-    /// 已分配的物理页帧。
     pub frame: PhysicalPageNumber,
 }
 
-/// FrameTracker 结构体的实现
 impl FrameTracker {
     /// 创建一个新的 FrameTracker 实例
     ///
@@ -155,7 +155,7 @@ impl FrameTracker {
     /// ## 返回值
     /// 返回一个新的 FrameTracker 实例
     /// ## 示例
-    /// ```
+    /// ```no_run
     /// let frame = PhysicalPageNumber::new(0);
     /// let tracker = FrameTracker::new(frame);
     /// ```
@@ -168,9 +168,8 @@ impl FrameTracker {
     }
 }
 
-/// 为 FrameTracker 实现 Drop trait
-/// 当 FrameTracker 实例被销毁时，自动释放物理页帧
 impl Drop for FrameTracker {
+    /// 当 FrameTracker 实例被销毁时，自动释放物理页帧
     fn drop(&mut self) {
         StackFrameAllocator::dealloc_frame(self.frame);
     }

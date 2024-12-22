@@ -1,14 +1,4 @@
-//! 这个模块包含系统调用的实现。
-//!
-//! 主要功能包括：
-//! - 调用系统调用。
-//! - 读写文件描述符。
-//! - 退出当前进程。
-//! - 让出 CPU。
-//! - 获取当前时间。
-//! - 创建新进程。
-//! - 执行新程序。
-//! - 等待子进程退出。
+//! 调用系统调用的封装
 
 use core::arch::asm;
 
@@ -100,6 +90,14 @@ pub fn sys_sched_yield() -> SyscallRet {
 /// 返回系统调用的结果
 pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
     syscall(Syscall::GetTimeOfDay, [ts as usize, tz as usize, 0])
+}
+
+/// 关机
+///
+/// 该函数不会返回，直接关机
+pub fn sys_shutdown() -> ! {
+    syscall(Syscall::Shutdown, [0, 0, 0]);
+    unreachable!("Unreachable after sys_shutdown");
 }
 
 /// 创建新进程

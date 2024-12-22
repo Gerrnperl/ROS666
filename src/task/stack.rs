@@ -1,4 +1,4 @@
-//! 进程栈管理
+//! 内核和用户栈管理
 
 use crate::mm::{
     KERNEL_SPACE,
@@ -20,7 +20,7 @@ pub fn kernel_stack_position(pid: usize) -> (usize, usize) {
     (bottom, top)
 }
 
-/// 内核栈结构体
+/// 内核栈
 pub struct KernelStack {
     pid: usize,
 }
@@ -67,7 +67,7 @@ impl KernelStack {
 impl Drop for KernelStack {
     /// 在内核栈被销毁时，移除对应的内存区域
     fn drop(&mut self) {
-        let (bottom, top) = kernel_stack_position(self.pid);
+        let (bottom, _top) = kernel_stack_position(self.pid);
         KERNEL_SPACE
             .ref_cell
             .borrow_mut()

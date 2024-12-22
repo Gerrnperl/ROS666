@@ -1,11 +1,10 @@
-//! 这个模块包含用户库的主要功能。
+//! 用户程序库
 //!
-//! 主要功能包括：
-//! - 清空 BSS 段。
-//! - 提供系统调用接口。
-//! - 提供堆分配器。
-//! - 提供与时间相关的系统调用接口。
-//! - 提供与等待相关的系统调用接口。
+//! 用于在用户程序中调用系统功能。
+//!
+//! 在无`std`的情况下，用户程序需要调用系统功能，例如`println!`、`exit`等，此时用户程序需要调用系统库。
+//!
+//! 此库提供了系统功能的实现，用户程序以此作为依赖，以调用系统功能。
 
 #![no_std]
 #![no_main]
@@ -13,37 +12,20 @@
 #![feature(alloc_error_handler)]
 
 pub mod fcntl;
-/// 语言项模块
 pub mod language_item;
-/// 调度模块
 pub mod sched;
-/// 标准输入输出模块
 pub mod stdio;
-/// 系统模块
 pub mod sys;
-/// 系统调用模块
 pub mod syscall;
-/// Unix 标准模块
 pub mod unistd;
 
-/// 使用堆分配器初始化函数
 use heap_allocator::init_heap;
-/// 使用语言项模块中的所有内容
-pub use language_item::*;
-/// 使用调度模块中的所有内容
 pub use sched::*;
-/// 使用标准输入输出模块中的所有内容
 pub use stdio::*;
-/// 使用系统调用模块中的所有内容
 pub use syscall::*;
-/// 使用 Unix 标准模块中的所有内容
 pub use unistd::*;
 
-/// 堆分配器模块
 mod heap_allocator;
-
-/// 使用核心架构中的汇编和全局汇编
-use core::arch::{asm, global_asm};
 
 /// 程序入口点
 ///
@@ -67,6 +49,7 @@ fn main() -> i32 {
 /// 清空 BSS 段
 ///
 /// 该函数将 BSS 段的所有字节设置为 0。
+#[allow(dead_code)]
 fn clear_bss() {
     unsafe extern "C" {
         fn __bss_start();
@@ -77,4 +60,9 @@ fn clear_bss() {
             core::ptr::write_volatile(i as *mut u8, 0);
         }
     }
+}
+
+/// 关闭系统
+pub fn shutdown() -> ! {
+    sys_shutdown();
 }

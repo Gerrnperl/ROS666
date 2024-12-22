@@ -1,8 +1,11 @@
+//! 基于文件描述符的标准输入输出
 use crate::{io::stdio::read_str, mm::page_table::UserBuffer, printk};
 
 use super::File;
 
+/// 标准输入
 pub struct Stdin;
+/// 标准输出
 pub struct Stdout;
 
 impl File for Stdin {

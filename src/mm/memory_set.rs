@@ -1,16 +1,16 @@
-/// 导入核心库中的一些模块
-use core::{arch::asm, borrow::BorrowMut, cell::RefCell, ops::Range};
+//! 地址空间管理
+//!
+//! 地址空间管理模块实现了内核和用户的地址空间管理，提供了内核空间和用户空间的创建、映射、切换等功能。
+use core::{arch::asm, cell::RefCell, ops::Range};
 
-/// 导入项目中的一些模块
 use crate::{
-    extern_global, info,
+    extern_global,
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
-    printkln,
     task::{stack::USER_STACK_SIZE, task::TRAP_CONTEXT},
+    trace,
     utils::safety::SyncRefCell,
 };
 
-/// 导入项目中的一些模块
 use super::{
     address::{PhysicalAddress, PhysicalPageNumber, VPNRange, VirtualAddress, VirtualPageNumber},
     frame_allocator::{FrameTracker, StackFrameAllocator},
@@ -24,10 +24,12 @@ use xmas_elf::ElfFile;
 use lazy_static::lazy_static;
 
 /// 跳板地址常量
+///
+/// 用于存放用户态-内核态切换时的中间跳板代码
 pub const TRAMPOLINE: usize = usize::MAX - PAGE_SIZE_SV39 + 1;
 
 lazy_static! {
-    /// 内核空间的静态引用
+    /// 内核空间
     pub static ref KERNEL_SPACE: Arc<SyncRefCell<MemorySet>> = {
         Arc::new(SyncRefCell {
             ref_cell: RefCell::new(MemorySet::new_kernel()),
@@ -35,7 +37,9 @@ lazy_static! {
     };
 }
 
-/// 映射类型枚举
+/// 映射类型
+///
+/// 映射类型包括线性映射(恒等映射)和页帧映射
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum MapType {
     Linear,
@@ -53,7 +57,11 @@ bitflags! {
     }
 }
 
-/// 一段虚拟内存 (逻辑段)
+/// 逻辑段
+///
+/// 逻辑段管理了一段虚拟内存，提供映射和访存权限控制
+///
+/// 在内核和应用程序初始化时，需要根据编译链接到的代码段、数据段等信息，创建逻辑段
 pub struct MapArea {
     vpn_range: VPNRange,
     data: BTreeMap<VirtualPageNumber, FrameTracker>,
@@ -61,7 +69,9 @@ pub struct MapArea {
     permission: MapPermission,
 }
 
-/// 一组虚拟内存 (地址空间)
+/// 地址空间
+///
+/// 地址空间包含了一组虚拟内存，基于三级页表实现了虚拟内存到物理内存的映射
 pub struct MemorySet {
     pub page_table: PageTable,
     pub areas: Vec<MapArea>,
@@ -206,6 +216,10 @@ impl MemorySet {
     }
 
     /// 获取页表 token
+    ///
+    /// token 即 satp (satp: Supervisor Address Translation and Protection) 寄存器的值
+    ///
+    /// 在启用 Sv39 页表时，satp 即作为三级页表的根节点。其第 60-63 位为模式位，为 0b100 时启用 Sv39 页表
     pub fn token(&self) -> usize {
         self.page_table.token()
     }
@@ -297,7 +311,7 @@ impl MemorySet {
 
     /// 创建内核 MemorySet
     pub fn new_kernel() -> Self {
-        let kernel_start = extern_global!(__kernel_start) as usize;
+        let _kernel_start = extern_global!(__kernel_start) as usize;
         let kernel_end = extern_global!(__kernel_end) as usize;
         let text_start = extern_global!(__text_start) as usize;
         let text_end = extern_global!(__text_end) as usize;
@@ -310,7 +324,7 @@ impl MemorySet {
 
         let mut memory_set = MemorySet::empty();
         memory_set.map_trampoline();
-        info!("mapping .text: [{:#x}, {:#x})", text_start, text_end);
+        trace!("mapping .text: [{:#x}, {:#x})", text_start, text_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -322,7 +336,7 @@ impl MemorySet {
             ),
             None,
         );
-        info!("mapping .rodata: [{:#x}, {:#x})", rodata_start, rodata_end);
+        trace!("mapping .rodata: [{:#x}, {:#x})", rodata_start, rodata_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -334,7 +348,7 @@ impl MemorySet {
             ),
             None,
         );
-        info!("mapping .data: [{:#x}, {:#x})", data_start, data_end);
+        trace!("mapping .data: [{:#x}, {:#x})", data_start, data_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -346,7 +360,7 @@ impl MemorySet {
             ),
             None,
         );
-        info!("mapping .bss: [{:#x}, {:#x})", bss_start, bss_end);
+        trace!("mapping .bss: [{:#x}, {:#x})", bss_start, bss_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -358,7 +372,7 @@ impl MemorySet {
             ),
             None,
         );
-        info!("mapping heap: [{:#x}, {:#x})", kernel_end, MEMORY_END);
+        trace!("mapping heap: [{:#x}, {:#x})", kernel_end, MEMORY_END);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -505,9 +519,11 @@ impl MemorySet {
     }
 }
 
-/// 重新映射测试函数
+/// 地址空间重映射测试
+///
+/// Copied from [rCore-Tutorial-v3/memory_set.rs/memory_set.rs](https://github.com/rcore-os/rCore-Tutorial-v3/blob/main/os/src/mm/memory_set.rs)
 pub fn remap_test() {
-    let mut kernel_space = KERNEL_SPACE.ref_cell.borrow_mut();
+    let kernel_space = KERNEL_SPACE.ref_cell.borrow_mut();
     let mid_text: VirtualAddress =
         ((extern_global!(__text_start) as usize + extern_global!(__text_end) as usize) / 2).into();
     let mid_rodata: VirtualAddress =
@@ -539,5 +555,5 @@ pub fn remap_test() {
             .executable(),
         false,
     );
-    printkln!("remap_test passed!");
+    trace!("[Kernel] Remap test passed");
 }

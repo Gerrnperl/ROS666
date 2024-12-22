@@ -1,12 +1,8 @@
-use core::ops::Add;
-
+//! SBI 硬件调用封装
 use alloc::vec;
 use rustsbi::{Console, Physical, Reset, SbiRet, Timer};
 
-use crate::{
-    mm::{self},
-    task::manager::TaskManager,
-};
+use crate::mm;
 
 pub enum ConsolePutError {
     AddrInvalid,

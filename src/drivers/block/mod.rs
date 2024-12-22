@@ -1,3 +1,6 @@
+//! 块设备驱动程序
+//!
+//! 块设备驱动程序用于访问块设备。块设备驱动程序的实现需要实现 `BlockDevice` trait 以供文件系统模块使用。
 use alloc::sync::Arc;
 use lazy_static::lazy_static;
 use ros_fs::block_dev::BlockDevice;

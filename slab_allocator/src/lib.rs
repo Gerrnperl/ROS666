@@ -16,25 +16,20 @@
 
 #![no_std]
 #![feature(allocator_api)]
-
-// 引入核心库中的分配器模块、分配错误和布局
+#![allow(dead_code)]
 use core::{
     alloc::{self, AllocError, Layout},
     ptr::NonNull,
 };
 
-// 引入链表分配器和 Slab 模块
 use linked_list_allocator;
 use slab::Slab;
 
-// 如果启用了 "use_spin" 功能，则引入 spin::Mutex
 #[cfg(feature = "use_spin")]
 use spin::Mutex;
 
-// 引入 slab 模块
 mod slab;
 
-/// 地址类型
 pub type Address = usize;
 
 pub const MIN_ALLOC_SIZE: usize = 64;
@@ -65,7 +60,7 @@ pub fn get_slab_index(mut size: usize) -> usize {
 pub struct Heap {
     /// Slab 分配器数组
     slabs: [slab::Slab; SLABS_NUM],
-    /// 回退分配器 (链表分配器)
+    /// Fallback Linked List Allocator
     fallback: linked_list_allocator::Heap,
     /// 用户请求的字节数
     user: usize,
@@ -79,7 +74,7 @@ pub struct Heap {
 enum AllocType {
     /// Slab 分配器，包含索引
     Slab(usize),
-    /// 回退分配器
+    /// 对于大于 4096 字节的内存分配申请，使用 Fallback (Linked List Allocator)
     Fallback,
 }
 
@@ -97,13 +92,9 @@ impl Heap {
                 Slab::empty(2048),
                 Slab::empty(4096),
             ],
-            // 初始化回退分配器（链表分配器）
             fallback: linked_list_allocator::Heap::empty(),
-            // 初始化用户请求的字节数为 0
             user: 0,
-            // 初始化实际分配的字节数为 0
             allocated: 0,
-            // 初始化堆中的总字节数为 0
             total: 0,
         }
     }
@@ -293,10 +284,12 @@ impl core::fmt::Debug for Heap {
     }
 }
 
-/// 一个锁定版本的 `Heap`
+/// 互斥的 `Heap`
+///
+/// 用于在多线程环境下使用 `Heap` 分配器，作为临界资源，避免竞争
 ///
 /// ## 用法
-/// 创建一个锁定的堆并添加一个内存区域:
+/// 创建一个互斥的堆并添加一个内存区域:
 /// ```no_run
 /// use buddy_system_allocator::*;
 /// # use core::mem::size_of;
@@ -312,7 +305,6 @@ impl core::fmt::Debug for Heap {
 /// }
 /// ```
 #[cfg(feature = "use_spin")]
-/// 一个锁定版本的 `Heap`
 pub struct LockedHeap(Mutex<Heap>);
 
 #[cfg(feature = "use_spin")]
@@ -344,16 +336,10 @@ impl core::ops::Deref for LockedHeap {
 }
 
 #[cfg(feature = "use_spin")]
-/// ## Safety
-/// 这个实现是 `GlobalAlloc` trait 的一个不安全实现，
-/// 需要确保在使用过程中不会违反 Rust 的内存安全规则。
-///
-/// ## 注意事项
-/// 由于这些方法都是不安全的（`unsafe`），调用者必须确保传入的参数是有效的，
-/// 并且在调用这些方法时不会导致未定义行为。
 unsafe impl alloc::GlobalAlloc for LockedHeap {
-    /// ## 分配器
-    /// `alloc` 方法用于分配内存，根据传入的 `layout` 参数返回一个指向分配内存的指针。
+    /// 分配
+    ///
+    /// 分配内存，根据传入的 `layout` 参数返回一个指向分配内存的指针。
     /// 如果分配失败，返回一个空指针。
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
         self.0
@@ -363,8 +349,9 @@ unsafe impl alloc::GlobalAlloc for LockedHeap {
             .map_or(core::ptr::null_mut(), |allocation| allocation.as_ptr())
     }
 
-    /// ## 释放器
-    /// `dealloc` 方法用于释放内存，根据传入的指针 `ptr` 和 `layout` 参数释放对应的内存。
+    /// 释放
+    ///
+    /// 释放内存，根据传入的指针 `ptr` 和 `layout` 参数释放对应的内存。
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
         self.0
             .lock()

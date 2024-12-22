@@ -1,40 +1,46 @@
-//! https://github.com/rcore-os/rCore-Tutorial-v3/blob/ch6/os/src/drivers/block/virtio_blk.rs
-//! https://github.com/rcore-os/virtio-drivers/blob/master/examples/riscv/src/virtio_impl.rs
-use core::{alloc::Layout, ptr::NonNull};
+//! VirtIO 虚拟块设备驱动程序
+//!
+//! [virtio_drivers](https://github.com/rcore-os/virtio-drivers/tree/master) 是一个用于实现 VirtIO 设备的库，它提供了一个通用的 VirtIO 设备驱动程序框架，可以通过实现 Hal trait 来适配不同的 VirtIO 设备。
+//!
+//! 本模块基于 virtio_drivers 实现了 VirtIO 块设备驱动程序，用于访问 VirtIO 块设备。
+//!
+//! ## References
+//! 实现主要参考：
+//! - https://github.com/rcore-os/rCore-Tutorial-v3/blob/ch6/os/src/drivers/block/virtio_blk.rs
+//! - https://github.com/rcore-os/virtio-drivers/blob/master/examples/riscv/src/virtio_impl.rs
+use core::ptr::NonNull;
 
-use alloc::{
-    alloc::{alloc_zeroed, dealloc, handle_alloc_error},
-    vec::Vec,
-};
+use alloc::vec::Vec;
 use lazy_static::lazy_static;
 use ros_fs::block_dev::BlockDevice;
 use spin::Mutex;
 use virtio_drivers::{
-    BufferDirection, Hal, PAGE_SIZE, PhysAddr,
+    BufferDirection, Hal, PhysAddr,
     device::blk::VirtIOBlk,
-    transport::{
-        Transport,
-        mmio::{MmioTransport, VirtIOHeader},
-    },
+    transport::mmio::{MmioTransport, VirtIOHeader},
 };
 
-use crate::{
-    mm::{
-        KERNEL_SPACE,
-        address::{PhysicalAddress, PhysicalPageNumber, VirtualAddress},
-        frame_allocator::{FrameTracker, StackFrameAllocator},
-        page_table::PageTable,
-    },
-    trace,
+use crate::mm::{
+    KERNEL_SPACE,
+    address::{PhysicalAddress, PhysicalPageNumber, VirtualAddress},
+    frame_allocator::{FrameTracker, StackFrameAllocator},
+    page_table::PageTable,
 };
 
 #[cfg(feature = "qemu")]
 pub const MMIO: &[(usize, usize)] = &[(0x10001000, 0x1000)];
 
 const VIRTIO_0: usize = 0x10001000;
+
+/// VirtIO 块设备
+///
+/// 通过 virtio_drivers 实现的 VirtIO 块设备
 pub struct VirtIOBlock(Mutex<VirtIOBlk<HalImpl, MmioTransport>>);
 
 impl VirtIOBlock {
+    /// 创建一个新的 VirtIO 块设备
+    ///
+    /// Header 位于 MMIO[0]，通过 MmioTransport 进行通信
     pub unsafe fn new() -> Self {
         let vaddr = MMIO[0].0;
         let header = NonNull::new(vaddr as *mut VirtIOHeader).unwrap();
@@ -66,6 +72,11 @@ lazy_static! {
     static ref QUEUE_FRAMES: Mutex<Vec<FrameTracker>> = Mutex::new(Vec::new());
 }
 
+/// 实现 Hal trait 以适配 VirtIO 块设备
+///
+/// Hal trait 定义了一些底层的硬件操作，例如分配/释放 DMA 内存，将物理地址映射到虚拟地址等。
+///
+/// virtio_drivers 通过 Hal trait 与内核内存空间进行交互，以实现 DMA 内存的分配和释放，以及将物理地址映射到虚拟地址。
 pub struct HalImpl;
 
 unsafe impl Hal for HalImpl {
@@ -79,7 +90,6 @@ unsafe impl Hal for HalImpl {
             assert_eq!(frame.frame.0, ppn_base.0 + i);
             QUEUE_FRAMES.lock().push(frame);
         }
-        // ppn_base.into()
         let paddr = PhysicalAddress::from(ppn_base).0;
 
         let vaddr = NonNull::new(paddr as _).unwrap();
@@ -114,8 +124,5 @@ unsafe impl Hal for HalImpl {
         va
     }
 
-    unsafe fn unshare(_paddr: PhysAddr, _buffer: NonNull<[u8]>, _direction: BufferDirection) {
-        // Nothing to do, as the host already has access to all memory and we didn't copy the buffer
-        // anywhere else.
-    }
+    unsafe fn unshare(_paddr: PhysAddr, _buffer: NonNull<[u8]>, _direction: BufferDirection) {}
 }

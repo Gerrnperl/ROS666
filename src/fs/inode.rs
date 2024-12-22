@@ -1,3 +1,6 @@
+//! 操作系统 Inode (文件) 结构
+//!
+//! 一个文件在操作系统中对应一个 Inode 结构，用于管理文件的读写操作
 use alloc::{sync::Arc, vec::Vec};
 use common::syscall::OpenFlags;
 use lazy_static::lazy_static;
@@ -16,6 +19,11 @@ lazy_static! {
     });
 }
 
+/// OS Inode
+///
+/// 文件层级的 Inode 结构，对 内存 Inode [MemInode] 的文件读写访问的封装
+///
+/// 一个 文件 (OS Inode) 可以被多个进程共享，因此需要实现 Send 和 Sync trait
 pub struct OSInode {
     readable: bool,
     writable: bool,
@@ -28,6 +36,7 @@ pub struct InodeData {
 }
 
 impl OSInode {
+    /// 创建一个新的 OS Inode
     pub fn new(readable: bool, writable: bool, inode: Arc<MemInode>) -> Self {
         Self {
             readable,
@@ -36,6 +45,7 @@ impl OSInode {
         }
     }
 
+    /// 读取文件的所有内容
     pub fn read_all(&self) -> Vec<u8> {
         let mut inode = self.inode.lock();
         let inode = &mut *inode;
@@ -94,6 +104,16 @@ impl File for OSInode {
     }
 }
 
+/// 打开文件
+///
+/// 根据文件名和打开标志打开文件
+///
+/// ## 参数
+/// - `name`：文件名
+/// - `flags`：打开标志, 包括读写标志和创建标志等
+///
+/// ## 返回
+/// 成功打开文件时返回文件的 OS Inode，否则返回 None
 pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
     let readable = flags.readable();
     let writable = flags.writable();
@@ -107,6 +127,18 @@ pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
     Some(Arc::new(OSInode::new(readable, writable, inode)))
 }
 
+/// 创建文件
+///
+/// 根据文件名和打开标志创建文件
+///
+/// 在文件存在时清空文件内容
+///
+/// ## 参数
+/// - `name`：文件名
+/// - `flags`：打开标志, 包括读写标志和创建标志等
+///
+/// ## 返回
+/// 成功创建文件时返回文件的 OS Inode，否则返回 None
 fn create_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
     let readable = flags.readable();
     let writable = flags.writable();

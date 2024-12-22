@@ -1,4 +1,4 @@
-# Package/Lib
+# 用户程序库
 
 <!-- Provides access to system functions for user applications. -->
 

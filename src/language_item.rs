@@ -1,3 +1,4 @@
+//! Rust语言项
 use core::panic::PanicInfo;
 
 use crate::{error, sbi::sbi_shutdown};

@@ -24,6 +24,14 @@ path = "src/bye/bin/main.rs"
 name = "fstest"
 path = "src/fstest/bin/main.rs"
 
+[[bin]]
+name = "rrtest"
+path = "src/rrtest/bin/main.rs"
+
+[[bin]]
+name = "shutdown"
+path = "src/shutdown/bin/main.rs"
+
 [dependencies]
 lib = { path = "../user-lib" }
 
@@ -31,4 +39,4 @@ lib = { path = "../user-lib" }
 build = { path = "../user-build" }
 
 [package.metadata]
-applications = ["initproc", "sh", "hello", "bye", "fstest"]
+applications = ["initproc", "sh", "hello", "bye", "fstest", "rrtest", "shutdown"]

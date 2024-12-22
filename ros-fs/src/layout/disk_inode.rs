@@ -1,7 +1,13 @@
-use alloc::{
-    sync::Arc,
-    vec::{self, Vec},
-};
+//! 磁盘 Inode 结构
+//!
+//! 磁盘 Inode 是实际存储在磁盘上的 Inode 结构，包含了文件的元数据信息和数据块索引。
+//!
+//! 一个 Inode 包含了文件的元数据信息，包括文件类型、大小、数据块索引等。
+//!
+//! 此实现使用了二级混合索引结构，包含了直接索引、一级索引和二级索引。
+//!
+//! 直接索引包含了 28 个直接索引块，一级索引包含了 128 个间接索引块，二级索引包含了 128 个一级索引块。
+use alloc::{sync::Arc, vec::Vec};
 
 use crate::{
     block_cache::{BLOCK_SIZE, get_cache},
@@ -21,6 +27,16 @@ pub enum InodeType {
 pub type IndirectBlock = [u32; INODE_INDIRECT_BLOCKS];
 pub type DataBlock = [u8; BLOCK_SIZE];
 
+/// 磁盘 Inode 结构
+///
+/// 一个 Inode 包含了文件的元数据信息，包括文件类型、大小、数据块索引等。
+///
+/// Inode 结构的大小为 64 字节，包含了文件大小、直接索引、一级索引、二级索引等信息。
+///
+/// - 文件大小：文件的大小，单位为字节。
+/// - 直接索引：直接索引表，包含了 28 个直接索引块。
+/// - 一级索引：一级索引表，包含了 128 个间接索引块。
+/// - 二级索引：二级索引表，包含了 128 个一级索引块。
 #[repr(C)]
 pub struct DiskInode {
     r#type: InodeType,
@@ -34,6 +50,7 @@ pub struct DiskInode {
 }
 
 impl DiskInode {
+    /// 初始化 Inode 结构
     pub fn init(&mut self, r#type: InodeType) {
         self.size = 0;
         self.r#type = r#type;
@@ -42,14 +59,21 @@ impl DiskInode {
         self.double_indirect = 0;
     }
 
+    /// 获取 Inode 类型
     pub fn get_type(&self) -> InodeType {
         self.r#type
     }
 
+    /// 获取直接索引块
+    ///
+    /// 不检查索引是否越界
     fn get_direct_block(&self, offset: usize) -> u32 {
         self.direct[offset]
     }
 
+    /// 获取一级索引块
+    ///
+    /// 不检查索引是否越界
     fn get_indirect_block(&self, offset: usize, dev: &Arc<dyn BlockDevice>) -> u32 {
         get_cache(self.indirect as usize, dev.clone())
             .expect("cannot get cache")
@@ -79,6 +103,9 @@ impl DiskInode {
         Some((level1_offset, level2_offset))
     }
 
+    /// 获取二级索引块
+    ///
+    /// 不检查索引是否越界
     fn get_double_indirect_block(&self, offset: usize, dev: &Arc<dyn BlockDevice>) -> u32 {
         let (level1_offset, level2_offset) =
             Self::extract_double_indirect_block(offset).expect("invalid offset");
@@ -95,6 +122,17 @@ impl DiskInode {
             .expect("cannot read cache")
     }
 
+    /// 将文件内偏移转换为其对应的数据块索引
+    ///
+    /// 通过文件内偏移计算数据块索引，如果偏移在直接索引范围内，返回直接索引；
+    /// 如果偏移在一级索引范围内，返回一级索引；否则返回二级索引。
+    ///
+    /// ## 参数
+    /// - `offset`：文件内偏移
+    /// - `dev`：块设备
+    ///
+    /// ## 返回
+    /// 数据块索引
     pub fn translate(&self, offset: u32, dev: &Arc<dyn BlockDevice>) -> u32 {
         let offset = offset as usize;
         if offset < INODE_DIRECT_BLOCKS {
@@ -106,14 +144,28 @@ impl DiskInode {
         }
     }
 
+    /// 计算文件大小所需的数据块数
+    ///
+    /// 通过文件大小计算所需的数据块数，不包括索引块。
+    ///
+    /// 由于一个数据块只能存储一个文件块，因此文件大小除以数据块大小向上取整即可得到所需的数据块数。
     fn calc_required_block_for(size: u32) -> u32 {
         size.div_ceil(BLOCK_SIZE as u32)
     }
 
+    /// 计算文件大小所需的数据块数
     pub fn required_data_blocks_for(&self, size: u32) -> u32 {
         Self::calc_required_block_for(size)
     }
 
+    /// 计算文件大小所需的总块数
+    ///
+    /// 通过文件大小计算所需的总块数，包括数据块和索引块。
+    ///
+    /// 在计算出数据块数后，需要考虑索引块的情况：
+    /// - 如果数据块数小于等于直接索引块数，不需要额外的索引块；
+    /// - 如果数据块数大于直接索引块数，需要一级索引块；
+    /// - 如果数据块数大于一级索引块数，需要二级索引块，二级索引块中的每个索引指向一个一级索引块，共需要 (数据块数 - 一级索引块数) / 一级索引块数 个索引块。
     pub fn required_blocks_for(&self, size: u32) -> u32 {
         let data_blocks = Self::calc_required_block_for(size) as usize;
         let mut index_blocks = 0;
@@ -128,11 +180,20 @@ impl DiskInode {
         data_blocks as u32 + index_blocks as u32
     }
 
+    /// 计算增加文件大小还需的总块数
     pub fn required_delta_blocks_for(&self, new_size: u32) -> u32 {
         assert!(new_size >= self.size);
         self.required_blocks_for(new_size) - self.required_blocks_for(self.size)
     }
 
+    /// 扩展文件大小
+    ///
+    /// 通过新的文件大小和新分配的数据块列表扩展文件大小。
+    ///
+    /// 调用该方法前需要调用 [Self::required_delta_blocks_for] 方法计算所需的总块数，
+    /// 并申请足够的数据块。
+    ///
+    /// 在扩展文件大小时，会将新分配的数据块依次填充到直接索引、一级索引和二级索引中。
     pub fn extend_size(&mut self, new_size: u32, new_blocks: Vec<u32>, dev: &Arc<dyn BlockDevice>) {
         // 从 offset 开始分配新块
         let mut offset = self.required_blocks_for(self.size) as usize;
@@ -228,6 +289,9 @@ impl DiskInode {
         }
     }
 
+    /// 清空 Inode 的数据块
+    ///
+    /// 清空 Inode 的数据块，返回被回收的数据块列表。
     pub fn clear_size(&mut self, dev: &Arc<dyn BlockDevice>) -> Vec<u32> {
         let mut recycled = Vec::new();
         self.size = 0;
@@ -278,6 +342,14 @@ impl DiskInode {
         recycled
     }
 
+    /// 读取 Inode 的数据
+    ///
+    /// 从 Inode 中读取数据到缓冲区，返回实际读取的字节数。
+    ///
+    /// ## 参数
+    /// - `offset`：读取偏移
+    /// - `dev`：块设备
+    /// - `buf`：缓冲区
     pub fn read_at(&self, mut offset: usize, dev: &Arc<dyn BlockDevice>, buf: &mut [u8]) -> usize {
         let mut read = 0;
         let end = (offset + buf.len()).min(self.size as usize);
@@ -310,6 +382,17 @@ impl DiskInode {
         read
     }
 
+    /// 写入 Inode 的数据
+    ///
+    /// 将缓冲区中的数据写入 Inode，返回实际写入的字节数。
+    ///
+    /// ## 参数
+    /// - `offset`：写入偏移
+    /// - `dev`：块设备
+    /// - `buf`：缓冲区
+    ///
+    /// ## 返回
+    /// 实际写入的字节数
     pub fn write_at(&mut self, mut offset: usize, dev: &Arc<dyn BlockDevice>, buf: &[u8]) -> usize {
         let mut written = 0;
         let end = (offset + buf.len()).min(self.size as usize);

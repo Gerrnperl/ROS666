@@ -1,22 +1,16 @@
 //! 页表模块
 
-// 引入分配器模块中的 String 和 Vec 类型
 use alloc::{string::String, vec::Vec};
 
-// 引入打印宏
-use crate::printkln;
-
-// 引入地址模块中的相关类型
 use super::{
     address::{
         PHYSICAL_PAGE_NUMBER_WIDTH_SV39, PhysicalAddress, PhysicalPageNumber, VirtualAddress,
         VirtualPageNumber,
     },
-    // 引入帧分配器模块中的相关类型
     frame_allocator::{FrameTracker, StackFrameAllocator},
 };
 
-/// 页表结构体
+/// 页表
 ///
 /// 包含根页表的物理页号和帧跟踪器的向量
 pub struct PageTable {
@@ -40,7 +34,9 @@ impl PageTable {
 
     /// 获取页表的 token
     ///
-    /// 将根页表的物理页号与模式位组合，生成页表的 token
+    /// token 即 satp (satp: Supervisor Address Translation and Protection) 寄存器的值
+    ///
+    /// 在启用 Sv39 页表时，satp 即作为三级页表的根节点。其第 60-63 位为模式位，为 0b100 时启用 Sv39 页表
     pub fn token(&self) -> usize {
         self.root.0 | (8 << 60)
     }
@@ -312,7 +308,7 @@ fn get_translated_slices<T>(
     len: usize,
     get_slice: impl Fn(&PhysicalPageNumber, usize, usize) -> T,
 ) -> Vec<T> {
-    let mut page_table = PageTable::from_satp(token);
+    let page_table = PageTable::from_satp(token);
     let mut start = ptr as usize;
     let end = start + len;
     let mut slices = Vec::new();

@@ -1,32 +1,30 @@
-//! # Bye
+//! # Bye World
 
 #![no_std]
 #![no_main]
 
-use lib::sched_yield;
+use lib::{TimeVal, sleep, sys::time::get_time_of_day};
 
 #[macro_use]
 extern crate lib;
 
 #[unsafe(no_mangle)]
 pub fn main() -> i32 {
-    let mut a: usize = 0;
-    const CLOCK_FREQ: usize = 1250000;
-    // 循环 1250000 * 10 次
-    for i in 0..(1250000 * 10) {
-        // 每当 i 是 CLOCK_FREQ 的倍数时，打印 "Bye, world!" 和 a 的值
-        if i % CLOCK_FREQ == 0 {
-            println!("Bye, world! {}", a);
-            a += 1;
-        }
+    // 打印欢迎信息
+    println!("Bye world from user mode program!");
+    // 测试格式化信息
+    println!("Array: {:#?}", [1, 2, 3, 4, 5]);
+    for i in 0..10 {
+        sleep(1);
+        println!("[Bye] Tick {}", i);
     }
-    // 调用 sched_yield 函数
-    sched_yield();
-    // 再次打印 "Bye, world!" 和 a 的值
-    println!("Bye, world! {}", a);
-    // 再次调用 sched_yield 函数
-    sched_yield();
-    // 触发 panic，打印 "Bye!"
-    panic!("Bye!");
+    let mut ts = TimeVal {
+        tv_sec: 0,
+        tv_usec: 0,
+    };
+    // 获取当前时间
+    get_time_of_day(&mut ts, None);
+    // 打印时间信息
+    println!("[Bye] Time: {}.{:06}", ts.tv_sec, ts.tv_usec);
     0
 }

@@ -1,7 +1,6 @@
 #![no_std]
 #![no_main]
 
-use alloc::string::String;
 use lib::{
     fcntl::{OpenFlags, close, openat},
     read, write,
