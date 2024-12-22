@@ -1,11 +1,8 @@
-//! 中断处理模块
+//! 陷入处理
 
-// 导入核心库中的 asm 和 usize 模块
 use core::{arch::asm, usize};
 
-// 导入公共库中的 Syscall 模块
 use common::syscall::Syscall;
-// 导入 RISC-V 架构相关的中断和寄存器模块
 use riscv::{
     interrupt::{Exception, supervisor::Interrupt},
     register::{
@@ -14,6 +11,7 @@ use riscv::{
     },
 };
 
+use super::context::Riscv64RegAlias;
 use crate::{
     extern_global,
     mm::memory_set::TRAMPOLINE,
@@ -22,22 +20,17 @@ use crate::{
     timer::set_next_timeout,
 };
 
-// 导入上级模块中的上下文相关定义
-use super::context::Riscv64RegAlias;
-
-/// 定义定时器中断间隔时间（微秒）
+/// 定时器中断间隔时间（微秒）
 pub const TIMER_INTERVAL_USEC: usize = 10_000;
 
-// 定义一个不进行名称修饰的函数
+/// 陷入处理函数
+///
+/// 在发生陷入时，根据陷入原因进行相应的处理
 #[unsafe(no_mangle)]
-// 用于处理用户态陷入
 pub fn trap_handler() -> ! {
-    // 设置用户态陷阱入口
     set_user_trap_entry();
-    // 读取 scause 和 stval 寄存器的值
     let scause = scause::read().cause();
     let stval = stval::read();
-    // 根据 scause 的值进行匹配处理
     match scause {
         // 用户态环境调用异常
         scause::Trap::Exception(const { Exception::UserEnvCall as usize }) => {
@@ -74,21 +67,18 @@ pub fn trap_handler() -> ! {
     trap_return();
 }
 
-/// 设置用户态陷阱入口函数
+/// 设置用户态陷入入口函数
 fn set_user_trap_entry() {
     unsafe {
-        // 将 stvec 寄存器设置为 TRAMPOLINE 地址，陷阱模式为直接模式
+        // 将 stvec 寄存器设置为 TRAMPOLINE 地址，陷入模式为直接模式
         stvec::write(TRAMPOLINE as usize, TrapMode::Direct);
     }
 }
 
-// 定义一个不进行名称修饰的函数，用于返回到用户态
+/// 陷入返回
 #[unsafe(no_mangle)]
-/// 返回到用户态
 pub fn trap_return() -> ! {
-    // 设置用户态陷阱入口
     set_user_trap_entry();
-    // 获取陷阱上下文指针
     let trap_cx_ptr = TRAP_CONTEXT;
     // 获取当前用户页表的 token
     let user_satp = Processor::current_user_token().unwrap();

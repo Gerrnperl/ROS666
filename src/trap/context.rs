@@ -1,15 +1,23 @@
-//! 陷阱上下文模块。
+//! 陷入上下文模块。
 
 use core::arch::asm;
 
-/// 表示陷阱上下文的结构体。
+/// 陷入上下文
+///
+/// 用于保存和恢复陷入处理程序的上下文。
 pub struct TrapCtx {
-    pub x: [usize; 32],                  // 通用寄存器
-    pub sstatus: usize,                  // 监管者状态寄存器
-    pub sepc: usize,                     // 监管者异常程序计数器
-    pub kernel_satp: usize,              // 内核页表基址寄存器
-    pub kernel_virt_sp: usize,           // 内核虚拟栈指针
-    pub kernel_virt_trap_handler: usize, // 内核虚拟陷阱处理程序地址
+    /// 通用寄存器
+    pub x: [usize; 32],
+    /// Supervisor 状态寄存器
+    pub sstatus: usize,
+    /// Supervisor 异常程序计数器                 
+    pub sepc: usize,
+    /// 内核页表基址 (Supervisor Address Translation and Protection)
+    pub kernel_satp: usize,
+    /// 内核虚拟栈指针
+    pub kernel_virt_sp: usize,
+    /// 内核虚拟陷入处理程序入口地址
+    pub kernel_virt_trap_handler: usize,
 }
 
 impl TrapCtx {
@@ -25,7 +33,7 @@ impl TrapCtx {
     /// - `sp`：栈指针地址。
     /// - `kernel_satp`：内核页表基址寄存器的值。
     /// - `kernel_virt_sp`：内核虚拟栈指针的值。
-    /// - `kernel_virt_trap_handler`：内核虚拟陷阱处理程序的地址。
+    /// - `kernel_virt_trap_handler`：内核虚拟陷入处理程序的地址。
     /// ## 返回值
     /// 返回一个初始化的 TrapCtx 实例。
     pub fn init_app_context(
@@ -35,7 +43,8 @@ impl TrapCtx {
         kernel_virt_sp: usize,
         kernel_virt_trap_handler: usize,
     ) -> Self {
-        // riscv crate 不提供从 sstatus 获取位的方法，所以我们必须使用内联汇编
+        // the riscv crate does not provide a way to get bits from sstatus
+        // so we have to use inline assembly
         let mut sstatus: usize;
         unsafe {
             asm!("csrr {}, sstatus", out(reg) sstatus);
@@ -101,57 +110,34 @@ pub trait Riscv64RegAlias {
     fn sstatus(&mut self) -> &mut usize;
 }
 
-/// 实现 `Riscv64RegAlias` 特性用于 `TrapCtx` 结构体。
-///
-/// 该特性提供了一组方法来访问和修改 RISC-V 64 位架构的寄存器。
 impl Riscv64RegAlias for TrapCtx {
-    /// # zero:
-    ///   返回对 `x[0]` 寄存器的可变引用。
     fn zero(&mut self) -> &mut usize {
         &mut self.x[0]
     }
-    /// # ra:
-    ///   返回对 `x[1]` 寄存器的可变引用。
     fn ra(&mut self) -> &mut usize {
         &mut self.x[1]
     }
-    /// # sp:
-    ///   返回对 `x[2]` 寄存器的可变引用。
     fn sp(&mut self) -> &mut usize {
         &mut self.x[2]
     }
-    /// # gp:
-    ///   返回对 `x[3]` 寄存器的可变引用。
     fn gp(&mut self) -> &mut usize {
         &mut self.x[3]
     }
-    /// # tp:
-    ///   返回对 `x[4]` 寄存器的可变引用。
     fn tp(&mut self) -> &mut usize {
         &mut self.x[4]
     }
-    /// # t:
-    ///   返回对 `x[5 + i]` 寄存器的可变引用。
     fn t(&mut self, i: usize) -> &mut usize {
         &mut self.x[5 + i]
     }
-    /// # s:
-    ///   返回对 `x[13 + i]` 寄存器的可变引用。
     fn s(&mut self, i: usize) -> &mut usize {
         &mut self.x[13 + i]
     }
-    /// # a:
-    ///   返回对 `x[10 + i]` 寄存器的可变引用。
     fn a(&mut self, i: usize) -> &mut usize {
         &mut self.x[10 + i]
     }
-    /// # sepc:
-    ///   返回对 `sepc` 寄存器的可变引用。
     fn sepc(&mut self) -> &mut usize {
         &mut self.sepc
     }
-    /// # sstatus:
-    ///   返回对 `sstatus` 寄存器的可变引用。
     fn sstatus(&mut self) -> &mut usize {
         &mut self.sstatus
     }
