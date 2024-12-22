@@ -37,6 +37,10 @@ pub enum Syscall {
     ///
     /// [gettimeofday(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/gettimeofday.2.html)
     GetTimeOfDay = 169,
+    /// 关机 (shutdown)
+    ///
+    /// [shutdown(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/shutdown.2.html)
+    Shutdown = 210,
     /// 创建子进程 (fork)
     ///
     /// [clone(2) — Linux manual page](https://www.man7.org/linux/man-pages/man2/clone.2.html)
@@ -90,6 +94,7 @@ impl From<usize> for Syscall {
             93 => Syscall::Exit,
             124 => Syscall::SchedYield,
             169 => Syscall::GetTimeOfDay,
+            210 => Syscall::Shutdown,
             220 => Syscall::Clone,
             221 => Syscall::Execve,
             260 => Syscall::Wait4,

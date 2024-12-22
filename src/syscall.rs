@@ -16,6 +16,7 @@ use crate::{
     task::{self, manager::TaskManager, pid, processor::Processor, task::ProcessStatus},
     timer::{get_time, get_time_us},
     trap::context::Riscv64RegAlias,
+    warn,
 };
 
 pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
@@ -30,6 +31,7 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
         }
         Syscall::SchedYield => sys_yield(),
         Syscall::GetTimeOfDay => sys_get_time_of_day(args[0] as *mut _, args[1] as *mut _),
+        Syscall::Shutdown => sys_shutdown(),
         Syscall::Clone => sys_clone(),
         Syscall::Execve => sys_execve(args[0] as *const u8),
         Syscall::Wait4 => sys_wait4(args[0] as isize, args[1] as *mut i32),
@@ -141,6 +143,11 @@ pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
     tz.tz_minuteswest = 0;
     tz.tz_dsttime = 0;
     0
+}
+
+pub fn sys_shutdown() -> ! {
+    warn!("System shutdown");
+    crate::sbi::sbi_shutdown(false);
 }
 
 pub fn sys_clone() -> SyscallRet {

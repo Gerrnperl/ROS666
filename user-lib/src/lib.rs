@@ -78,3 +78,8 @@ fn clear_bss() {
         }
     }
 }
+
+/// 关闭系统
+pub fn shutdown() -> ! {
+    sys_shutdown();
+}

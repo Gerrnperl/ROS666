@@ -102,6 +102,14 @@ pub fn sys_get_time_of_day(ts: *mut TimeVal, tz: *mut TimeZone) -> SyscallRet {
     syscall(Syscall::GetTimeOfDay, [ts as usize, tz as usize, 0])
 }
 
+/// 关机
+///
+/// 该函数不会返回，直接关机
+pub fn sys_shutdown() -> ! {
+    syscall(Syscall::Shutdown, [0, 0, 0]);
+    unreachable!("Unreachable after sys_shutdown");
+}
+
 /// 创建新进程
 ///
 /// ## 返回值
