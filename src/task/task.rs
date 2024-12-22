@@ -2,11 +2,13 @@
 
 use core::borrow::Borrow;
 
+use alloc::vec;
 use alloc::{
     sync::{Arc, Weak},
     vec::Vec,
 };
 
+use crate::fs::stdio::{Stdin, Stdout};
 /// 导入所需的模块和类型:
 ///
 /// - `crate::app_loader::AppData`: 应用加载器相关的数据类型。
@@ -157,7 +159,11 @@ impl ProcessControlBlock {
             parent: None,
             children: Vec::new(),
             exit_code: 0,
-            fd_table: Vec::new(),
+            fd_table: vec![
+                Some(Arc::new(Stdin)),
+                Some(Arc::new(Stdout)),
+                Some(Arc::new(Stdout)),
+            ],
         };
         let ctx = pcb.get_trap_cx();
         *ctx = TrapCtx::init_app_context(

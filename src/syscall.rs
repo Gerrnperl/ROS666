@@ -9,8 +9,8 @@ use crate::{
     info,
     io::stdio::read_str,
     mm::page_table::{
-        get_mut_translated_byte_slices, get_translated_byte_slices, get_translated_refmut,
-        get_translated_string,
+        UserBuffer, get_mut_translated_byte_slices, get_translated_byte_slices,
+        get_translated_refmut, get_translated_string,
     },
     printk, printkln,
     task::{self, manager::TaskManager, pid, processor::Processor, task::ProcessStatus},
@@ -71,34 +71,44 @@ pub fn sys_close(fd: usize) -> SyscallRet {
 }
 
 pub fn sys_read(fd: usize, buffer: *mut u8, len: usize) -> SyscallRet {
-    match fd {
-        FD_STDIN => {
-            let buffers = get_mut_translated_byte_slices(
-                Processor::current_user_token().unwrap(),
-                buffer,
-                len,
-            );
-            for buffer in buffers {
-                read_str(buffer, buffer.len());
-            }
-            len as SyscallRet
+    let token = Processor::current_user_token().unwrap();
+    let task = Processor::get_current().unwrap();
+    let pcb = task.inner_borrow();
+    if fd >= pcb.fd_table.len() {
+        return -1;
+    }
+    if let Some(file) = &pcb.fd_table[fd] {
+        let file = file.clone();
+        if !(file.readable()) {
+            return -1;
         }
-        _ => panic!("Unsupported file descriptor: {}", fd),
+        drop(pcb);
+        file.read(UserBuffer::new(get_mut_translated_byte_slices(
+            token, buffer, len,
+        ))) as isize
+    } else {
+        -1
     }
 }
 
 pub fn sys_write(fd: usize, buffer: *const u8, len: usize) -> SyscallRet {
-    match fd {
-        FD_STDOUT => {
-            let buffers =
-                get_translated_byte_slices(Processor::current_user_token().unwrap(), buffer, len);
-            for buffer in buffers {
-                let s = core::str::from_utf8(buffer).unwrap();
-                printk!("{}", s);
-            }
-            len as SyscallRet
+    let token = Processor::current_user_token().unwrap();
+    let task = Processor::get_current().unwrap();
+    let pcb = task.inner_borrow();
+    if fd >= pcb.fd_table.len() {
+        return -1;
+    }
+    if let Some(file) = &pcb.fd_table[fd] {
+        let file = file.clone();
+        if !(file.writable()) {
+            return -1;
         }
-        _ => panic!("Unsupported file descriptor: {}", fd),
+        drop(pcb);
+        file.write(UserBuffer::new(get_mut_translated_byte_slices(
+            token, buffer, len,
+        ))) as isize
+    } else {
+        -1
     }
 }
 

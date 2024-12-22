@@ -4,7 +4,7 @@ use lazy_static::lazy_static;
 use ros_fs::{fs::FileSystemRootInode, layout::disk_inode::InodeType, virt_fs::MemInode};
 use spin::Mutex;
 
-use crate::drivers::block::BLOCK_DEVICE;
+use crate::{drivers::block::BLOCK_DEVICE, mm::page_table::UserBuffer};
 
 use super::File;
 
@@ -55,12 +55,12 @@ impl OSInode {
 }
 
 impl File for OSInode {
-    fn read(&self, buf: &mut [u8]) -> usize {
+    fn read(&self, mut buf: UserBuffer) -> usize {
         let mut inode = self.inode.lock();
         let inode = &mut *inode;
         let mut read_size = 0;
-        for i in 0..buf.len() {
-            let newly_read = inode.inode.read_at(inode.offset, &mut buf[i..]);
+        for i in 0..buf.buffers.len() {
+            let newly_read = inode.inode.read_at(inode.offset, buf.buffers[i]);
             if newly_read == 0 {
                 break;
             }
@@ -70,12 +70,12 @@ impl File for OSInode {
         read_size
     }
 
-    fn write(&self, buf: &[u8]) -> usize {
+    fn write(&self, buf: UserBuffer) -> usize {
         let mut inode = self.inode.lock();
         let inode = &mut *inode;
         let mut write_size = 0;
-        for i in 0..buf.len() {
-            let newly_written = inode.inode.write_at(inode.offset, &buf[i..]);
+        for i in 0..buf.buffers.len() {
+            let newly_written = inode.inode.write_at(inode.offset, buf.buffers[i]);
             if newly_written == 0 {
                 break;
             }
