@@ -3,7 +3,6 @@ use core::{arch::asm, borrow::BorrowMut, cell::RefCell, ops::Range};
 
 /// 导入项目中的一些模块
 use crate::{
-    app_loader::AppData,
     extern_global, info,
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
     printkln,
@@ -397,11 +396,10 @@ impl MemorySet {
     /// 从 ELF 文件创建用户 MemorySet
     ///
     /// ## 参数
-    /// * `app` - 包含 ELF 文件数据的 AppData
+    /// * `elf` - ELF 文件数据
     /// ## 返回值
     /// 返回创建的 MemorySet、用户栈顶地址和入口点地址
-    pub fn from_elf_app(app: AppData) -> (Self, usize, usize) {
-        let elf = app.data;
+    pub fn from_elf_app(elf: &[u8]) -> (Self, usize, usize) {
         let elf = ElfFile::new(elf).unwrap();
         let elf_header = elf.header;
         let elf_magic = elf_header.pt1.magic;

@@ -14,8 +14,6 @@ use alloc::vec::Vec;
 // 引入lazy_static库，用于定义静态变量
 use lazy_static::lazy_static;
 
-// 引入自定义模块中的函数和结构体
-use crate::app_loader::{get_app_count, load_app_data};
 use crate::task::context::TaskCtx;
 use crate::task::switch::__switch;
 use crate::task::task::{ProcessControlBlock, ProcessStatus};

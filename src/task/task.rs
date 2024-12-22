@@ -14,7 +14,6 @@ use alloc::{
 /// - `crate::trap::{self, context::TrapCtx, handler::trap_handler}`: 中断和陷阱处理相关的模块和类型。
 /// - `crate::utils::safety::SyncRefCell`: 一个线程安全的 RefCell 类型。
 use crate::{
-    app_loader::AppData,
     fs::File,
     mm::{
         KERNEL_SPACE,
@@ -136,8 +135,7 @@ impl ProcessControlBlock {
     /// - `app_data`: 应用程序数据
     /// ## 返回值
     /// 返回一个新的进程控制块实例
-    pub fn new(app_data: AppData) -> Self {
-        let app_id = app_data.app_id;
+    pub fn new(app_data: &[u8]) -> Self {
         let (mut memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
         let trap_ctx_ppn = PhysicalPageNumber::from(
             &memory_set
@@ -226,7 +224,7 @@ impl SyncRefCell<ProcessControlBlock> {
     ///
     /// ## 参数
     /// - `app_data`: 应用程序数据
-    pub fn exec(self: &Arc<SyncRefCell<ProcessControlBlock>>, app_data: AppData) {
+    pub fn exec(self: &Arc<SyncRefCell<ProcessControlBlock>>, app_data: &[u8]) {
         let (memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
         let trap_ctx_ppn = PhysicalPageNumber::from(
             &memory_set
