@@ -7,6 +7,7 @@ use crate::{
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
     printkln,
     task::{stack::USER_STACK_SIZE, task::TRAP_CONTEXT},
+    trace,
     utils::safety::SyncRefCell,
 };
 
@@ -310,7 +311,7 @@ impl MemorySet {
 
         let mut memory_set = MemorySet::empty();
         memory_set.map_trampoline();
-        info!("mapping .text: [{:#x}, {:#x})", text_start, text_end);
+        trace!("mapping .text: [{:#x}, {:#x})", text_start, text_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -322,7 +323,7 @@ impl MemorySet {
             ),
             None,
         );
-        info!("mapping .rodata: [{:#x}, {:#x})", rodata_start, rodata_end);
+        trace!("mapping .rodata: [{:#x}, {:#x})", rodata_start, rodata_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -334,7 +335,7 @@ impl MemorySet {
             ),
             None,
         );
-        info!("mapping .data: [{:#x}, {:#x})", data_start, data_end);
+        trace!("mapping .data: [{:#x}, {:#x})", data_start, data_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -346,7 +347,7 @@ impl MemorySet {
             ),
             None,
         );
-        info!("mapping .bss: [{:#x}, {:#x})", bss_start, bss_end);
+        trace!("mapping .bss: [{:#x}, {:#x})", bss_start, bss_end);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -358,7 +359,7 @@ impl MemorySet {
             ),
             None,
         );
-        info!("mapping heap: [{:#x}, {:#x})", kernel_end, MEMORY_END);
+        trace!("mapping heap: [{:#x}, {:#x})", kernel_end, MEMORY_END);
         memory_set.push(
             MapArea::new(
                 VPNRange::from_addr(
@@ -505,9 +506,11 @@ impl MemorySet {
     }
 }
 
-/// 重新映射测试函数
+/// 地址空间重映射测试
+///
+/// Copied from [rCore-Tutorial-v3/memory_set.rs/memory_set.rs](https://github.com/rcore-os/rCore-Tutorial-v3/blob/main/os/src/mm/memory_set.rs)
 pub fn remap_test() {
-    let mut kernel_space = KERNEL_SPACE.ref_cell.borrow_mut();
+    let kernel_space = KERNEL_SPACE.ref_cell.borrow_mut();
     let mid_text: VirtualAddress =
         ((extern_global!(__text_start) as usize + extern_global!(__text_end) as usize) / 2).into();
     let mid_rodata: VirtualAddress =
@@ -539,5 +542,5 @@ pub fn remap_test() {
             .executable(),
         false,
     );
-    printkln!("remap_test passed!");
+    trace!("[Kernel] Remap test passed");
 }
