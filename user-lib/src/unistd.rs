@@ -1,12 +1,6 @@
-//! 这个模块提供 Unix 标准的系统调用接口。
+//! POSIX 标准的系统调用接口封装
 //!
-//! 主要功能包括：
-//! - 退出当前进程。
-//! - 读取文件描述符。
-//! - 写入文件描述符。
-//! - 创建新进程。
-//! - 执行新程序。
-
+//! <del> 仅包含了实现的部分系统调用，并且接口并不完全符合 POSIX 标准 :| </del>
 use common::syscall::time::TimeVal;
 
 use crate::{sched_yield, sys::time::get_time_of_day, syscall};

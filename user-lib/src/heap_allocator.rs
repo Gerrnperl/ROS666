@@ -1,8 +1,4 @@
-//! 这个模块包含堆分配器的初始化和错误处理。
-//!
-//! 主要功能包括：
-//! - 初始化堆分配器。
-//! - 处理堆分配错误。
+//! 堆内存分配器
 
 use slab_allocator::LockedHeap;
 
@@ -27,12 +23,9 @@ pub fn init_heap() {
     }
 }
 
-/// 堆分配错误处理函数
+/// Rust 语言项 - 分配错误处理函数
 ///
-/// ## 参数
-/// - `layout`: 分配错误的内存布局
-/// ## 返回值
-/// 该函数不会返回，直接 panic
+/// 当分配失败，例如 Out Of Memory 时会调用该函数
 #[alloc_error_handler]
 fn alloc_error_handler(layout: core::alloc::Layout) -> ! {
     panic!("Heap allocation error: {:?}", layout)
