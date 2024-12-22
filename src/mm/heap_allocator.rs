@@ -1,13 +1,12 @@
 //! 堆内存分配器
 use slab_allocator::LockedHeap;
 
-// 引入外部全局变量和打印宏
 use crate::{extern_global, printkln, trace};
 
-// 定义内核堆大小
-pub const KERNEL_HEAP_SIZE: usize = 0x30_0000;
+/// 内核堆大小
+pub const KERNEL_HEAP_SIZE: usize = 0x60_0000;
 
-// 定义全局分配器
+/// 全局分配器
 #[global_allocator]
 static HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();
 

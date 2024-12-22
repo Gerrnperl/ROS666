@@ -8,8 +8,8 @@ use crate::mm::{
 
 use super::pid::PidHandler;
 
-pub const KERNEL_STACK_SIZE: usize = 4096 * 2;
-pub const USER_STACK_SIZE: usize = 4096 * 2;
+pub const KERNEL_STACK_SIZE: usize = 4096 * 4;
+pub const USER_STACK_SIZE: usize = 4096 * 4;
 
 /// 计算内核栈的位置
 ///
