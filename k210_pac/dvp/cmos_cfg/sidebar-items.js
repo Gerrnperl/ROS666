@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CLK_DIV_W","CLK_ENABLE_W","POWER_DOWN_W","RESET_W"],"type":["CLK_DIV_R","CLK_ENABLE_R","POWER_DOWN_R","R","RESET_R","W"]};

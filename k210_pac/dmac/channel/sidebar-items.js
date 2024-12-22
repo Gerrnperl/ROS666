@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["_reserved","axi_id","axi_qos","blk_tfr","block_ts","cfg","ctl","dar","intclear","intsignal_en","intstatus","intstatus_en","llp","sar","status","swhsdst","swhssrc"],"type":["AXI_ID","AXI_QOS","BLK_TFR","BLOCK_TS","CFG","CTL","DAR","INTCLEAR","INTSIGNAL_EN","INTSTATUS","INTSTATUS_EN","LLP","SAR","STATUS","SWHSDST","SWHSSRC","_RESERVED"]};

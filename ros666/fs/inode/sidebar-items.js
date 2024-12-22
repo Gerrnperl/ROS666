@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_file","open_file"],"struct":["InodeData","OSInode","ROOT_INODE"]};

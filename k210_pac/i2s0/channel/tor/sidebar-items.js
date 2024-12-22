@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"type":["R","TXCHO_R"]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["TRAP_CONTEXT"],"enum":["ProcessStatus"],"struct":["ProcessControlBlock"]};
+window.SIDEBAR_ITEMS = {"constant":["TRAP_CONTEXT"],"enum":["ProcessStatus"],"struct":["ProcessControlBlock"],"trait":["FdTableClone"],"type":["FdTable"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["ccvr","comp_param_1","comp_param_2","comp_param_3","comp_param_4","comp_param_5","comp_type","comp_version","cr","crr","eoi","prot_level","stat","torr"],"struct":["RegisterBlock"],"type":["CCVR","COMP_PARAM_1","COMP_PARAM_2","COMP_PARAM_3","COMP_PARAM_4","COMP_PARAM_5","COMP_TYPE","COMP_VERSION","CR","CRR","EOI","PROT_LEVEL","STAT","TORR"]};

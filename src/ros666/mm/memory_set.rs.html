@@ -541,14 +541,11 @@
 <a href="#540" id="540">540</a>
 <a href="#541" id="541">541</a>
 <a href="#542" id="542">542</a>
-<a href="#543" id="543">543</a>
-<a href="#544" id="544">544</a>
-<a href="#545" id="545">545</a></pre></div><pre class="rust"><code><span class="doccomment">/// 导入核心库中的一些模块
+<a href="#543" id="543">543</a></pre></div><pre class="rust"><code><span class="doccomment">/// 导入核心库中的一些模块
 </span><span class="kw">use </span>core::{arch::asm, borrow::BorrowMut, cell::RefCell, ops::Range};
 
 <span class="doccomment">/// 导入项目中的一些模块
 </span><span class="kw">use crate</span>::{
-    app_loader::AppData,
     extern_global, info,
     mm::{address::PAGE_SIZE_SV39, frame_allocator::MEMORY_END},
     printkln,
@@ -917,13 +914,13 @@
             <span class="prelude-val">None</span>,
         );
 
-        <span class="kw">pub const </span>MMIO: <span class="kw-2">&amp;</span>[(usize, usize)] = <span class="kw-2">&amp;</span>[
-            (<span class="number">0x0010_0000</span>, <span class="number">0x00_2000</span>), <span class="comment">// VIRT_TEST/RTC  in virt machine
-            </span>(<span class="number">0x2000000</span>, <span class="number">0x10000</span>),     <span class="comment">// core local interrupter (CLINT)
-            </span>(<span class="number">0xc000000</span>, <span class="number">0x210000</span>),    <span class="comment">// VIRT_PLIC in virt machine
-            </span>(<span class="number">0x10000000</span>, <span class="number">0x9000</span>),     <span class="comment">// VIRT_UART0 with GPU  in virt machine
-        </span>];
-        <span class="kw">for </span>pair <span class="kw">in </span>MMIO {
+        <span class="comment">// pub const MMIO: &amp;[(usize, usize)] = &amp;[
+        //     (0x0010_0000, 0x00_2000), // VIRT_TEST/RTC  in virt machine
+        //     (0x2000000, 0x10000),     // core local interrupter (CLINT)
+        //     (0xc000000, 0x210000),    // VIRT_PLIC in virt machine
+        //     (0x10000000, 0x9000),     // VIRT_UART0 with GPU  in virt machine
+        // ];
+        </span><span class="kw">for </span>pair <span class="kw">in </span><span class="kw">crate</span>::drivers::block::MMIO {
             memory_set.push(
                 MapArea::new(
                     VPNRange::from_addr(
@@ -942,11 +939,10 @@
     <span class="doccomment">/// 从 ELF 文件创建用户 MemorySet
     ///
     /// ## 参数
-    /// * `app` - 包含 ELF 文件数据的 AppData
+    /// * `elf` - ELF 文件数据
     /// ## 返回值
     /// 返回创建的 MemorySet、用户栈顶地址和入口点地址
-    </span><span class="kw">pub fn </span>from_elf_app(app: AppData) -&gt; (<span class="self">Self</span>, usize, usize) {
-        <span class="kw">let </span>elf = app.data;
+    </span><span class="kw">pub fn </span>from_elf_app(elf: <span class="kw-2">&amp;</span>[u8]) -&gt; (<span class="self">Self</span>, usize, usize) {
         <span class="kw">let </span>elf = ElfFile::new(elf).unwrap();
         <span class="kw">let </span>elf_header = elf.header;
         <span class="kw">let </span>elf_magic = elf_header.pt1.magic;

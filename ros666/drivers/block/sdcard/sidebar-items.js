@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SD_CS","SD_CS_GPIONUM","SD_START_DATA_MULTIPLE_BLOCK_READ","SD_START_DATA_MULTIPLE_BLOCK_WRITE","SD_START_DATA_SINGLE_BLOCK_READ","SD_START_DATA_SINGLE_BLOCK_WRITE","SEC_LEN"],"enum":["CMD","InitError"],"fn":["init_sdcard","io_init"],"struct":["PERIPHERALS","SDCard","SDCardCID","SDCardCSD","SDCardInfo","SDCardWrapper"]};

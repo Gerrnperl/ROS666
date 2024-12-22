@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["eight_bit_mode","fifo_ctrl","fifo_data_out","fifo_threshold","interrupt_clear","interrupt_mask","interrupt_raw","interrupt_status","layer_argument_fifo"],"struct":["RegisterBlock"],"type":["EIGHT_BIT_MODE","FIFO_CTRL","FIFO_DATA_OUT","FIFO_THRESHOLD","INTERRUPT_CLEAR","INTERRUPT_MASK","INTERRUPT_RAW","INTERRUPT_STATUS","LAYER_ARGUMENT_FIFO"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["RXCHENX_W"],"type":["R","RXCHENX_R","W"]};

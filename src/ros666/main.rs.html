@@ -85,16 +85,15 @@
 <a href="#84" id="84">84</a>
 <a href="#85" id="85">85</a>
 <a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
+<a href="#87" id="87">87</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
 #![no_main]
 #![feature(inline_const_pat)]
 #![feature(alloc_error_handler)]
 
 </span><span class="kw">extern crate </span>alloc;
 
-<span class="kw">mod </span>app_loader;
+<span class="kw">mod </span>drivers;
+<span class="kw">mod </span>fs;
 <span class="kw">mod </span>io;
 <span class="kw">mod </span>language_item;
 <span class="kw">mod </span>mm;
@@ -107,10 +106,9 @@
 
 <span class="kw">use </span>core::{arch::global_asm, cell::RefCell};
 
-<span class="kw">use </span>app_loader::APP_NAMES;
+<span class="kw">use </span>fs::inode::ROOT_INODE;
 
 <span class="macro">global_asm!</span>(<span class="macro">include_str!</span>(<span class="string">"entry.asm"</span>));
-<span class="macro">global_asm!</span>(<span class="macro">include_str!</span>(<span class="string">"app_loader.asm"</span>));
 
 <span class="doccomment">/// 内核入口函数
 </span><span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
@@ -122,11 +120,9 @@
     mm::init::init();
     mm::memory_set::remap_test();
 
-    <span class="macro">info!</span>(<span class="string">"Hi there, it's {}."</span>, <span class="string">"ROS666"</span>);
-
-    APP_NAMES.iter().for_each(|(name, id)| {
-        <span class="macro">info!</span>(<span class="string">"App: {} id: {}"</span>, name, id);
-    });
+    <span class="kw">for </span>app <span class="kw">in </span>ROOT_INODE.ls() {
+        <span class="macro">info!</span>(<span class="string">"App: {}"</span>, app);
+    }
 
     task::init();
 

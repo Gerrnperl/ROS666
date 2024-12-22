@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["EIGHT_BIT_MODE_W"],"type":["EIGHT_BIT_MODE_R","R","W"]};

@@ -30,28 +30,34 @@
 <a href="#29" id="29">29</a>
 <a href="#30" id="30">30</a>
 <a href="#31" id="31">31</a>
-<a href="#32" id="32">32</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
+<a href="#32" id="32">32</a>
+<a href="#33" id="33">33</a>
+<a href="#34" id="34">34</a>
+<a href="#35" id="35">35</a></pre></div><pre class="rust"><code><span class="attr">#![no_std]
 #![no_main]
 
-</span><span class="kw">use </span>lib::{
+</span><span class="kw">use </span>alloc::string::String;
+<span class="kw">use </span>lib::{
     fcntl::{OpenFlags, close, openat},
     read, write,
 };
-
+<span class="kw">extern crate </span>alloc;
 <span class="attr">#[macro_use]
 </span><span class="kw">extern crate </span>lib;
 
 <span class="attr">#[<span class="kw">unsafe</span>(no_mangle)]
 </span><span class="kw">pub fn </span>main() -&gt; i32 {
     <span class="kw">let </span>content = <span class="string">"Hello fs"</span>;
-    <span class="kw">let </span>fd = openat(<span class="string">"hello"</span>, OpenFlags::CREATE | OpenFlags::WRITEONLY);
-    <span class="macro">assert!</span>(fd &gt; <span class="number">0</span>, <span class="string">"Failed to open file"</span>);
+    <span class="kw">let </span>file = <span class="string">"test.txt"</span>;
+    <span class="kw">let </span>fd = openat(file, OpenFlags::CREATE | OpenFlags::WRITEONLY);
+    <span class="macro">print!</span>(<span class="string">"fd: {}"</span>, fd);
+    <span class="macro">assert!</span>(fd &gt;= <span class="number">0</span>, <span class="string">"Failed to open file"</span>);
     <span class="kw">let </span>fd = fd <span class="kw">as </span>usize;
     write(fd, content.as_bytes());
     close(fd <span class="kw">as </span>i32);
 
-    <span class="kw">let </span>fd = openat(<span class="string">"hello"</span>, OpenFlags::READONLY);
-    <span class="macro">assert!</span>(fd &gt; <span class="number">0</span>, <span class="string">"Failed to open file"</span>);
+    <span class="kw">let </span>fd = openat(file, OpenFlags::READONLY);
+    <span class="macro">assert!</span>(fd &gt;= <span class="number">0</span>, <span class="string">"Failed to open file"</span>);
     <span class="kw">let </span>fd = fd <span class="kw">as </span>usize;
     <span class="kw">let </span><span class="kw-2">mut </span>buf = [<span class="number">0u8</span>; <span class="number">32</span>];
     <span class="kw">let </span>size = read(fd, <span class="kw-2">&amp;mut </span>buf);

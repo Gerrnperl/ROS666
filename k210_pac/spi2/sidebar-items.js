@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["dummy"],"struct":["RegisterBlock"],"type":["DUMMY"]};

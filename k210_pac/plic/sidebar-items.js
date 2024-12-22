@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["pending","priority","target_enables","targets"],"struct":["RegisterBlock","TARGETS","TARGET_ENABLES"],"type":["PENDING","PRIORITY"]};

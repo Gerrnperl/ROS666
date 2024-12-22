@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["BLOCK_CACHE_SIZE","BLOCK_SIZE"],"fn":["block_cache_sync_all","get_cache"],"struct":["BLOCK_CACHE_MANAGER","BlockCache","BlockCacheManager"]};

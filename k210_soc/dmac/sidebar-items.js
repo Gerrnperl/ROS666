@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["src_dst_select"],"struct":["DMAC"],"trait":["DMACExt"],"type":["address_increment","burst_length","master_number","transfer_width"]};

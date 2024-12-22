@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["MODE_A"],"struct":["ENABLE_W","INTERRUPT_W","MODE_W","PWM_ENABLE_W"],"type":["ENABLE_R","INTERRUPT_R","MODE_R","PWM_ENABLE_R","R","W"]};

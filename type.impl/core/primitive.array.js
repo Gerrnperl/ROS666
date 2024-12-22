@@ -1,9 +1,9 @@
 (function() {
-    var type_impls = Object.fromEntries([["common",[]],["fs",[]]]);
+    var type_impls = Object.fromEntries([["common",[]],["riscv",[]],["ros_fs",[]]]);
     if (window.register_type_impls) {
         window.register_type_impls(type_impls);
     } else {
         window.pending_type_impls = type_impls;
     }
 })()
-//{"start":55,"fragment_lengths":[13,10]}
+//{"start":55,"fragment_lengths":[13,13,14]}

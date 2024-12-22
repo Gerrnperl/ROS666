@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["_reserved","claim","threshold"],"type":["CLAIM","THRESHOLD","_RESERVED"]};

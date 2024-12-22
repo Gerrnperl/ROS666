@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["SECTOR_SIZE"],"struct":["BlkReq","BlkResp","RespStatus","VirtIOBlk"]};

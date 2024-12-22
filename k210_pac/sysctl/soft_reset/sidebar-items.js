@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["SOFT_RESET_W"],"type":["R","SOFT_RESET_R","W"]};

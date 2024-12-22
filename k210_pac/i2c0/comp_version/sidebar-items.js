@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"type":["R","VALUE_R"]};

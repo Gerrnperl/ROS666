@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["PROT_LEVEL_W"],"type":["PROT_LEVEL_R","R","W"]};

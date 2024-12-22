@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["ADDR_MASTER_WIDTH_A"],"struct":["ADDRESS_W","ADDR_MASTER_WIDTH_W","GC_W","SPECIAL_W"],"type":["ADDRESS_R","ADDR_MASTER_WIDTH_R","GC_R","R","SPECIAL_R","W"]};

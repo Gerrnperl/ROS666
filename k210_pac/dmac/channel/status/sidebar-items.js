@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CMPLTD_BLK_SIZE_W"],"type":["CMPLTD_BLK_SIZE_R","R","W"]};

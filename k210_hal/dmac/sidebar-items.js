@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["dmac_id","dmac_version"],"struct":["Dmac"],"trait":["DmacExt"]};

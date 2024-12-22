@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["HOUR_W","MINUTE_W","SECOND_W"],"type":["HOUR_R","MINUTE_R","R","SECOND_R","W"]};

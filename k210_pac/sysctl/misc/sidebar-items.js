@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["DEBUG_SEL_W","SPI_DVP_DATA_ENABLE_W"],"type":["DEBUG_SEL_R","R","SPI_DVP_DATA_ENABLE_R","W"]};

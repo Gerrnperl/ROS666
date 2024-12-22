@@ -34,16 +34,17 @@
 <a href="#33" id="33">33</a>
 <a href="#34" id="34">34</a>
 <a href="#35" id="35">35</a>
-<a href="#36" id="36">36</a></pre></div><pre class="rust"><code><span class="doccomment">//! # 任务模块
+<a href="#36" id="36">36</a>
+<a href="#37" id="37">37</a></pre></div><pre class="rust"><code><span class="doccomment">//! # 任务模块
 
 </span><span class="comment">// 引入所需的库和模块
 </span><span class="kw">use </span>alloc::sync::Arc;
+<span class="kw">use </span>common::syscall::OpenFlags;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>manager::TaskManager;
 <span class="kw">use </span>task::ProcessControlBlock;
 
-<span class="comment">// 引入应用程序加载器和安全工具
-</span><span class="kw">use crate</span>::{app_loader::load_app_data_by_name, utils::safety::SyncRefCell};
+<span class="kw">use crate</span>::{fs::inode::open_file, utils::safety::SyncRefCell};
 
 <span class="comment">// 声明子模块
 </span><span class="kw">pub mod </span>context;
@@ -58,10 +59,11 @@
 </span><span class="macro">lazy_static!</span> {
     <span class="comment">// INIT_PROC 是一个 Arc 包装的 SyncRefCell，内部存储了一个 ProcessControlBlock 实例
     </span><span class="kw">pub static </span><span class="kw-2">ref </span>INIT_PROC: Arc&lt;SyncRefCell&lt;ProcessControlBlock&gt;&gt; = {
-        Arc::new(SyncRefCell::new(ProcessControlBlock::new(
-            <span class="comment">// 通过名称 "initproc" 加载应用程序数据，并创建一个新的 ProcessControlBlock 实例
-            </span>load_app_data_by_name(<span class="string">"initproc"</span>).unwrap(),
-        )))
+        Arc::new(SyncRefCell::new({
+            <span class="kw">let </span>inode = open_file(<span class="string">"initproc"</span>, OpenFlags::READONLY).unwrap();
+            <span class="kw">let </span>data = inode.read_all();
+            ProcessControlBlock::new(data.as_slice())
+        }))
     };
 }
 

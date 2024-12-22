@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["blk","console","gpu","input","net","socket","sound"]};

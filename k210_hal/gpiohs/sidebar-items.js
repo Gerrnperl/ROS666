@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["Edge","Floating","Gpiohs0","Input","Output","Parts","PullUp"],"trait":["GpiohsExt"]};

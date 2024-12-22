@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["RTXCHFR_W"],"type":["R","RTXCHFR_A","RTXCHFR_R","W"]};

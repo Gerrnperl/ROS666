@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["get_mut_translated_byte_slices","get_translated_byte_slices","get_translated_refmut","get_translated_slices","get_translated_string"],"struct":["PTEFlags","PageTable","PageTableEntry"]};
+window.SIDEBAR_ITEMS = {"fn":["get_mut_translated_byte_slices","get_translated_byte_slices","get_translated_refmut","get_translated_slices","get_translated_string"],"struct":["PTEFlags","PageTable","PageTableEntry","UserBuffer"]};

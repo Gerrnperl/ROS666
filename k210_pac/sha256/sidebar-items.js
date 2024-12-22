@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["data_in","function_reg_0","function_reg_1","num_reg","result"],"struct":["RegisterBlock"],"type":["DATA_IN","FUNCTION_REG_0","FUNCTION_REG_1","NUM_REG","RESULT"]};

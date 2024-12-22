@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["FFT_DONE_W"],"type":["FFT_DONE_R","R","W"]};

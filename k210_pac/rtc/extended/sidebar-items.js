@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["LEAP_YEAR_A"],"struct":["CENTURY_W","LEAP_YEAR_W"],"type":["CENTURY_R","LEAP_YEAR_R","R","W"]};

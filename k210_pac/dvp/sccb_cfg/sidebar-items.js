@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["BYTE_NUM_A"],"struct":["BYTE_NUM_W","SCL_HCNT_W","SCL_LCNT_W"],"type":["BYTE_NUM_R","R","RDATA_R","SCL_HCNT_R","SCL_LCNT_R","W"]};

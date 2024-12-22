@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["DeviceType","SomeTransport"],"mod":["mmio","pci"],"struct":["DeviceStatus"],"trait":["Transport"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CLKEN_W"],"type":["CLKEN_R","R","W"]};

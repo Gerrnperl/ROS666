@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["DMAC_EN_W","INT_EN_W"],"type":["DMAC_EN_R","INT_EN_R","R","W"]};

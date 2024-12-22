@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["DIR_SEARCH_DATA_RDY_W","VOC_BUF_DATA_RDY_W"],"type":["DIR_SEARCH_DATA_RDY_R","R","VOC_BUF_DATA_RDY_R","W"]};

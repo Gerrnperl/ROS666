@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["cfg","channel","chen","com_intclear","com_intsignal_en","com_intstatus","com_intstatus_en","compver","id","intstatus","reset"],"struct":["CHANNEL","RegisterBlock"],"type":["CFG","CHEN","COMPVER","COM_INTCLEAR","COM_INTSIGNAL_EN","COM_INTSTATUS","COM_INTSTATUS_EN","ID","INTSTATUS","RESET"]};

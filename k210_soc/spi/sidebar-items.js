@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["aitm","frame_format","tmod","work_mode"],"struct":["SPIImpl"],"trait":["SPI","SPI01","SPIExt","TruncU32"]};

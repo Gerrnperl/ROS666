@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["APB0","Parts"],"trait":["SysctlExt"]};

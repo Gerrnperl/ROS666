@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["RXCHDT_A"],"struct":["RXCHDT_W"],"type":["R","RXCHDT_R","W"]};

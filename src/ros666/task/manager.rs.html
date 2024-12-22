@@ -108,9 +108,7 @@
 <a href="#107" id="107">107</a>
 <a href="#108" id="108">108</a>
 <a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a></pre></div><pre class="rust"><code><span class="doccomment">//! 任务管理器模块，用于管理任务的调度和切换
+<a href="#110" id="110">110</a></pre></div><pre class="rust"><code><span class="doccomment">//! 任务管理器模块，用于管理任务的调度和切换
 
 </span><span class="comment">// 引入核心库中的汇编模块
 </span><span class="kw">use </span>core::arch::asm;
@@ -126,8 +124,6 @@
 <span class="comment">// 引入lazy_static库，用于定义静态变量
 </span><span class="kw">use </span>lazy_static::lazy_static;
 
-<span class="comment">// 引入自定义模块中的函数和结构体
-</span><span class="kw">use </span><span class="kw">crate</span>::app_loader::{get_app_count, load_app_data};
 <span class="kw">use </span><span class="kw">crate</span>::task::context::TaskCtx;
 <span class="kw">use </span><span class="kw">crate</span>::task::switch::__switch;
 <span class="kw">use </span><span class="kw">crate</span>::task::task::{ProcessControlBlock, ProcessStatus};

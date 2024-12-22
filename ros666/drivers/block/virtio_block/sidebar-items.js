@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["MMIO","VIRTIO_0"],"struct":["HalImpl","QUEUE_FRAMES","VirtIOBlock"]};

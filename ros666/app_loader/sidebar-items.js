@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["get_all_app_names","get_app_count","get_app_name","load_app_data","load_app_data_by_name"],"struct":["APP_NAMES","AppData"]};

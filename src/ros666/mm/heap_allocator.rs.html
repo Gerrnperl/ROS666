@@ -66,17 +66,15 @@
 <a href="#65" id="65">65</a>
 <a href="#66" id="66">66</a>
 <a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a></pre></div><pre class="rust"><code><span class="doccomment">//! 堆内存分配器
+<a href="#68" id="68">68</a></pre></div><pre class="rust"><code><span class="doccomment">//! 堆内存分配器
 </span><span class="kw">use </span>slab_allocator::LockedHeap;
 
-<span class="comment">// 引入外部全局变量和打印宏
-</span><span class="kw">use crate</span>::{extern_global, printkln, trace};
+<span class="kw">use crate</span>::{extern_global, printkln, trace};
 
-<span class="comment">// 定义内核堆大小
-</span><span class="kw">pub const </span>KERNEL_HEAP_SIZE: usize = <span class="number">0x30_0000</span>;
+<span class="doccomment">/// 内核堆大小
+</span><span class="kw">pub const </span>KERNEL_HEAP_SIZE: usize = <span class="number">0x60_0000</span>;
 
-<span class="comment">// 定义全局分配器
+<span class="doccomment">/// 全局分配器
 </span><span class="attr">#[global_allocator]
 </span><span class="kw">static </span>HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();
 

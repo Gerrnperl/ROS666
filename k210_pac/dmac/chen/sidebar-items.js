@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":["CH_ABORT_W","CH_ABORT_WE_W","CH_EN_W","CH_EN_WE_W","CH_SUSP_W","CH_SUSP_WE_W"],"type":["CH_ABORT_R","CH_ABORT_WE_R","CH_EN_R","CH_EN_WE_R","CH_SUSP_R","CH_SUSP_WE_R","R","W"]};

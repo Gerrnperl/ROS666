@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["ctrl","fifo_ctrl","input_fifo","interruptmask","intr_clear","output_fifo","status","status_raw"],"struct":["RegisterBlock"],"type":["CTRL","FIFO_CTRL","INPUT_FIFO","INTERRUPTMASK","INTR_CLEAR","OUTPUT_FIFO","STATUS","STATUS_RAW"]};

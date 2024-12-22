@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":["alarm_date","alarm_time","current_count","date","extended","initial_count","interrupt_ctrl","register_ctrl","time"],"struct":["RegisterBlock"],"type":["ALARM_DATE","ALARM_TIME","CURRENT_COUNT","DATE","EXTENDED","INITIAL_COUNT","INTERRUPT_CTRL","REGISTER_CTRL","TIME"]};

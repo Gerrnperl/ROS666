@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["BLOCK_CACHE_SIZE","BLOCK_SIZE"],"fn":["get_cache"],"struct":["BLOCK_CACHE_MANAGER","BlockCache","BlockCacheManager"]};
