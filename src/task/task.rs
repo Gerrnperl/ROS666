@@ -171,6 +171,16 @@ impl ProcessControlBlock {
         );
         pcb
     }
+
+    pub fn alloc_fd(&mut self) -> usize {
+        for (fd, file) in self.fd_table.iter().enumerate() {
+            if file.is_none() {
+                return fd;
+            }
+        }
+        self.fd_table.push(None);
+        self.fd_table.len() - 1
+    }
 }
 
 impl SyncRefCell<ProcessControlBlock> {

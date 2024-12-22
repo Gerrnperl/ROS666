@@ -1,6 +1,7 @@
-use alloc::sync::Arc;
+use alloc::{sync::Arc, vec::Vec};
+use common::syscall::OpenFlags;
 use lazy_static::lazy_static;
-use ros_fs::{fs::FileSystemRootInode, virt_fs::MemInode};
+use ros_fs::{fs::FileSystemRootInode, layout::disk_inode::InodeType, virt_fs::MemInode};
 use spin::Mutex;
 
 use crate::drivers::block::BLOCK_DEVICE;
@@ -33,6 +34,23 @@ impl OSInode {
             writable,
             inode: Mutex::new(InodeData { inode, offset: 0 }),
         }
+    }
+
+    pub fn read_all(&self) -> Vec<u8> {
+        let mut inode = self.inode.lock();
+        let inode = &mut *inode;
+        let mut buf = Vec::new();
+        let _size = inode.inode.get_size();
+        loop {
+            let mut data = [0u8; 4096];
+            let size = inode.inode.read_at(inode.offset, &mut data);
+            if size == 0 {
+                break;
+            }
+            buf.extend_from_slice(&data[..size]);
+            inode.offset += size;
+        }
+        buf
     }
 }
 
@@ -74,4 +92,28 @@ impl File for OSInode {
     fn writable(&self) -> bool {
         self.writable
     }
+}
+
+pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
+    let readable = flags.readable();
+    let writable = flags.writable();
+    if flags.contains(OpenFlags::CREATE) {
+        return create_file(name, flags);
+    }
+    let inode = ROOT_INODE.find(name)?;
+    if flags.contains(OpenFlags::TRUNCATE) {
+        inode.clear();
+    }
+    Some(Arc::new(OSInode::new(readable, writable, inode)))
+}
+
+fn create_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
+    let readable = flags.readable();
+    let writable = flags.writable();
+    if let Some(inode) = ROOT_INODE.find(name) {
+        inode.clear();
+        return Some(Arc::new(OSInode::new(readable, writable, inode)));
+    }
+    let inode = ROOT_INODE.create(name, InodeType::File);
+    Some(Arc::new(OSInode::new(readable, writable, inode)))
 }

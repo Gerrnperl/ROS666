@@ -1,11 +1,12 @@
 use alloc::sync::Arc;
 use common::syscall::{
-    Syscall, SyscallArgs, SyscallRet,
+    OpenFlags, Syscall, SyscallArgs, SyscallRet,
     time::{TimeVal, TimeZone},
 };
 
 use crate::{
-    app_loader::load_app_data_by_name,
+    fs::inode::open_file,
+    info,
     io::stdio::read_str,
     mm::page_table::{
         get_mut_translated_byte_slices, get_translated_byte_slices, get_translated_refmut,
@@ -19,6 +20,8 @@ use crate::{
 
 pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
     match call {
+        Syscall::OpenAt => sys_openat(args[0] as *const u8, args[1] as usize),
+        Syscall::Close => sys_close(args[0]),
         Syscall::Read => sys_read(args[0], args[1] as *mut u8, args[2]),
         Syscall::Write => sys_write(args[0], args[1] as *const u8, args[2]),
         Syscall::Exit => {
@@ -40,6 +43,32 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
 
 const FD_STDIN: usize = 0;
 const FD_STDOUT: usize = 1;
+
+pub fn sys_openat(path: *const u8, flags: usize) -> SyscallRet {
+    let current = Processor::get_current().unwrap();
+    let path = get_translated_string(Processor::current_user_token().unwrap(), path as *const u8);
+    let inode = open_file(path.as_str(), OpenFlags::from_bits(flags).unwrap());
+    if let Some(inode) = inode {
+        let fd = current.inner_borrow_mut().alloc_fd();
+        current.inner_borrow_mut().fd_table[fd] = Some(inode);
+        fd as SyscallRet
+    } else {
+        -1
+    }
+}
+
+pub fn sys_close(fd: usize) -> SyscallRet {
+    let current = Processor::get_current().unwrap();
+    let mut pcb = current.inner_borrow_mut();
+    if fd >= pcb.fd_table.len() {
+        return -1;
+    }
+    if pcb.fd_table[fd].is_none() {
+        return -1;
+    }
+    pcb.fd_table[fd] = None;
+    0
+}
 
 pub fn sys_read(fd: usize, buffer: *mut u8, len: usize) -> SyscallRet {
     match fd {
@@ -116,7 +145,11 @@ pub fn sys_clone() -> SyscallRet {
 
 pub fn sys_execve(path: *const u8) -> SyscallRet {
     let path = get_translated_string(Processor::current_user_token().unwrap(), path as *const u8);
-    if let Some(data) = load_app_data_by_name(path.as_str()) {
+    if let Some(app_inode) = open_file(path.as_str(), OpenFlags::READONLY) {
+        let data = app_inode.read_all();
+        let data = data.as_slice();
+        // print some slice from the data
+        printkln!("data: {:?}", &data[0..100]);
         let current = Processor::get_current().unwrap();
         current.exec(data);
         0
