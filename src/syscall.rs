@@ -148,8 +148,6 @@ pub fn sys_execve(path: *const u8) -> SyscallRet {
     if let Some(app_inode) = open_file(path.as_str(), OpenFlags::READONLY) {
         let data = app_inode.read_all();
         let data = data.as_slice();
-        // print some slice from the data
-        printkln!("data: {:?}", &data[0..100]);
         let current = Processor::get_current().unwrap();
         current.exec(data);
         0
