@@ -188,7 +188,7 @@ qemu-system-riscv64 --version
 | [Rust Analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) | Rust 语言支持 |
 | [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) | TOML 语法高亮 |
 | [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) | GDB 调试支持 |
-| [](https://marketplace.visualstudio.com/items?itemName=augustocdias.tasks-shell-input) | 支持在任务中使用 shell 命令 |
+| [Tasks Shell Input](https://marketplace.visualstudio.com/items?itemName=augustocdias.tasks-shell-input) | 支持在任务中使用 shell 命令 |
 
 #### 任务
 
