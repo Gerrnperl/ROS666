@@ -1,4 +1,4 @@
-# OSKernel2024-HFUT666/ROS666
+# OSKernel2024-ROS666
 
 从零开始使用 Rust 编写的运行在 RISC-V 架构上的简单类 Unix 操作系统内核实现。
 
@@ -7,8 +7,8 @@
 项目为 2024 年[2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理赛道](https://os.educg.net/?token=mFdHhJEk3gYJUVY04cNJCPrCl4h4Nxeu4EEkp6Vszn#/index?TYPE=OS_HDN/#/index?TYPE=OS_HDN)
 参赛项目。
 
-- **学校**：合肥工业大学
-- **比赛方向**: OS原理赛道/小型内核实现
+- **学校**：合肥工业大学（HFUT）
+- **比赛方向**: OS原理赛道/方向一：小型内核实现
 - **队伍编号**: T202419359994630
 - **队伍名称**: HFUT666
 - **团队成员**:
