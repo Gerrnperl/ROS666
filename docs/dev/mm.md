@@ -987,15 +987,27 @@ Address 0x1500 belongs to segment: 0x1000 - 0x2000
 在接下来的部分中，我们将探讨更高级的动态内存管理机制，包括堆分配器的设计与实现。
 
 ---
-存储管理模块 - 动态内存分配（堆分配器）
+存储管理模块 - 动态内存分配（Slab 堆分配器）
 =======================================
 
 简介
 ----
 
-动态内存分配是操作系统为程序提供灵活内存分配能力的关键功能。通过动态分配，操作系统可以在程序运行时根据需求分配或释放内存，避免静态内存分配的限制。
+在没有动态内存分配的操作系统中，内核和用户程序只能使用静态内存分配，即在编译时确定内存大小。例如，为了存放一个数组，需要提前分配足够的内存空间。
 
-在本项目中，动态内存分配由 `src/mm/heap_allocator.rs` 文件实现，使用堆分配器（Heap Allocator）管理动态内存。堆分配器的核心功能包括： - 为操作系统内核提供灵活的动态内存分配支持。 - 使用高效的分配算法，减少内存碎片。
+```rust
+let mut array = [0; 1024]; // 静态分配 1024 个元素的数组
+```
+
+但是，这个方法存在以下问题：
+- 静态内存分配需要提前确定内存大小，不适用于动态数据结构。
+- 静态内存分配可能导致内存浪费或溢出。例如，这个数组可能只在极少数情况下才被使用，或者只在极端情况下才需要 1024 个元素，但是却占用了 1024 个元素的内存空间。
+
+为了解决这些问题，操作系统需要提供动态内存分配的支持。
+
+动态内存分配允许程序在运行时根据需要分配和释放内存，提高内存利用率和灵活性。
+
+在本项目中，动态内存分配器在 `slab_allocator` 包中实现，主要采用 Slab 分配器的设计。Slab 分配器是一种高效的内存分配器，通过预先分配一定数量的固定大小的内存块（Slab），并在需要时分配和回收这些内存块，以减少内存碎片和提高性能。
 
 本节将详细分析堆分配器的设计与实现，并通过代码解析堆分配的核心功能。
 
@@ -1004,9 +1016,17 @@ Address 0x1500 belongs to segment: 0x1000 - 0x2000
 
 ### 堆内存
 
-堆内存是一块由操作系统管理的内存区域，用于在程序运行时动态分配。堆内存具有以下特点： - **灵活性**：在运行时按需分配或释放。 - **碎片问题**：由于分配和回收的动态性，可能产生内存碎片。
+堆内存是在内核和用户态程序执行时动态分配的内存区域，其实际使用大小随程序运行时的需要而变化。
 
-### 堆分配器的设计目标
+对于一个需要使用堆内存的变量，其在生命周期开始时，需要向堆分配器请求一块内存；在生命周期结束时，需要释放这块内存。
+
+在此内核和用户程序库的实现中，堆内存是一块静态分配的内存区域的包装和抽象，在这块静态内存区域上实现堆分配器，即可将这块静态内存区域的子区域作为申请的内存块，实现内存的动态分配。
+
+### 堆分配器
+
+堆分配器是一个管理堆内存的模块，负责分配和释放内存。一个堆分配器在其初始化时即*拥有*了一块静态内存区域，可以在这块静态内存区域上进行内存的动态分配。
+
+堆分配器的设计目标：
 
 1.  **高效性**：减少分配与释放的时间开销。
 
@@ -1014,179 +1034,288 @@ Address 0x1500 belongs to segment: 0x1000 - 0x2000
 
 3.  **线程安全**：支持并发环境中的内存分配。
 
-堆分配器的核心数据结构
-----------------------
+此内核和用户程序库的堆分配器采用 Slab 分配器的设计，通过预先分配一定数量的固定大小的内存块（Slab），并在需要时分配和回收这些内存块，以减少内存碎片和提高性能。
 
-堆分配器由 `HeapAllocator` 结构体表示，用于管理整个堆内存区域。
+而对于大块的内存分配，堆分配器转用 LinkedList 分配器，通过链表的方式管理大块内存的分配与释放。
 
-### 核心定义
+如此，便可实现了一个高效、低碎片率的堆分配器，对于小内存分配，其不会产生较大的内存碎片，对于大内存分配，其也能够高效地进行内存分配。
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
-pub struct HeapAllocator {
-    heap_start: usize,    // 堆起始地址
-    heap_end: usize,      // 堆结束地址
-    current: usize,       // 当前分配的地址
+#### Slab 分配器
+
+Slab 分配器是一种简单的内存分配器，它将内存分配为固定大小的块，并在需要时分配这些块。
+
+Slab 分配器的核心思想是将内存划分为多个固定大小的块，每个块称为一个 Slab。Slab 分配器维护一个空闲链表，用于存储空闲的 Slab。当需要分配内存时，Slab 分配器从空闲链表中取出一个 Slab，并将其分配给请求者。当释放内存时，Slab 分配器将 Slab 放回空闲链表。
+
+Slab 分配器的优点是高效、低碎片率，适用于分配固定大小的内存块。
+
+```rust
+pub struct Slab {
+    pub block_size: usize,
+    pub block_num: usize,
+    free_list: FreeList,
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   `heap_start` **和** `heap_end`：堆的地址范围。
+struct FreeList {
+    len: usize,
+    head: Option<&'static mut FreeBlock>,
+}
 
--   `current`：记录当前的分配位置。
+struct FreeBlock {
+    next: Option<&'static mut FreeBlock>,
+}
+```
 
-堆分配器的核心功能
-------------------
+每个空闲链表链表项 `FreeBlock` 结构体“占用”一个固定大小的内存块，并指向下一个空闲块。
+一个空闲链表即可将同种大小的空闲块串联起来，
 
-### 初始化堆分配器
+在分配时，只需从链表中取出一个空闲块; 在释放时，只需将空闲块插入链表头部即可。
 
-通过 `HeapAllocator::new` 方法初始化堆分配器，定义堆的地址范围：
+```rust
+pub fn push(&mut self, free_block: &'static mut FreeBlock) {
+    free_block.next = self.head.take();
+    self.head = Some(free_block);
+    self.len += 1;
+}
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
-pub fn new(start: usize, size: usize) -> Self {
-    Self {
-        heap_start: start,
-        heap_end: start + size,
-        current: start,
+pub fn pop(&mut self) -> Option<&'static mut FreeBlock> {
+    self.head.take().map(|free_block| {
+        self.head = free_block.next.take();
+        self.len -= 1;
+        free_block
+    })
+}
+```
+
+在扩充 Slab 分配器时，只需要在新分配的内存区域上以 Slab 的大小建立一个新的空闲链表，并将其加入到 Slab 分配器的链表中即可。
+```rust
+pub fn grow(&mut self, start: Address, slab_size: usize) {
+    let block_num = slab_size / self.block_size;
+    self.block_num += block_num;
+    // 添加到 self.free_list
+    for i in 0..block_num {
+        let block = (start + i * self.block_size) as *mut FreeBlock;
+        let block = unsafe { &mut *block };
+        self.free_list.push(block);
     }
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
--   参数 `start`：堆的起始地址。
-
--   参数 `size`：堆的大小。
-
-#### 示例代码
+#### 堆分配器核心定义
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
-let mut heap_allocator = HeapAllocator::new(0x100000, 0x10000);
-println!("Heap allocator initialized: 0x100000 - 0x110000");
+pub struct Heap {
+    /// Slab 分配器数组
+    slabs: [slab::Slab; SLABS_NUM],
+    /// Fallback Linked List Allocator
+    fallback: linked_list_allocator::Heap,
+    /// 用户请求的字节数
+    user: usize,
+    /// 实际分配的字节数
+    allocated: usize,
+    /// 堆中的总字节数
+    total: usize,
+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-输出：
+此堆分配器包含了两种内存分配器：Slab 分配器和 LinkedList 分配器。
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Heap allocator initialized: 0x100000 - 0x110000
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Slab 分配器用于分配小块内存，在这里，我们定义了 `SLABS_NUM` (=7) 种不同大小的 Slab 分配器，分别用于分配 64、128、256、512、1024、2048 和 4096 字节大小的内存块。
 
-### 分配内存
+LinkedList 分配器用于分配大块内存，当 Slab 分配器无法满足用户请求时，堆分配器会转用 LinkedList 分配器。
 
-#### 分配逻辑
+#### 堆分配器初始化
 
-堆分配器通过 `alloc` 方法分配指定大小的内存块，并返回其起始地址：
+在堆分配器构建时，其各个子分配器都是空的，在初始化时，需要将一段连续的内存空间划分给各个子分配器。
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
-pub fn alloc(&mut self, size: usize) -> Option<usize> {
-    let alloc_start = self.current;
-    let alloc_end = self.current + size;
-
-    if alloc_end > self.heap_end {
-        None // 内存不足，分配失败
-    } else {
-        self.current = alloc_end; // 更新当前分配位置
-        Some(alloc_start) // 返回分配的起始地址
+```rust
+pub unsafe fn init(&mut self, start: usize, size: usize) {
+    let alloc_size = size / ALLOCATORS_NUM;
+    let total_slab_size = alloc_size * SLABS_NUM;
+    let fallback_size = alloc_size;
+    unsafe {
+        self.add_to_heap(start, start + total_slab_size);
+        self.init_fallback(start + total_slab_size, fallback_size);
     }
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
--   `alloc_start`：当前的分配位置。
+在初始化时，堆内存分配器*以相同的权重*将初始内存分配给各个子分配器，即确保每个子分配器管理的内存尽可能相等，以满足不同大小内存块的分配需求。
 
--   `alloc_end`：计算分配后的结束位置。
-
--   如果 `alloc_end` 超过 `heap_end`，返回 `None` 表示分配失败；否则更新 `current` 并返回分配地址。
-
-#### 示例代码
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
-if let Some(ptr) = heap_allocator.alloc(0x100) {
-    println!("Allocated memory at: 0x{:x}", ptr);
-} else {
-    println!("Memory allocation failed.");
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-输出：
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Allocated memory at: 0x100000
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-### 释放内存
-
-#### 释放逻辑
-
-目前的堆分配器为简化实现，采用 **线性分配** 策略，不支持回收内存。但可以通过重置堆指针实现全部内存的回收：
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
-pub fn reset(&mut self) {
-    self.current = self.heap_start; // 重置分配位置到堆起始地址
-}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
--   通过 `reset` 方法重置 `current`，释放所有已分配的内存。
-
-#### 示例代码
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
-heap_allocator.reset();
-println!("Heap allocator reset.");
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-输出：
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Heap allocator reset.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-### 示例程序
-
-以下示例展示了堆分配器的完整使用过程：
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ rust
-fn main() {
-    // 初始化堆分配器
-    let mut heap_allocator = HeapAllocator::new(0x100000, 0x10000);
-
-    // 分配内存
-    if let Some(ptr) = heap_allocator.alloc(0x100) {
-        println!("Allocated memory at: 0x{:x}", ptr);
-    } else {
-        println!("Memory allocation failed.");
+```rust
+unsafe fn init_fallback(&mut self, mut start: usize, size: usize) {
+    start = (start + size_of::<usize>() - 1) & (!size_of::<usize>() + 1);
+    unsafe {
+        self.fallback.init(start as *mut u8, size);
     }
-
-    // 重置堆分配器
-    heap_allocator.reset();
-    println!("Heap allocator reset.");
+    self.total += size;
 }
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+pub unsafe fn add_to_heap(&mut self, mut start: usize, mut end: usize) {
+    start = (start + size_of::<usize>() - 1) & (!size_of::<usize>() + 1);
+    end &= !size_of::<usize>() + 1;
+    assert!(start <= end);
+    let new_heap_size = end - start;
+    self.total += new_heap_size;
+    let slab_size = new_heap_size / SLABS_NUM;
+    for slab_i in 0..SLABS_NUM {
+        let slab_start = start + slab_i * slab_size;
+        match self.get_inner(slab_i) {
+            AllocType::Slab(i) => {
+                self.slabs[i].grow(slab_start, slab_size);
+            }
+            AllocType::Fallback => {
+                unreachable!("Fallback allocator should not be initialized here");
+            }
+        }
+    }
+}
+```
 
-输出结果：
+这里，`add_to_heap` 方法将一段连续的内存空间划分给各个 Slab 分配器，在分配时，将内存空间平分给各个 Slab 分配器，每个 Slab 分配器获得 从总内存起始`start` + `i * slab_size` 到 `start` + `(i+1) * slab_size` 的内存空间。
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Heap allocator initialized: 0x100000 - 0x110000
-Allocated memory at: 0x100000
-Heap allocator reset.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+由于 Linked List 分配器的内存分配方式不同，其需要连续的内存空间，因此在初始化时，需要将一段连续的内存空间划分给 Linked List 分配器。在这之后不随 Slab 分配器的内存分配而变化。
 
-堆分配器的设计特点
-------------------
+#### 分配
 
-1.  **简单实现**：
+堆分配器的分配方法是一个简单的分配器选择方法，它根据用户请求的内存大小选择合适的 Slab 分配器或 Linked List 分配器进行内存分配。
 
-    -   采用线性分配策略，适合嵌入式环境或内核开发的早期阶段。
+```rust
+pub fn get_slab_index(mut size: usize) -> usize {
+    if size <= MIN_ALLOC_SIZE {
+        return 0;
+    }
+    if size > MAX_SLAB_SIZE {
+        return ALLOCATORS_NUM - 1; // 回退到链表分配器
+    }
+    // 64 -> 0, 65-128 -> 1, 129-256 -> 2, ...
+    size = size.next_power_of_two();
+    size.trailing_zeros() as usize - 6
+}
+```
 
-    -   通过重置堆指针实现内存回收。
+`get_slab_index` 方法根据用户请求的内存大小选择合适的 Slab 分配器，如果请求的内存大小小于等于最小内存块大小，则选择第一个 Slab 分配器；如果请求的内存大小大于最大 Slab 分配器的内存块大小，则选择 Linked List 分配器；否则，选择最接近且大于等于请求内存大小的 Slab 分配器。
 
-2.  **高效性**：
+```rust
+pub fn alloc(&mut self, layout: Layout) -> Result<NonNull<u8>, AllocError> {
+    let size = layout.size();
+    match self.select_allocator(&layout) {
+        AllocType::Slab(i) => {
+            let ret = self.slabs[i].alloc();
+            if ret.is_ok() {
+                self.user += size;
+                self.allocated += self.slabs[i].block_size;
+            }
+            ret
+        }
+        AllocType::Fallback => {
+            let ret = self.fallback.allocate_first_fit(layout);
+            if ret.is_ok() {
+                self.user += size;
+                self.allocated += size;
+                Ok(ret.unwrap())
+            } else {
+                Err(AllocError)
+            }
+        }
+    }
+}
+```
 
-    -   分配逻辑仅涉及指针操作，时间复杂度为 O(1)。
+`alloc` 方法根据用户请求的内存大小选择合适的分配器，并调用相应的分配方法进行内存分配。如果分配成功，则更新用户请求的字节数和实际分配的字节数。分配操作会返回一个非空的内存指针，或者返回分配错误。
 
-3.  **扩展性**：
+#### 释放
 
-    -   可在现有实现的基础上引入更复杂的分配算法（如首次适配、最佳适配）和内存回收机制。
+和分配类似，堆分配器的释放方法也是一个简单的释放器选择方法，它根据用户请求的内存大小选择合适的 Slab 分配器或 Linked List 分配器进行内存释放。
+
+```rust
+pub fn dealloc(&mut self, ptr: NonNull<u8>, layout: Layout) {
+    let size = layout.size();
+    match self.select_allocator(&layout) {
+        AllocType::Slab(i) => {
+            self.slabs[i].dealloc(ptr);
+            self.user -= size;
+            self.allocated -= self.slabs[i].block_size;
+        }
+        AllocType::Fallback => {
+            unsafe { self.fallback.deallocate(ptr, layout) };
+            self.user -= size;
+            self.allocated -= size;
+        }
+    }
+}
+```
+
+`dealloc` 方法根据用户请求的内存大小选择合适的分配器，并调用相应的释放方法进行内存释放。如果释放成功，则更新用户请求的字节数和实际分配的字节数。
+
+#### LockedHeap
+
+堆内存分配器不只运行在内核态，也运行在用户态。在用户态，堆内存分配器需要支持并发环墐，因此需要加锁以保证线程安全。
+
+LockedHeap 是一个对 Heap 的封装，它在堆内存分配器的基础上增加了互斥锁，以保证堆内存分配器的线程安全性。
+
+```rust
+#[cfg(feature = "use_spin")]
+pub struct LockedHeap(Mutex<Heap>);
+```
+
+在使用 LockedHeap 时，需要先使用 `.lock()` 方法获取互斥锁，然后再调用堆内存分配器的方法。
+
+#### 注册
+
+堆内存分配器需要在内核启动时注册，以便内核和用户程序能够使用堆内存分配器。
+
+注册堆内存分配器首先需要为其实现 Rust alloc 库的 `GlobalAlloc` trait，这样，Rust 的内存分配器就能够使用堆内存分配器进行内存分配，从而可以在内核和用户程序中使用堆内存分配器及构建在其之上的 动态数据结构，如 `Vec`、`Box` 等。
+
+```rust
+#[cfg(feature = "use_spin")]
+unsafe impl alloc::GlobalAlloc for LockedHeap {
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        self.0.lock().alloc(layout).ok()
+            .map_or(core::ptr::null_mut(), |allocation| allocation.as_ptr())
+    }
+    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+        self.0.lock()
+            .dealloc(unsafe { NonNull::new_unchecked(ptr) }, layout)
+    }
+}
+
+实现时，只需要简单地调用堆内存分配器的 `alloc` 和 `dealloc` 方法即可。
+
+实现该 trait 后，即可向 Rust 的内存分配器注册堆内存分配器，使得 Rust 的内存分配器能够使用堆内存分配器进行内存分配。
+
+我们需要定义一个全局的 `HEAP_ALLOCATOR` 静态变量，通过 `#[global_allocator]` 属性将其注册为 Rust 的全局内存分配器。
+
+最后，将一块静态内存空间划分给堆内存分配器，并初始化堆内存分配器。
+
+```rust
+#[global_allocator]
+static HEAP_ALLOCATOR: LockedHeap = LockedHeap::empty();
+static mut HEAP: [u8; HEAP_SIZE] = [0; HEAP_SIZE];
+
+#[allow(static_mut_refs)]
+/// 初始化内核堆内存分配器
+pub fn init_heap() {
+    unsafe {
+        HEAP_ALLOCATOR.lock()
+            .init(HEAP.as_ptr() as usize, HEAP_SIZE);
+    }
+}
+```
+
+同时，我们也需要处理分配失败的情况，例如内存不足等。使用 `#[alloc_error_handler]` 属性，我们可以定义一个全局的内存分配错误处理函数，当内存分配失败时，Rust 的内存分配器会调用该函数。
+
+```rust
+#[alloc_error_handler]
+fn alloc_error_handler(layout: core::alloc::Layout) -> ! {
+    panic!("Heap allocation error: {:?}", layout)
+}
+```
 
 小结
 ----
 
-堆分配器是动态内存分配的核心组件之一，为操作系统内核提供了灵活的内存管理能力。在本项目中，堆分配器通过线性分配策略实现了简单而高效的内存分配。尽管不支持回收内存，但其实现为后续扩展提供了良好的基础。
+堆分配器是一个管理堆内存的模块，负责分配和释放内存。堆分配器通过 Slab 分配器和 Linked List 分配器实现内存的动态分配，提高内存利用率和灵活性。
+
+在本节中，我们详细介绍了堆分配器的设计与实现，包括 Slab 分配器的设计思想、核心功能和代码实现。通过堆分配器，操作系统可以支持动态内存分配，为内核和用户程序提供强大的内存管理能力。
 
 ---
 # 存储管理模块 - 总结
@@ -1200,7 +1329,7 @@ Heap allocator reset.
 - **物理页帧管理**：使用位图数据结构高效跟踪和管理物理页帧，提供了可靠的分配和回收机制。
 - **多级页表管理**：基于 RISC-V SV39 分页机制，支持虚拟地址到物理地址的高效映射和权限控制。
 - **地址空间管理**：通过逻辑段和多级页表的结合，实现虚拟地址空间的灵活组织与管理。
-- **动态内存分配（堆分配器）**：为内核提供灵活的动态内存分配能力，支持运行时的内存需求。
+- **堆分配器设计**：基于 Slab 和 LinkedList 分配器，实现了高效、低碎片率的动态内存分配。
 
 ---
 
@@ -1240,34 +1369,8 @@ Heap allocator reset.
 
 ---
 
-## 未来的改进方向
-
-虽然本模块已实现了存储管理的核心功能，但仍存在进一步优化和扩展的空间：
-
-1. **改进动态内存分配**  
-   - 实现更复杂的分配算法（如最佳适配、最差适配）。
-   - 支持分配内存的回收，减少内存碎片。
-
-2. **完善权限控制**  
-   - 增加更细粒度的权限控制机制，进一步提升内存的安全性。
-
-3. **内存共享与虚拟内存**  
-   - 实现跨任务的内存共享机制。
-   - 支持虚拟内存功能，包括页面置换和交换。
-
-4. **多任务支持**  
-   - 扩展地址空间管理模块，支持多任务环境下的地址空间切换。
-
----
-
 ## 结束语
 
 存储管理模块为操作系统的正常运行提供了强有力的支持，是操作系统开发的核心环节之一。本项目的实现涵盖了从地址抽象到动态分配的完整功能链，为进一步的学习和开发奠定了坚实的基础。
 
 通过模块化设计和代码实践，我们不仅能够更好地理解存储管理的内部机制，还可以为实际操作系统的开发积累宝贵经验因而后续我们还将继续在本基础上进行改善。
-
-
-
-
-
-
