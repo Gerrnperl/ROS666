@@ -1,15 +1,50 @@
 # OSKernel2024-HFUT666/ROS666
 
-基于 Rust 和 RISC-V 架构的简单操作系统内核实现。
+从零开始使用 Rust 编写的运行在 RISC-V 架构上的简单类 Unix 操作系统内核实现。
 
-## Reference
+## 比赛信息
 
-| Project | License |
-| --- | --- |
-| [rCore-Tutorial-v3](https://github.com/rcore-os/rCore-Tutorial-v3) | GPL-3.0 |
-| [rCore](https://github.com/rcore-os/rCore) | MIT |
+项目为 2024 年[2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理赛道](https://os.educg.net/?token=mFdHhJEk3gYJUVY04cNJCPrCl4h4Nxeu4EEkp6Vszn#/index?TYPE=OS_HDN/#/index?TYPE=OS_HDN)
+参赛项目。
 
-## Requirements
+- **学校**：合肥工业大学
+- **比赛方向**: OS原理赛道/小型内核实现
+- **队伍编号**: T202419359994630
+- **队伍名称**: HFUT666
+- **团队成员**:
+  - 万立志 @MagicalMagic | [GitHub](https://github.com/MagicBeards) | [gitlab.eduxiji.net](https://gitlab.eduxiji.net/MagicalMagic)
+  - 高培骏 @FengSheng0804 | [GitHub](https://github.com/FengSheng0804) | [gitlab.eduxiji.net](https://gitlab.eduxiji.net/FengSheng0804)
+  - 卢继鹏 @Gerrnperl | [GitHub](https://github.com/Gerrnperl/) | [gitlab.eduxiji.net](https://gitlab.eduxiji.net/gerrnperl)
+- **指导老师**:
+  - 田卫东
+  - 周红鹃
+  
+## 进度
+- [x] 裸机内核启动
+- [x] 标准输入输出
+- [x] 陷入与陷入返回
+- [x] 动态内存分配 (Slab Allocator)
+- [x] 分页机制
+- [x] 时钟中断
+- [x] 进程管理与调度
+- [x] 文件系统
+- [x] 用户态程序
+- [x] 系统调用
+  - [x] stdio & fs: read, write; openat, close
+  - [x] process: clone(fork), execve, wait, exit, sched_yield
+  - [x] gettime, shutdown
+
+## 参考
+
+项目开发过程主要参考以下资料：
+- [rCore-Tutorial-Book-v3](https://rcore-os.cn/rCore-Tutorial-Book-v3/) | [GPL-3.0 License](https://github.com/rcore-os/rCore-Tutorial-Book-v3/blob/main/LICENSE)
+
+部分代码参考以下项目：
+- [rCore-Tutorial-v3](https://github.com/rcore-os/rCore-Tutorial-v3) | [GPL-3.0 License](https://github.com/rcore-os/rCore-Tutorial-v3/blob/main/LICENSE)
+- [slab_allocator - Slab allocator for no_std systems. ](https://github.com/weclaw1/slab_allocator/tree/master) | [MIT License](https://github.com/weclaw1/slab_allocator/blob/master/LICENSE)
+- [virtio-drivers](https://github.com/rcore-os/virtio-drivers) | [MIT License](https://github.com/rcore-os/virtio-drivers/blob/master/LICENSE)
+
+## 依赖
 
 项目构建运行配置针对 Linux (Ubuntu) 系统配置，未在其他系统上测试。建议使用 WSL2 或 VMWare / VirtualBox 等虚拟机运行 Ubuntu 系统。
 
@@ -27,14 +62,20 @@ Ubuntu 版本建议在 **24.04 noble** 及以上版本，避免从源码编译 Q
 
 [Developing in WSL with Visual Studio Code](https://code.visualstudio.com/docs/remote/wsl)
 
+### Build-essential
+
+Build-essential 是一个包含了编译 C/C++ 程序所需的工具的包。我们主要使用其中的 Make 工具。
+
+```shell
+sudo apt install build-essential
+```
+
 ### Rust 安装
 
 <img src="https://pic4.zhimg.com/v2-4f3c8ea0b71e54ea4aeb98c1747ae81b_xld.png" width="100px" alt="rust"
 title="&#x4F60;&#x8BF4;&#x5F97;&#x5BF9;&#xFF0C;&#x4F46;&#x662F; Rust &#x662F;&#x7531; Mozilla &#x81EA;&#x4E3B;&#x7814;&#x53D1;&#x7684;&#x4E00;&#x6B3E;&#x5168;&#x65B0;&#x7684;&#x7F16;&#x8BD1;&#x671F;&#x683C;&#x6597;&#x6E38;&#x620F;&#x3002;&#x7F16;&#x8BD1;&#x5C06;&#x53D1;&#x751F;&#x5728;&#x4E00;&#x4E2A;&#x88AB;&#x79F0;&#x4F5C;&#x300C;Cargo&#x300D;&#x7684;&#x6784;&#x5EFA;&#x7CFB;&#x7EDF;&#x4E2D;&#x3002;&#x5728;&#x8FD9;&#x91CC;&#xFF0C;&#x88AB;&#x5F15;&#x7528;&#x7684;&#x6307;&#x9488;&#x5C06;&#x88AB;&#x6388;&#x4E88;&#x300C;&#x751F;&#x547D;&#x5468;&#x671F;&#x300D;&#x4E4B;&#x529B;&#xFF0C;&#x5BFC;&#x5F15;&#x5BF9;&#x8C61;&#x5B89;&#x5168;&#x3002;&#x4F60;&#x5C06;&#x626E;&#x6F14;&#x4E00;&#x4F4D;&#x540D;&#x4E3A;&#x300C;Rustacean&#x300D;&#x7684;&#x795E;&#x79D8;&#x89D2;&#x8272;, &#x5728;&#x4E0E;&#x300C;Rustc&#x300D;&#x7684;&#x640F;&#x6597;&#x4E2D;&#x9082;&#x9005;&#x5404;&#x79CD;&#x9AA8;&#x9ABC;&#x60CA;&#x5947;&#x7684;&#x50B2;&#x5A07;&#x62A5;&#x9519;&#x3002;&#x5F81;&#x670D;&#x5B83;&#x4EEC;&#x3001;&#x901A;&#x8FC7;&#x7F16;&#x8BD1;&#x540C;&#x65F6;&#xFF0C;&#x9010;&#x6B65;&#x53D1;&#x6398;&#x300C;C++&#x300D;&#x7A0B;&#x5E8F;&#x5D29;&#x6E83;&#x7684;&#x771F;&#x76F8;.">
 
-确保系统中已安装 Rust，并且 `rustc` 命令在 `$PATH` 中可用。
-
-如果未安装 Rust，请按照以下步骤安装 Rust。
+项目使用 Rust 语言进行开发。确保系统中已安装 Rust 工具链。
 
 #### 安装 Rust
 
@@ -69,6 +110,17 @@ rustup install nightly
 rustup default nightly
 ```
 
+#### 设置构建目标
+
+项目使用 `riscv64gc-unknown-none-elf` 作为构建目标。运行以下命令设置构建目标：
+
+```shell
+rustup target add riscv64gc-unknown-none-elf
+cargo install cargo-binutils
+rustup component add llvm-tools-preview
+rustup component add rust-src
+```
+
 #### 配置 Cargo 镜像源
 
 Rust 的包管理工具 `cargo` 默认从官方源下载依赖，由于网络原因可能会导致下载速度较慢。可以配置 Rust 镜像源加速下载。
@@ -84,11 +136,7 @@ registry = "https://mirrors.tuna.tsinghua.edu.cn/git/crates.io-index.git"
 
 ### QEMU 安装
 
-QEMU 是一个开源的模拟器。
-
-确保系统中已安装 `qemu-system-riscv64`，并且该命令在 `$PATH` 中可用。
-
-如果未安装 QEMU，请按照以下步骤安装 QEMU。
+项目使用 QEMU System RISC-V 模拟器运行 RISC-V 架构的内核, 使用 QEMU RISC-V 模拟器测试用户态程序。
 
 #### 安装 QEMU
 
@@ -96,6 +144,7 @@ QEMU 是一个开源的模拟器。
 
 ```shell
 sudo apt install qemu-system
+sudo apt install qemu-user
 ```
 
 对于旧版本的 Ubuntu，需要从源码编译 QEMU。请参考以下链接：
@@ -111,13 +160,9 @@ sudo apt install qemu-system
 qemu-system-riscv64 --version
 ```
 
-### riscv64-unknown-elf-gdb 安装
+### riscv64-*-gdb 安装
 
-riscv64-unknown-elf-gdb 是 GDB 的 RISC-V 版本。
-
-确保系统中已安装 `riscv64-unknown-elf-gdb`，并且该命令在 `$PATH` 中可用。
-
-如果未安装 `riscv64-unknown-elf-gdb`，请按照以下步骤安装。
+需要安装 `riscv64-unknown-elf-gdb` 或者 `riscv64-unknown-linux-gnu-gdb` 用于调试内核。
 
 #### 安装 riscv64-unknown-elf-gdb
 
@@ -143,6 +188,7 @@ riscv64-unknown-elf-gdb 是 GDB 的 RISC-V 版本。
 | [Rust Analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer) | Rust 语言支持 |
 | [Even Better TOML](https://marketplace.visualstudio.com/items?itemName=tamasfe.even-better-toml) | TOML 语法高亮 |
 | [C/C++](https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools) | GDB 调试支持 |
+| [](https://marketplace.visualstudio.com/items?itemName=augustocdias.tasks-shell-input) | 支持在任务中使用 shell 命令 |
 
 #### 任务
 
@@ -150,17 +196,21 @@ riscv64-unknown-elf-gdb 是 GDB 的 RISC-V 版本。
 
 | 任务 | 描述 |
 | --- | --- |
-| Check: dev environment | 检查开发环境是否满足要求 |
-| Rust: cargo build (debug) | 编译项目 (调试模式) |
-| Rust: cargo build (release) | 编译项目 (发布模式) |
-| Rust: objcopy (debug) | 生成内核镜像 (调试模式) |
-| Rust: objcopy (release) | 生成内核镜像 (发布模式) |
-| QEMU: launch riscv64 (debug) | 运行 QEMU RISC-V (调试模式) |
-| QEMU: launch riscv64 (release) | 运行 QEMU RISC-V (发布模式) |
+| Check: dev environment | 检查开发环境 |
+| Rust: build kernel (dev) | 构建内核 (开发模式) |
+| Rust: build kernel (release) | 构建内核 (发布模式) |
+| Rust: build user app (dev) | 构建用户程序 (开发模式) |
+| Rust: build user app (release) | 构建用户程序 (发布模式) |
+| QEMU: launch qemu system (dev) | 启动 QEMU 调试内核 (开发模式) |
+| QEMU: launch qemu system (release) | 启动 QEMU 运行内核 (发布模式) |
+| QEMU: launch qemu user (dev) | 启动 QEMU 调试用户程序 (开发模式) |
+| QEMU: launch qemu user (release) | 启动 QEMU 运行用户程序 (发布模式) |
 
 #### 运行和调试
 
 目前提供了 `调试内核` 和 `运行内核` 两个调试配置，在`运行和调试`面板中，可以选择调试配置。通过 `F5` 运行调试。
+
+可以使用 `调试用户程序` 和 `运行用户程序` 两个调试配置，调试用户程序。
 
 调试通过`riscv64-unknown-elf-gdb`进行，需要在系统中安装该工具链。
 
