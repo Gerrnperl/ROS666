@@ -39,6 +39,7 @@
 - [x] 进程管理与调度
 - [x] 文件系统
 - [x] 用户态程序
+- [x] 命令行参数
 - [x] 系统调用
   - [x] stdio & fs: read, write; openat, close
   - [x] process: clone(fork), execve, wait, exit, sched_yield
@@ -48,8 +49,6 @@
 
 ### 启动及关闭系统
 
-<!-- ![启动及关闭系统](./docs/images/demo-系统启动与关闭.gif) -->
-
 <img src="./docs/images/demo-系统启动与关闭.gif" width="1024px" alt="启动及关闭系统">
 
 ### 用户程序
@@ -58,32 +57,28 @@
 
 ### 进程管理
 
-<!-- ![进程管理](./docs/images/demo-进程分时调度.gif) -->
 <img src="./docs/images/demo-进程分时调度.gif" width="512px" alt="进程管理">
 
 ### 文件系统
 
-<!-- ![文件系统](./docs/images/demo-文件系统操作.gif) -->
 <img src="./docs/images/demo-文件系统操作.gif" width="512px" alt="文件系统">
 
 
 ## 开发历程
 
-至2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理比赛结束时，本项目总共经历了230余次修改。具体请参考我们的[commit记录](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/commits/main)
+至2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理比赛结束时，本项目总共经历了260余次修改。具体请参考我们的[commit记录](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/commits/main)
 
-本项目共包含约8500行代码、约5200行markdown文档说明，下表具体展示了组成项目各部分的占比。
+至比赛结束时，本项目共包含约8500行源代码、约6200行markdown文档说明，下表具体展示了组成项目各部分的占比。
 
 | language | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | Rust | 79 | 5,119 | 2,291 | 819 | 8,229 |
-| source.markdown.math | 20 | 3,803 | 0 | 1,445 | 5,248 |
+| Markdown | 29 | 4,724 | 0 | 1,558 | 6,282 |
 | TOML | 9 | 158 | 5 | 33 | 196 |
 | Assembler file | 3 | 136 | 0 | 22 | 158 |
 | Makefile | 1 | 106 | 25 | 25 | 156 |
 | Shell Script | 1 | 92 | 36 | 16 | 144 |
 | LinkerScript | 2 | 86 | 2 | 12 | 100 |
-| YAML | 1 | 23 | 0 | 7 | 30 |
-
 
 以下为各个版本完成的工作：
 | 版本 | 完成核心任务 | 跳转链接 | 
@@ -102,9 +97,6 @@
 | v0.1.0 | 文件系统接入、VirtIO block device 与 SD 卡驱动 | [v0.1.0](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.1.0) | 
 | v0.1.1 | 关闭系统、进程让权休眠；完善日志；代码整理优化 | [v0.1.1](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.1.1) | 
 | v0.1.2 | 命令行参数；cat、ls、touch 等用户程序 | [v0.1.2](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.1.2) |
-
-
-
 
 
 ## 依赖
