@@ -118,7 +118,8 @@ impl MemInode {
             let sub_offset = sub_id * DIR_ENTRY_SIZE;
             let mut buf = DirEntry::default();
             disk_inode.read_at(sub_offset, &self.dev, buf.as_mut_bytes());
-            if buf.name() == name {
+            let buf_name = buf.name();
+            if buf_name == name || &buf_name[..buf_name.len() - 1] == name {
                 return Some(buf.inode());
             }
         }

@@ -33,6 +33,10 @@ name = "ls"
 path = "src/ls/bin/main.rs"
 
 [[bin]]
+name = "cat"
+path = "src/cat/bin/main.rs"
+
+[[bin]]
 name = "shutdown"
 path = "src/shutdown/bin/main.rs"
 
@@ -51,4 +55,4 @@ lib = { path = "../user-lib" }
 build = { path = "../user-build" }
 
 [package.metadata]
-applications = ["initproc", "sh", "hello", "bye", "fstest", "rrtest", "ls", "shutdown", "echo", "calc"]
+applications = ["initproc", "sh", "hello", "bye", "fstest", "rrtest", "ls", "cat", "shutdown", "echo", "calc"]
