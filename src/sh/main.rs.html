@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `user/src/sh/bin/main.rs`."><title>main.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="sh" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">sh/</div>main.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `user/src/sh/bin/main.rs`."><title>main.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="sh" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (bdc6b3de4 2024-12-23)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../static.files/storage-59e33391.js"></script><script defer src="../../static.files/src-script-56102188.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">sh/</div>main.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -73,12 +73,43 @@
 <a href="#72" id="72">72</a>
 <a href="#73" id="73">73</a>
 <a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a></pre></div><pre class="rust"><code><span class="doccomment">//! # Shell
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a>
+<a href="#88" id="88">88</a>
+<a href="#89" id="89">89</a>
+<a href="#90" id="90">90</a>
+<a href="#91" id="91">91</a>
+<a href="#92" id="92">92</a>
+<a href="#93" id="93">93</a>
+<a href="#94" id="94">94</a>
+<a href="#95" id="95">95</a>
+<a href="#96" id="96">96</a>
+<a href="#97" id="97">97</a>
+<a href="#98" id="98">98</a>
+<a href="#99" id="99">99</a>
+<a href="#100" id="100">100</a>
+<a href="#101" id="101">101</a>
+<a href="#102" id="102">102</a>
+<a href="#103" id="103">103</a></pre></div><pre class="rust"><code><span class="doccomment">//! # Shell
 
 </span><span class="attr">#![no_std]
 #![no_main]
 
-</span><span class="kw">use </span>alloc::string::String;
+</span><span class="kw">use </span>alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
 <span class="kw">use </span>lib::{execve, fork, getchar, sys::wait::waitpid};
 
 <span class="kw">extern crate </span>alloc;
@@ -98,9 +129,16 @@
         </span><span class="kw">if </span>command.len() == <span class="number">0 </span>{
             <span class="kw">continue</span>; <span class="comment">// 如果命令为空，继续循环
         </span>}
+        <span class="kw">let </span>(<span class="kw-2">mut </span>program, args) = parse_command(command.as_str());
+        program.push(<span class="string">'\0'</span>);
+        <span class="kw">let </span>program = program.as_str();
+        <span class="kw">let </span>args_vec: <span class="prelude-ty">Option</span>&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt; = args
+            .as_ref()
+            .map(|args| args.iter().map(|arg| arg.as_str()).collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;());
+        <span class="kw">let </span>args_ptr = args_vec.as_ref().map(|args| args.as_slice());
         <span class="kw">let </span>pid = fork(); <span class="comment">// 创建子进程
         </span><span class="kw">if </span>pid == <span class="number">0 </span>{
-            <span class="kw">let </span>exit_code = execve(command.as_str()); <span class="comment">// 在子进程中执行命令
+            <span class="kw">let </span>exit_code = execve(program, args_ptr); <span class="comment">// 在子进程中执行命令
             </span><span class="kw">if </span>exit_code != <span class="number">0 </span>{
                 <span class="macro">println!</span>(<span class="string">"Failed to execute command: {}"</span>, command); <span class="comment">// 命令执行失败
                 </span><span class="kw">return </span>-<span class="number">4</span>;
@@ -148,4 +186,22 @@
     }
     buffer <span class="comment">// 返回缓冲区中的字符串
 </span>}
+
+<span class="kw">fn </span>parse_command(command: <span class="kw-2">&amp;</span>str) -&gt; (String, <span class="prelude-ty">Option</span>&lt;Vec&lt;String&gt;&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>parts = command.split_whitespace(); <span class="comment">// 使用空白字符分割命令
+    </span><span class="kw">let </span>program = parts.next().unwrap().to_string(); <span class="comment">// 第一个部分是程序名
+    </span><span class="kw">let </span>args = parts.collect::&lt;Vec&lt;<span class="kw-2">&amp;</span>str&gt;&gt;(); <span class="comment">// 剩余部分是参数
+
+    // add \0 to the end of each argument
+    </span><span class="kw">let </span>args_with_null: Vec&lt;String&gt; = args
+        .iter()
+        .map(|<span class="kw-2">&amp;</span>arg| {
+            <span class="kw">let </span><span class="kw-2">mut </span>arg = arg.to_string();
+            arg.push(<span class="string">'\0'</span>);
+            arg
+        })
+        .collect();
+
+    (program, <span class="prelude-val">Some</span>(args_with_null))
+}
 </code></pre></div></section></main></body></html>

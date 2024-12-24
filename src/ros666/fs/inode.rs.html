@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/fs/inode.rs`."><title>inode.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (426d17342 2024-12-21)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/fs/</div>inode.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `src/fs/inode.rs`."><title>inode.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-46132b98.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="ros666" data-themes="" data-resource-suffix="" data-rustdoc-version="1.85.0-nightly (bdc6b3de4 2024-12-23)" data-channel="nightly" data-search-js="search-036cda7a.js" data-settings-js="settings-0f613d39.js" ><script src="../../../static.files/storage-59e33391.js"></script><script defer src="../../../static.files/src-script-56102188.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-5f194d8c.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-893ab5e7.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">ros666/fs/</div>inode.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
 <a href="#1" id="1">1</a>
 <a href="#2" id="2">2</a>
 <a href="#3" id="3">3</a>
@@ -149,10 +149,31 @@
 <a href="#148" id="148">148</a>
 <a href="#149" id="149">149</a>
 <a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a></pre></div><pre class="rust"><code><span class="doccomment">//! 操作系统 Inode (文件) 结构
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
+<a href="#162" id="162">162</a>
+<a href="#163" id="163">163</a>
+<a href="#164" id="164">164</a>
+<a href="#165" id="165">165</a>
+<a href="#166" id="166">166</a>
+<a href="#167" id="167">167</a>
+<a href="#168" id="168">168</a>
+<a href="#169" id="169">169</a>
+<a href="#170" id="170">170</a>
+<a href="#171" id="171">171</a>
+<a href="#172" id="172">172</a></pre></div><pre class="rust"><code><span class="doccomment">//! 操作系统 Inode (文件) 结构
 //!
 //! 一个文件在操作系统中对应一个 Inode 结构，用于管理文件的读写操作
-</span><span class="kw">use </span>alloc::{sync::Arc, vec::Vec};
+</span><span class="kw">use </span>alloc::{string::String, sync::Arc, vec::Vec};
 <span class="kw">use </span>common::syscall::OpenFlags;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>ros_fs::{fs::FileSystemRootInode, layout::disk_inode::InodeType, virt_fs::MemInode};
@@ -219,6 +240,24 @@
     <span class="kw">fn </span>read(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw-2">mut </span>buf: UserBuffer) -&gt; usize {
         <span class="kw">let </span><span class="kw-2">mut </span>inode = <span class="self">self</span>.inode.lock();
         <span class="kw">let </span>inode = <span class="kw-2">&amp;mut *</span>inode;
+        <span class="kw">if </span>inode.inode.get_type() == InodeType::Dir {
+            <span class="comment">// a trick to read directory
+            </span><span class="kw">let </span>ls_str = inode.inode.ls().join(<span class="string">"\t"</span>);
+            <span class="kw">let </span>ls_bytes = ls_str.as_bytes();
+            <span class="kw">let </span><span class="kw-2">mut </span>read_size = <span class="number">0</span>;
+            <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..buf.buffers.len() {
+                <span class="kw">let </span><span class="kw-2">mut </span>newly_read = <span class="number">0</span>;
+                <span class="kw">while </span>newly_read &lt; ls_bytes.len() &amp;&amp; read_size &lt; buf.buffers[i].len() {
+                    buf.buffers[i][read_size] = ls_bytes[newly_read];
+                    newly_read += <span class="number">1</span>;
+                    read_size += <span class="number">1</span>;
+                }
+                <span class="kw">if </span>newly_read == <span class="number">0 </span>{
+                    <span class="kw">break</span>;
+                }
+            }
+            <span class="kw">return </span>read_size;
+        }
         <span class="kw">let </span><span class="kw-2">mut </span>read_size = <span class="number">0</span>;
         <span class="kw">for </span>i <span class="kw">in </span><span class="number">0</span>..buf.buffers.len() {
             <span class="kw">let </span>newly_read = inode.inode.read_at(inode.offset, buf.buffers[i]);
@@ -266,6 +305,9 @@
 /// ## 返回
 /// 成功打开文件时返回文件的 OS Inode，否则返回 None
 </span><span class="kw">pub fn </span>open_file(name: <span class="kw-2">&amp;</span>str, flags: OpenFlags) -&gt; <span class="prelude-ty">Option</span>&lt;Arc&lt;OSInode&gt;&gt; {
+    <span class="kw">if </span>name == <span class="string">"/" </span>{
+        <span class="kw">return </span><span class="prelude-val">Some</span>(Arc::new(OSInode::new(<span class="bool-val">true</span>, <span class="bool-val">false</span>, ROOT_INODE.clone())));
+    }
     <span class="kw">let </span>readable = flags.readable();
     <span class="kw">let </span>writable = flags.writable();
     <span class="kw">if </span>flags.contains(OpenFlags::CREATE) {

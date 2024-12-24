@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"constant":["BS","CR","DEL","LF"],"fn":["get_command","main","print_prompt"]};
+window.SIDEBAR_ITEMS = {"constant":["BS","CR","DEL","LF"],"fn":["get_command","main","parse_command","print_prompt"]};
