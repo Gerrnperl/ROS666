@@ -39,8 +39,6 @@ extern crate alloc;
 pub extern "C" fn _start(_: usize, argc: usize, argv: usize) -> ! {
     init_heap(); // 初始化堆
     let mut v: Vec<&'static str> = Vec::new();
-    println!("argc: {}", argc);
-    println!("argv: {}", argv);
     let mut argv_ptr = argv;
     for _ in 0..argc {
         let str_start = argv_ptr as *const u8;
