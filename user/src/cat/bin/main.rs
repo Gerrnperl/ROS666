@@ -5,7 +5,7 @@ extern crate alloc;
 
 use alloc::string::ToString;
 use lib::{
-    fcntl::{OpenFlags, openat},
+    fcntl::{OpenFlags, close, openat},
     print, println, read,
 };
 
@@ -30,5 +30,6 @@ pub fn main(_argc: usize, argv: &[&str]) -> i32 {
             }
         }
     }
+    close(fd as i32);
     0
 }
