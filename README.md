@@ -18,6 +18,16 @@
 - **指导老师**:
   - 田卫东
   - 周红鹃
+
+## 参考
+
+项目开发过程主要参考以下资料：
+- [rCore-Tutorial-Book-v3](https://rcore-os.cn/rCore-Tutorial-Book-v3/) | [GPL-3.0 License](https://github.com/rcore-os/rCore-Tutorial-Book-v3/blob/main/LICENSE)
+
+部分代码参考以下项目：
+- [rCore-Tutorial-v3](https://github.com/rcore-os/rCore-Tutorial-v3) | [GPL-3.0 License](https://github.com/rcore-os/rCore-Tutorial-v3/blob/main/LICENSE)
+- [slab_allocator - Slab allocator for no_std systems. ](https://github.com/weclaw1/slab_allocator/tree/master) | [MIT License](https://github.com/weclaw1/slab_allocator/blob/master/LICENSE)
+- [virtio-drivers](https://github.com/rcore-os/virtio-drivers) | [MIT License](https://github.com/rcore-os/virtio-drivers/blob/master/LICENSE)
   
 ## 进度
 - [x] 裸机内核启动
@@ -33,6 +43,29 @@
   - [x] stdio & fs: read, write; openat, close
   - [x] process: clone(fork), execve, wait, exit, sched_yield
   - [x] gettime, shutdown
+
+## 运行演示
+
+### 启动及关闭系统
+
+<!-- ![启动及关闭系统](./docs/images/demo-系统启动与关闭.gif) -->
+
+<img src="./docs/images/demo-系统启动与关闭.gif" width="1024px" alt="启动及关闭系统">
+
+### 用户程序
+
+<img src="./docs/images/demo-用户程序与命令行参数.gif" width="512px" alt="用户程序执行">
+
+### 进程管理
+
+<!-- ![进程管理](./docs/images/demo-进程分时调度.gif) -->
+<img src="./docs/images/demo-进程分时调度.gif" width="512px" alt="进程管理">
+
+### 文件系统
+
+<!-- ![文件系统](./docs/images/demo-文件系统操作.gif) -->
+<img src="./docs/images/demo-文件系统操作.gif" width="512px" alt="文件系统">
+
 
 ## 开发历程
 
@@ -73,15 +106,6 @@
 
 
 
-## 参考
-
-项目开发过程主要参考以下资料：
-- [rCore-Tutorial-Book-v3](https://rcore-os.cn/rCore-Tutorial-Book-v3/) | [GPL-3.0 License](https://github.com/rcore-os/rCore-Tutorial-Book-v3/blob/main/LICENSE)
-
-部分代码参考以下项目：
-- [rCore-Tutorial-v3](https://github.com/rcore-os/rCore-Tutorial-v3) | [GPL-3.0 License](https://github.com/rcore-os/rCore-Tutorial-v3/blob/main/LICENSE)
-- [slab_allocator - Slab allocator for no_std systems. ](https://github.com/weclaw1/slab_allocator/tree/master) | [MIT License](https://github.com/weclaw1/slab_allocator/blob/master/LICENSE)
-- [virtio-drivers](https://github.com/rcore-os/virtio-drivers) | [MIT License](https://github.com/rcore-os/virtio-drivers/blob/master/LICENSE)
 
 ## 依赖
 
