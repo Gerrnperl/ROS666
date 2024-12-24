@@ -4,7 +4,10 @@ use slab_allocator::LockedHeap;
 use crate::{extern_global, printkln, trace};
 
 /// 内核堆大小
-pub const KERNEL_HEAP_SIZE: usize = 0x60_0000;
+#[cfg(debug_assertions)]
+pub const KERNEL_HEAP_SIZE: usize = 0x90_0000;
+#[cfg(not(debug_assertions))]
+pub const KERNEL_HEAP_SIZE: usize = 0x40_0000;
 
 /// 全局分配器
 #[global_allocator]
