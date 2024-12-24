@@ -252,4 +252,11 @@ impl MemInode {
             .expect("read disk inode failed");
         size
     }
+
+    pub fn get_type(&self) -> InodeType {
+        let inode_type = self
+            .read_disk_inode(|disk_inode| disk_inode.get_type())
+            .expect("read disk inode failed");
+        inode_type
+    }
 }

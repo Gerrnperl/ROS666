@@ -1,7 +1,7 @@
 //! 操作系统 Inode (文件) 结构
 //!
 //! 一个文件在操作系统中对应一个 Inode 结构，用于管理文件的读写操作
-use alloc::{sync::Arc, vec::Vec};
+use alloc::{string::String, sync::Arc, vec::Vec};
 use common::syscall::OpenFlags;
 use lazy_static::lazy_static;
 use ros_fs::{fs::FileSystemRootInode, layout::disk_inode::InodeType, virt_fs::MemInode};
@@ -68,6 +68,24 @@ impl File for OSInode {
     fn read(&self, mut buf: UserBuffer) -> usize {
         let mut inode = self.inode.lock();
         let inode = &mut *inode;
+        if inode.inode.get_type() == InodeType::Dir {
+            // a trick to read directory
+            let ls_str = inode.inode.ls().join("\t");
+            let ls_bytes = ls_str.as_bytes();
+            let mut read_size = 0;
+            for i in 0..buf.buffers.len() {
+                let mut newly_read = 0;
+                while newly_read < ls_bytes.len() && read_size < buf.buffers[i].len() {
+                    buf.buffers[i][read_size] = ls_bytes[newly_read];
+                    newly_read += 1;
+                    read_size += 1;
+                }
+                if newly_read == 0 {
+                    break;
+                }
+            }
+            return read_size;
+        }
         let mut read_size = 0;
         for i in 0..buf.buffers.len() {
             let newly_read = inode.inode.read_at(inode.offset, buf.buffers[i]);
@@ -115,6 +133,9 @@ impl File for OSInode {
 /// ## 返回
 /// 成功打开文件时返回文件的 OS Inode，否则返回 None
 pub fn open_file(name: &str, flags: OpenFlags) -> Option<Arc<OSInode>> {
+    if name == "/" {
+        return Some(Arc::new(OSInode::new(true, false, ROOT_INODE.clone())));
+    }
     let readable = flags.readable();
     let writable = flags.writable();
     if flags.contains(OpenFlags::CREATE) {
