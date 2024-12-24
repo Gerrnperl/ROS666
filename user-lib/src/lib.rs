@@ -19,6 +19,7 @@ pub mod sys;
 pub mod syscall;
 pub mod unistd;
 
+use alloc::vec::Vec;
 use heap_allocator::init_heap;
 pub use sched::*;
 pub use stdio::*;
@@ -27,14 +28,32 @@ pub use unistd::*;
 
 mod heap_allocator;
 
+extern crate alloc;
+
 /// 程序入口点
 ///
 /// 该函数是程序的入口点，负责初始化堆并调用用户定义的 `main` 函数。
 #[unsafe(no_mangle)]
 #[unsafe(link_section = ".text.entry")]
-pub extern "C" fn _start() -> ! {
+// first arg is the return value of sys_execve, ignore it
+pub extern "C" fn _start(_: usize, argc: usize, argv: usize) -> ! {
     init_heap(); // 初始化堆
-    exit(main()); // 调用用户定义的 `main` 函数并退出
+    let mut v: Vec<&'static str> = Vec::new();
+    let mut argv_ptr = argv;
+    for _ in 0..argc {
+        let str_start = argv_ptr as *const u8;
+        let mut len = 0;
+        unsafe {
+            while *((str_start as usize + len) as *const u8) != 0 {
+                len += 1;
+            }
+        }
+        let slice = unsafe { core::slice::from_raw_parts(str_start, len) };
+        let str_slice = core::str::from_utf8(slice).unwrap();
+        v.push(str_slice);
+        argv_ptr += len + 1;
+    }
+    exit(main(argc, v.as_slice()));
 }
 
 /// 用户定义的主函数
@@ -42,7 +61,7 @@ pub extern "C" fn _start() -> ! {
 /// 该函数是一个弱链接，应该被用户代码中的 `main` 函数替换。
 #[linkage = "weak"]
 #[unsafe(no_mangle)]
-fn main() -> i32 {
+fn main(_argc: usize, _argv: &[&str]) -> i32 {
     unreachable!("This main should be replaced by user code"); // 该 `main` 函数应该被用户代码替换
 }
 

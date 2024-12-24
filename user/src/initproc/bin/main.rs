@@ -13,7 +13,7 @@ pub fn main() -> i32 {
     // 如果 fork 返回 0，表示这是子进程
     if fork() == 0 {
         // 在子进程中执行 "sh" 程序
-        execve("sh");
+        execve("sh", None);
     } else {
         // 父进程进入循环
         loop {

@@ -114,8 +114,12 @@ pub fn sys_clone() -> SyscallRet {
 /// - `path`: 程序路径
 /// ## 返回值
 /// 返回系统调用的结果
-pub fn sys_execve(path: &str) -> SyscallRet {
-    syscall(Syscall::Execve, [path.as_ptr() as usize, 0, 0])
+pub fn sys_execve(path: &str, args: Option<&[&str]>) -> SyscallRet {
+    syscall(Syscall::Execve, [
+        path.as_ptr() as usize,
+        args.map(|args| args.as_ptr() as usize).unwrap_or(0),
+        args.map(|args| args.len()).unwrap_or(0),
+    ])
 }
 
 /// 等待子进程退出

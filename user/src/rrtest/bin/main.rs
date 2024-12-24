@@ -6,8 +6,8 @@ use lib::{execve, fork};
 #[unsafe(no_mangle)]
 pub fn main() {
     if fork() == 0 {
-        execve("hello\0");
+        execve("hello\0", None);
     } else {
-        execve("bye\0");
+        execve("bye\0", None);
     }
 }

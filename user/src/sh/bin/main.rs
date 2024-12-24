@@ -3,7 +3,10 @@
 #![no_std]
 #![no_main]
 
-use alloc::string::String;
+use alloc::{
+    string::{String, ToString},
+    vec::Vec,
+};
 use lib::{execve, fork, getchar, sys::wait::waitpid};
 
 extern crate alloc;
@@ -23,9 +26,16 @@ pub fn main() -> i32 {
         if command.len() == 0 {
             continue; // 如果命令为空，继续循环
         }
+        let (mut program, args) = parse_command(command.as_str());
+        program.push('\0');
+        let program = program.as_str();
+        let args_vec: Option<Vec<&str>> = args
+            .as_ref()
+            .map(|args| args.iter().map(|arg| arg.as_str()).collect::<Vec<&str>>());
+        let args_ptr = args_vec.as_ref().map(|args| args.as_slice());
         let pid = fork(); // 创建子进程
         if pid == 0 {
-            let exit_code = execve(command.as_str()); // 在子进程中执行命令
+            let exit_code = execve(program, args_ptr); // 在子进程中执行命令
             if exit_code != 0 {
                 println!("Failed to execute command: {}", command); // 命令执行失败
                 return -4;
@@ -72,4 +82,22 @@ fn get_command(echo: bool) -> String {
         }
     }
     buffer // 返回缓冲区中的字符串
+}
+
+fn parse_command(command: &str) -> (String, Option<Vec<String>>) {
+    let mut parts = command.split_whitespace(); // 使用空白字符分割命令
+    let program = parts.next().unwrap().to_string(); // 第一个部分是程序名
+    let args = parts.collect::<Vec<&str>>(); // 剩余部分是参数
+
+    // add \0 to the end of each argument
+    let args_with_null: Vec<String> = args
+        .iter()
+        .map(|&arg| {
+            let mut arg = arg.to_string();
+            arg.push('\0');
+            arg
+        })
+        .collect();
+
+    (program, Some(args_with_null))
 }
