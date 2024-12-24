@@ -50,8 +50,8 @@ pub fn fork() -> isize {
 /// - `path`: 程序路径
 /// ## 返回值
 /// 返回执行结果
-pub fn execve(path: &str) -> isize {
-    syscall::sys_execve(path)
+pub fn execve(path: &str, args: Option<&[&str]>) -> isize {
+    syscall::sys_execve(path, args)
 }
 
 /// 休眠指定秒数

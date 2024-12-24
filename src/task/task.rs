@@ -1,5 +1,6 @@
 //! 进程管理
 
+use alloc::string::String;
 use alloc::vec;
 use alloc::{
     sync::{Arc, Weak},
@@ -8,6 +9,9 @@ use alloc::{
 
 use crate::fs::stdio::{Stdin, Stdout};
 
+use crate::mm::page_table::get_translated_refmut;
+
+use crate::trap::context::Riscv64RegAlias;
 use crate::{
     fs::File,
     mm::{
@@ -221,17 +225,34 @@ impl SyncRefCell<ProcessControlBlock> {
     ///
     /// ## 参数
     /// - `app_data`: 应用程序数据
-    pub fn exec(self: &Arc<SyncRefCell<ProcessControlBlock>>, app_data: &[u8]) {
-        let (memory_set, user_sp, entry) = MemorySet::from_elf_app(app_data);
+    pub fn exec(self: &Arc<SyncRefCell<ProcessControlBlock>>, app_data: &[u8], args: Vec<String>) {
+        let (memory_set, mut user_sp, entry) = MemorySet::from_elf_app(app_data);
         let trap_ctx_ppn = PhysicalPageNumber::from(
             &memory_set
                 .translate(VirtualPageNumber::from(VirtualAddress::from(TRAP_CONTEXT)))
                 .unwrap(),
         );
+
+        for i in (0..args.len()).rev() {
+            user_sp -= 1;
+            *get_translated_refmut(memory_set.token(), user_sp as *mut u8) = 0;
+            for byte in args[i].bytes().rev() {
+                user_sp -= 1;
+                *get_translated_refmut(memory_set.token(), user_sp as *mut u8) = byte;
+            }
+        }
+
+        let argv_start = user_sp;
+        let argc = args.len();
+
+        // make the user_sp aligned to 8B for k210 platform
+        user_sp -= user_sp % core::mem::size_of::<usize>();
+
         let mut pcb = self.inner_borrow_mut();
         pcb.memory_set = memory_set;
         pcb.trap_ctx_ppn = trap_ctx_ppn;
         let ctx = pcb.get_trap_cx();
+
         *ctx = TrapCtx::init_app_context(
             entry,
             user_sp,
@@ -239,5 +260,10 @@ impl SyncRefCell<ProcessControlBlock> {
             pcb.kernel_stack.top(),
             trap_handler as usize,
         );
+
+        // as the return value of syscall is stored in a0
+        // we need to store argc and argv_start in a1 and a2
+        *ctx.a(1) = argc as usize;
+        *ctx.a(2) = argv_start;
     }
 }

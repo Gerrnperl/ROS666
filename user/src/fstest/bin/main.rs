@@ -2,8 +2,9 @@
 #![no_main]
 
 use lib::{
+    execve,
     fcntl::{OpenFlags, close, openat},
-    read, write,
+    fork, read, write,
 };
 extern crate alloc;
 #[macro_use]
@@ -14,7 +15,7 @@ pub fn main() -> i32 {
     let content = "Hello fs";
     let file = "test.txt";
     let fd = openat(file, OpenFlags::CREATE | OpenFlags::WRITEONLY);
-    print!("fd: {}", fd);
+    println!("fd: {}", fd);
     assert!(fd >= 0, "Failed to open file");
     let fd = fd as usize;
     write(fd, content.as_bytes());
@@ -29,6 +30,10 @@ pub fn main() -> i32 {
 
     let content = core::str::from_utf8(&buf[..size as usize]).unwrap();
     println!("Read content: {}", content);
-
+    if fork() == 0 {
+        execve("hello\0", None);
+    } else {
+        execve("bye\0", None);
+    }
     0
 }

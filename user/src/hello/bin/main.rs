@@ -3,16 +3,22 @@
 #![no_std]
 #![no_main]
 
-use lib::{TimeVal, sleep, sys::time::get_time_of_day};
+use lib::{TimeVal, sched_yield, sleep, sys::time::get_time_of_day};
 
 #[macro_use]
 extern crate lib;
 
 #[unsafe(no_mangle)]
-pub fn main() -> i32 {
+pub fn main(argc: usize, argv: &[&str]) -> i32 {
     // 打印欢迎信息
     println!("Hello world from user mode program!");
-    // 测试格式化信息
+
+    // 打印参数
+    println!("Arguments: argc = {}, argv = {:?}", argc, argv);
+
+    // 调用调度让出函数
+    sched_yield();
+    // 打印数组
     println!("Array: {:#?}", [1, 2, 3, 4, 5]);
     for i in 0..10 {
         sleep(1);

@@ -1,5 +1,7 @@
 //! 系统调用实现
-use alloc::sync::Arc;
+
+use alloc::{sync::Arc, vec::Vec};
+
 use common::syscall::{
     OpenFlags, Syscall, SyscallArgs, SyscallRet,
     time::{TimeVal, TimeZone},
@@ -32,7 +34,7 @@ pub fn syscall(call: Syscall, args: SyscallArgs) -> SyscallRet {
         Syscall::GetTimeOfDay => sys_get_time_of_day(args[0] as *mut _, args[1] as *mut _),
         Syscall::Shutdown => sys_shutdown(),
         Syscall::Clone => sys_clone(),
-        Syscall::Execve => sys_execve(args[0] as *const u8),
+        Syscall::Execve => sys_execve(args[0] as *const u8, args[1] as *const usize, args[2]),
         Syscall::Wait4 => sys_wait4(args[0] as isize, args[1] as *mut i32),
         #[allow(
             unreachable_patterns,
@@ -168,13 +170,23 @@ pub fn sys_clone() -> SyscallRet {
 }
 
 /// [Syscall::Execve]
-pub fn sys_execve(path: *const u8) -> SyscallRet {
-    let path = get_translated_string(Processor::current_user_token().unwrap(), path as *const u8);
+pub fn sys_execve(path: *const u8, args_ptr: *const usize, argc: usize) -> SyscallRet {
+    let token = Processor::current_user_token().unwrap();
+    let path = get_translated_string(token, path as *const u8);
+    let mut args = Vec::new();
+    let mut arg_ptr = args_ptr;
+    for _ in 0..argc {
+        let arg_ref = *get_translated_refmut(token, arg_ptr as *mut usize);
+        let arg = get_translated_string(token, arg_ref as *const u8);
+        arg_ptr = arg_ptr.wrapping_add(2);
+        args.push(arg);
+    }
+
     if let Some(app_inode) = open_file(path.as_str(), OpenFlags::READONLY) {
         let data = app_inode.read_all();
         let data = data.as_slice();
         let current = Processor::get_current().unwrap();
-        current.exec(data);
+        current.exec(data, args);
         0
     } else {
         printkln!("Failed to load app data: {}\n", path);
