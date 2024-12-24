@@ -68,13 +68,19 @@
 <a href="#67" id="67">67</a>
 <a href="#68" id="68">68</a>
 <a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a></pre></div><pre class="rust"><code><span class="doccomment">//! 堆内存分配器
+<a href="#70" id="70">70</a>
+<a href="#71" id="71">71</a>
+<a href="#72" id="72">72</a>
+<a href="#73" id="73">73</a></pre></div><pre class="rust"><code><span class="doccomment">//! 堆内存分配器
 </span><span class="kw">use </span>slab_allocator::LockedHeap;
 
 <span class="kw">use crate</span>::{extern_global, printkln, trace};
 
 <span class="doccomment">/// 内核堆大小
-</span><span class="kw">pub const </span>KERNEL_HEAP_SIZE: usize = <span class="number">0x60_0000</span>;
+</span><span class="attr">#[cfg(debug_assertions)]
+</span><span class="kw">pub const </span>KERNEL_HEAP_SIZE: usize = <span class="number">0x90_0000</span>;
+<span class="attr">#[cfg(not(debug_assertions))]
+</span><span class="kw">pub const </span>KERNEL_HEAP_SIZE: usize = <span class="number">0x40_0000</span>;
 
 <span class="doccomment">/// 全局分配器
 </span><span class="attr">#[global_allocator]
