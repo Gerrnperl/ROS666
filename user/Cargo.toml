@@ -36,6 +36,10 @@ path = "src/shutdown/bin/main.rs"
 name = "echo"
 path = "src/echo/bin/main.rs"
 
+[[bin]]
+name = "calc"
+path = "src/calc/bin/main.rs"
+
 [dependencies]
 lib = { path = "../user-lib" }
 
@@ -43,4 +47,4 @@ lib = { path = "../user-lib" }
 build = { path = "../user-build" }
 
 [package.metadata]
-applications = ["initproc", "sh", "hello", "bye", "fstest", "rrtest", "shutdown", "echo"]
+applications = ["initproc", "sh", "hello", "bye", "fstest", "rrtest", "shutdown", "echo", "calc"]
