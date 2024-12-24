@@ -34,6 +34,45 @@
   - [x] process: clone(fork), execve, wait, exit, sched_yield
   - [x] gettime, shutdown
 
+## 开发历程
+
+至2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理比赛结束时，本项目总共经历了230余次修改。具体请参考我们的[commit记录](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/commits/main)
+
+本项目共包含约8500行代码、约5200行markdown文档说明，下表具体展示了组成项目各部分的占比。
+
+| language | files | code | comment | blank | total |
+| :--- | ---: | ---: | ---: | ---: | ---: |
+| Rust | 79 | 5,119 | 2,291 | 819 | 8,229 |
+| source.markdown.math | 20 | 3,803 | 0 | 1,445 | 5,248 |
+| TOML | 9 | 158 | 5 | 33 | 196 |
+| Assembler file | 3 | 136 | 0 | 22 | 158 |
+| Makefile | 1 | 106 | 25 | 25 | 156 |
+| Shell Script | 1 | 92 | 36 | 16 | 144 |
+| LinkerScript | 2 | 86 | 2 | 12 | 100 |
+| YAML | 1 | 23 | 0 | 7 | 30 |
+
+
+以下为各个版本完成的工作：
+| 版本 | 完成核心任务 | 跳转链接 | 
+| :--- | :--- | :--- |
+| v0.0.1 | 裸机程序 Hello World | [v0.0.1](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.1) | 
+| v0.0.2 | 基本用户态程序执行 | [v0.0.2](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.2) |
+| v0.0.3 | 完善构建脚本和启动配置 | [v0.0.3](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.3) | 
+| v0.0.4 | 陷入处理与基本系统调用实现、程序加载与批处理 | [v0.0.4](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.4) | 
+| v0.0.5 | 多道程序加载与动态地址重定位 | [v0.0.5](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.5) | 
+| v0.0.6 | 多道程序执行、任务切换、协作式调度 | [v0.0.6](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.6) |
+| v0.0.7 | 时间片轮转与分时多任务 | [v0.0.7](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.7) |
+| v0.0.8 | 堆分配器、动态内存分配 | [v0.0.8](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.8) |
+| v0.0.9 | 分页机制、地址空间、ELF程序加载 | [v0.0.9](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.9)
+| v0.0.10 | 进程管理与进程调度 | [v0.0.10](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.10) | 
+| v0.0.11 | 文件系统库与文件系统镜像打包工具 | [v0.0.11](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.11) | 
+| v0.1.0 | 文件系统接入、VirtIO block device 与 SD 卡驱动 | [v0.1.0](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.1.0) | 
+| v0.1.1 | 关闭系统、进程让权休眠；完善日志；代码整理优化 | [v0.1.1](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.1.1) | 
+| v0.1.2 | 命令行参数；cat、ls、touch 等用户程序 | [v0.1.2](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.1.2) |
+
+
+
+
 ## 参考
 
 项目开发过程主要参考以下资料：
