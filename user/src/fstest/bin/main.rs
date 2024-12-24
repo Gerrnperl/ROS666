@@ -2,9 +2,8 @@
 #![no_main]
 
 use lib::{
-    execve,
     fcntl::{OpenFlags, close, openat},
-    fork, read, write,
+    read, write,
 };
 extern crate alloc;
 #[macro_use]
