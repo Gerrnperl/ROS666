@@ -1,7 +1,7 @@
 //! 操作系统 Inode (文件) 结构
 //!
 //! 一个文件在操作系统中对应一个 Inode 结构，用于管理文件的读写操作
-use alloc::{string::String, sync::Arc, vec::Vec};
+use alloc::{sync::Arc, vec::Vec};
 use common::syscall::OpenFlags;
 use lazy_static::lazy_static;
 use ros_fs::{fs::FileSystemRootInode, layout::disk_inode::InodeType, virt_fs::MemInode};
