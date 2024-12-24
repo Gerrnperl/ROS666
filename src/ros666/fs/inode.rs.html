@@ -173,7 +173,7 @@
 <a href="#172" id="172">172</a></pre></div><pre class="rust"><code><span class="doccomment">//! 操作系统 Inode (文件) 结构
 //!
 //! 一个文件在操作系统中对应一个 Inode 结构，用于管理文件的读写操作
-</span><span class="kw">use </span>alloc::{string::String, sync::Arc, vec::Vec};
+</span><span class="kw">use </span>alloc::{sync::Arc, vec::Vec};
 <span class="kw">use </span>common::syscall::OpenFlags;
 <span class="kw">use </span>lazy_static::lazy_static;
 <span class="kw">use </span>ros_fs::{fs::FileSystemRootInode, layout::disk_inode::InodeType, virt_fs::MemInode};
