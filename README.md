@@ -29,7 +29,17 @@
 - [slab_allocator - Slab allocator for no_std systems. ](https://github.com/weclaw1/slab_allocator/tree/master) | [MIT License](https://github.com/weclaw1/slab_allocator/blob/master/LICENSE)
 - [virtio-drivers](https://github.com/rcore-os/virtio-drivers) | [MIT License](https://github.com/rcore-os/virtio-drivers/blob/master/LICENSE)
 
+项目的实现也离不开 [Rust 语言](https://www.rust-lang.org/) 及其[生态](https://crates.io/)、[rCore OS 社区](https://github.com/rcore-os) 生态的支持。
+
+**在此，我们对这些开源项目和社区表示感谢**。
+
 ## 文档
+
+完整设计文档（PDF）：[ROS666小型内核设计手册](./docs/ROS666小型内核设计手册.pdf)
+
+项目 API 文档, 使用 `cargo doc` 和 `Github Workflow` 持续集成生成： [API 文档](https://gerrnperl.github.io/ROS666/ros666/index.html)
+
+项目分模块文档：
 
 - [概述](./docs/概述.md)
 - [操作系统启动](./docs/操作系统启动.md)
