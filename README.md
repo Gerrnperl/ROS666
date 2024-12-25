@@ -104,7 +104,7 @@
 
 至2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理比赛结束时，本项目总共经历了270余次修改。具体请参考我们的[commit记录](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/commits/main)
 
-至比赛结束时，本项目共包含约8500行源代码、约6500行markdown文档，下表具体展示了组成项目各部分的占比。
+至比赛结束时本项目共包含约8500行源代码、约6500行markdown文档，下表具体展示了组成项目各部分的占比。
 
 | language | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
@@ -135,7 +135,153 @@
 | v0.1.1 | 关闭系统、进程让权休眠；完善日志；代码整理优化 | [v0.1.1](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.1.1) | 
 | v0.1.2 | 命令行参数；cat、ls、touch 等用户程序 | [v0.1.2](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.1.2) |
 
+## 项目结构
 
+```
+.
+├── .cargo                      # Cargo 配置
+│  └── config.toml
+├── .github                     # GitHub Actions 配置
+│  └── workflows
+│     └── cargo-doc.yml         # 项目 cargo doc 代码文档的持续集成配置
+├── .vscode                     # VSCode 配置
+│  ├── extensions.json          # VSCode 集成调试所需的插件
+│  ├── launch.json              # 调试配置
+│  ├── settings.json            # VSCode 设置
+│  └── tasks.json               # 任务配置
+├── bootloader                  # RustSBI 启动引导程序
+│  └── rustsbi-qemu-release
+├── build.rs                    # 内核构建脚本
+├── common                      # 适用于内核和用户程序的公共模块，如系统调用接口
+│  ├── Cargo.toml
+│  ├── README.md
+│  └── src
+│     ├── lib.rs
+│     └── syscall.rs
+├── docs                        # 项目文档
+│  └── ...
+├── LICENSE                     # 开源许可证 (GPL-3.0)
+├── Makefile                    # 项目构建 Makefile 脚本
+├── README.md
+├── ros-fs                      # 文件系统模块
+│  ├── Cargo.toml
+│  ├── README.md
+│  └── src
+│     ├── bitmap.rs             # 位示图管理
+│     ├── block_cache.rs        # 块缓存管理
+│     ├── block_dev.rs          # 块设备接口
+│     ├── fs.rs                 # 文件系统抽象层
+│     ├── layout                # 磁盘布局层
+│     │  ├── dir_entry.rs       # 磁盘布局/目录项
+│     │  ├── disk_inode.rs      # 磁盘布局/索引节点
+│     │  ├── mod.rs             # 磁盘布局模块入口
+│     │  └── super_block.rs     # 磁盘布局/超级块
+│     ├── lib.rs                # 文件系统模块入口
+│     └── virt_fs.rs            # 文件和目录操作（内存 Inode 部分）
+├── ros-fs-fuse                 # 文件系统镜像打包工具
+│  ├── Cargo.toml
+│  ├── README.md
+│  └── src
+│     ├── block_file.rs
+│     └── main.rs
+├── scripts                     # 项目脚本
+│  └── check-dev-requirements.sh# 检查开发环境脚本
+├── slab_allocator              # Slab Allocator 动态内存分配器
+│  ├── Cargo.toml
+│  ├── README.md
+│  └── src
+│     ├── lib.rs                # Slab Allocator 模块入口及堆内存分配器实现
+│     └── slab.rs               # Slab Allocator 实现
+├── src                         # 内核源码
+│  ├── drivers                  # 设备驱动
+│  │  ├── block                 # 块设备驱动
+│  │  │  ├── mod.rs             # 块设备驱动模块入口
+│  │  │  ├── sdcard.rs          # SD 卡驱动
+│  │  │  └── virtio_block.rs    # VirtIO 块设备驱动
+│  │  └── mod.rs                # 设备驱动模块入口
+│  ├── entry.asm                # 内核入口汇编代码
+│  ├── fs                       # 文件系统 (文件和目录操作，系统 Inode 部分)
+│  │  ├── inode.rs              # 系统 Inode，提供读写接口
+│  │  ├── mod.rs                # 文件系统模块入口
+│  │  └── stdio.rs              # 基于文件描述符的标准输入输出
+│  ├── io                       # 输入输出
+│  │  ├── log.rs                # 日志输出
+│  │  ├── mod.rs                # 输入输出模块入口
+│  │  └── stdio.rs              # SBI 标准输入输出 (Console 相关IO)
+│  ├── language_item.rs         # Rust 语言项
+│  ├── linker.ld                # 内核链接脚本
+│  ├── main.rs                  # 内核入口及初始化
+│  ├── mm                       # 内存管理
+│  │  ├── address.rs            # 地址抽象
+│  │  ├── frame_allocator.rs    # 物理页帧分配器
+│  │  ├── heap_allocator.rs     # 堆内存分配器 (Slab Allocator 实例)
+│  │  ├── init.rs               # 内存管理初始化
+│  │  ├── memory_set.rs         # 逻辑段和地址空间
+│  │  ├── mod.rs                # 内存管理模块入口  
+│  │  └── page_table.rs         # 页表管理
+│  ├── sbi.rs                   # RustSBI 接口封装
+│  ├── syscall.rs               # 系统调用接口实现
+│  ├── task                     # 进程管理
+│  │  ├── context.rs            # 进程上下文
+│  │  ├── manager.rs            # 进程管理器    
+│  │  ├── mod.rs                # 进程管理模块入口
+│  │  ├── pid.rs                # 进程 PID 分配回收管理
+│  │  ├── processor.rs          # 进程处理器
+│  │  ├── stack.rs              # 进程内核栈
+│  │  ├── switch.asm            # 进程切换汇编代码
+│  │  ├── switch.rs             # 进程切换实现
+│  │  └── task.rs               # 进程控制块
+│  ├── timer.rs                 # 时钟中断相关
+│  ├── trap                     # 陷入与陷入返回
+│  │  ├── context.rs            # 陷入上下文
+│  │  ├── handler.rs            # 陷入处理
+│  │  ├── init.rs               # 陷入初始化
+│  │  ├── mod.rs                # 陷入模块入口
+│  │  └── trap.asm              # 陷入与陷入返回汇编代码
+│  └── utils                    # 工具模块
+│     ├── macros.rs             # 宏定义，包括用于引用外部定义符号的宏
+│     ├── mod.rs                # 工具模块入口
+│     └── safety.rs             # 安全性封装相关
+├── user                        # 用户程序
+│  ├── build.rs                 # 用户程序构建脚本 (导入 user-build 执行)
+│  ├── Cargo.toml
+│  ├── README.md
+│  └── src                      # 用户程序源码
+│     ├── bye/bin/main.rs       # bye，测试输出、时间获取、协作式调度
+│     ├── calc/bin/main.rs      # calc，简单的四则运算计算器
+│     ├── cat/bin/main.rs       # cat，读取文件
+│     ├── echo/bin/main.rs      # echo，测试标准输入输出和命令行参数解析
+│     ├── fstest/bin/main.rs    # fstest，测试文件系统读写
+│     ├── hello/bin/main.rs     # hello，和 bye 一致
+│     ├── initproc/bin/main.rs  # initproc，系统第一个用户进程，主要是打开 shell
+│     ├── ls/bin/main.rs        # ls，文件系统目录读取
+│     ├── rrtest/bin/main.rs    # rrtest，测试时间片轮转进程调度，并发执行 hello 和 bye
+│     ├── sh/bin/main.rs        # sh，简单的 shell，参数解析和程序执行
+│     ├── shutdown/bin/main.rs  # shutdown，关机
+│     └── touchwith/bin/main.rs # touchwith，创建文件，并写入内容
+├── user-build                  # 用户程序构建流依赖
+│  ├── Cargo.toml
+│  ├── README.md
+│  └── src
+│     ├── lib.rs                # 用户程序构建流依赖模块入口
+│     └── linker.template.ld    # 用户程序链接脚本模板
+└── user-lib                    # 用户程序函数库
+   ├── Cargo.toml
+   ├── README.md
+   └── src                      # 用户程序函数库源码
+      ├── fcntl.rs              # 文件控制
+      ├── heap_allocator.rs     # 用户程序堆内存分配器 (Slab Allocator 实例)
+      ├── language_item.rs      # Rust 语言项
+      ├── lib.rs                # 用户程序函数库模块入口
+      ├── sched.rs              # 调度相关
+      ├── stdio.rs              # 标准输入输出
+      ├── sys                   # 系统相关
+      │  ├── mod.rs
+      │  ├── time.rs            # 时间获取
+      │  └── wait.rs            # 进程等待
+      ├── syscall.rs            # 系统调用，访管指令封装
+      └── unistd.rs             # 定义在 POSIX 标准中并且实现了的系统调用封装
+```
 ## 依赖
 
 项目构建运行配置针对 Linux (Ubuntu) 系统配置，未在其他系统上测试。建议使用 WSL2 或 VMWare / VirtualBox 等虚拟机运行 Ubuntu 系统。
