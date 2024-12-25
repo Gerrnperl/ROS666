@@ -263,7 +263,7 @@ qemu-system-riscv64 --version
 
 更多详细信息请参考 [rCore-Tutorial-Book-v3](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter0/5setup-devel-env.html#gdb)。
 
-##调试运行
+## 调试运行
 
 项目使用 Makefile 管理构建任务，并充分利用 VS Code 的任务和调试配置，覆盖了从环境检查、编译、打包、运行到调试的全流程，建议使用 Visual Studio Code 进行开发和调试运行。
 
