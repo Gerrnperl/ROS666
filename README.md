@@ -102,22 +102,23 @@
 
 ## 开发历程
 
-至2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理比赛结束时，本项目总共经历了260余次修改。具体请参考我们的[commit记录](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/commits/main)
+至2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理比赛结束时，本项目总共经历了270余次修改。具体请参考我们的[commit记录](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/commits/main)
 
-至比赛结束时，本项目共包含约8500行源代码、约6200行markdown文档说明，下表具体展示了组成项目各部分的占比。
+至比赛结束时，本项目共包含约8500行源代码、约6500行markdown文档，下表具体展示了组成项目各部分的占比。
 
 | language | files | code | comment | blank | total |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | Rust | 79 | 5,119 | 2,291 | 819 | 8,229 |
-| Markdown | 29 | 4,724 | 0 | 1,558 | 6,282 |
+| Markdown | 30 | 4,959 | 0 | 1,631 | 6,590 |
 | TOML | 9 | 158 | 5 | 33 | 196 |
 | Assembler file | 3 | 136 | 0 | 22 | 158 |
 | Makefile | 1 | 106 | 25 | 25 | 156 |
 | Shell Script | 1 | 92 | 36 | 16 | 144 |
 | LinkerScript | 2 | 86 | 2 | 12 | 100 |
 
-以下为各个版本完成的工作：
-| 版本 | 完成核心任务 | 跳转链接 | 
+以下为项目各阶段所完成的核心任务及对应的提交链接。
+
+| 版本 | 完成核心任务 | Tag 链接 | 
 | :--- | :--- | :--- |
 | v0.0.1 | 裸机程序 Hello World | [v0.0.1](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.1) | 
 | v0.0.2 | 基本用户态程序执行 | [v0.0.2](https://gitlab.eduxiji.net/T202419359994630/project2608132-275917/-/tags/v0.0.2) |
@@ -262,9 +263,42 @@ qemu-system-riscv64 --version
 
 更多详细信息请参考 [rCore-Tutorial-Book-v3](https://rcore-os.cn/rCore-Tutorial-Book-v3/chapter0/5setup-devel-env.html#gdb)。
 
-## Launch
+##调试运行
 
-建议使用 Visual Studio Code 进行开发和调试运行，已经为 VS Code 配置了需要的任务和调试配置。
+项目使用 Makefile 管理构建任务，并充分利用 VS Code 的任务和调试配置，覆盖了从环境检查、编译、打包、运行到调试的全流程，建议使用 Visual Studio Code 进行开发和调试运行。
+
+### Make
+
+Makefile 中提供了以下构建目标和任务:
+
+| 目标/任务名称 | 描述 |
+| --- | --- |
+| `check-dev-requirements` | 检查开发环境 |
+| `build-kernel`    | 构建内核|
+| `build-users`     | 构建所有用户程序|
+| `build-active-user`| 构建指定用户程序|
+| `pack-users-fs-img`| 打包用户程序文件系统|
+| `launch-qemu-system`| 启动 QEMU 调试内核|
+| `launch-qemu-user` | 启动 QEMU 调试用户程序|
+| `launch-qemu-user.run` | 启动 QEMU 运行用户程序|
+| `gdb-kernel`      | 启动 GDB 调试内核|
+| `gdb-user`       | 启动 GDB 调试用户程序|
+
+其中，构建和调试任务（`build-`、`pack-`、`launch-`、`gdb-`）分为 `dev` 和 `release` 两种模式。使用 `make {target}.dev` 或 `make {target}.release` 来选择构建模式。
+
+其他构建任务请参考 Makefile 文件。
+
+主要参数说明：
+
+| 参数名称 | 默认值 | 描述  |
+|---------|-------|------|
+| `KERNEL_GDB_PORT`   | `25666` | 内核 GDB 调试端口，默认为 `25666`。 |
+| `USER_GDB_PORT`     | `26666` | 用户程序 GDB 调试端口，默认为 `26666`。 |
+| `BOOTLOADER`       | `bootloader/rustsbi-qemu-release`  | 启动引导程序路径。     |
+| `BOARD` | `qemu` | 开发板类型，默认为 `qemu`。 |
+| `ACTIVE_USER_APP`   | 通过 `ACTIVE_USER_APP_PATH` 环境变量设置 | 指定当前构建的用户程序。 |
+
+其他参数请参考 Makefile 文件。
 
 ### Visual Studio Code
 
