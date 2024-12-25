@@ -4,7 +4,7 @@
 
 ## 比赛信息
 
-项目为 2024 年[2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理赛道](https://os.educg.net/?token=mFdHhJEk3gYJUVY04cNJCPrCl4h4Nxeu4EEkp6Vszn#/index?TYPE=OS_HDN/#/index?TYPE=OS_HDN)
+项目为 [2024年全国大学生计算机系统能力大赛-操作系统设计赛(华东区域赛)-OS原理赛道](https://os.educg.net/?token=mFdHhJEk3gYJUVY04cNJCPrCl4h4Nxeu4EEkp6Vszn#/index?TYPE=OS_HDN/#/index?TYPE=OS_HDN)
 参赛项目。
 
 - **学校**：合肥工业大学（HFUT）
@@ -35,11 +35,11 @@
 
 ## 文档
 
-完整设计文档（PDF）：[ROS666小型内核设计手册](./docs/ROS666小型内核设计手册.pdf)
+**完整设计文档（PDF）**：[ROS666小型内核设计手册](./docs/ROS666小型内核设计手册.pdf)
 
-项目 API 文档, 使用 `cargo doc` 和 `Github Workflow` 持续集成生成： [API 文档](https://gerrnperl.github.io/ROS666/ros666/index.html)
+**项目 API 文档, 使用 `cargo doc` 和 `Github Workflow` 持续集成生成**： [API 文档](https://gerrnperl.github.io/ROS666/ros666/index.html)
 
-项目分模块文档：
+**项目分模块文档：**
 
 - [概述](./docs/概述.md)
 - [操作系统启动](./docs/操作系统启动.md)
